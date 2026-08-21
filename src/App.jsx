@@ -1,25 +1,36 @@
 import Navbar from "./components/Navbar";
 import CommandPalette from "./components/CommandPalette";
+import AskMeAI from "./components/AskMeAI";
 
 import Hero from "./sections/Hero";
 import About from "./sections/About";
 import Skills from "./sections/Skills";
 import ProjectChooser from "./sections/ProjectChooser";
 import Projects from "./sections/Projects";
+import Testimonials from "./sections/Testimonials";
 import Experience from "./sections/Experience";
 import Contact from "./sections/Contact";
-import Testimonials from "./sections/Testimonials";
 
 import { FaWhatsapp } from "react-icons/fa";
 
 import "./App.css";
 
 function App() {
+  const openAIAssistant = (event) => {
+    event.preventDefault();
+
+    window.dispatchEvent(
+      new Event("open-ai-assistant")
+    );
+  };
+
   return (
     <>
       <Navbar />
 
       <CommandPalette />
+
+      <AskMeAI />
 
       <main>
         <Hero />
@@ -53,18 +64,20 @@ function App() {
           </span>
         </a>
 
-        {/* Ask Me */}
+        {/* Ask Me AI */}
 
         <a
-          href="#"
-          className="floating-btn hire-btn ask-me-disabled ask-me-btn"
-          aria-label="Ask Me"
-          onClick={(event) =>
-            event.preventDefault()
-          }
+          href="#ask-me"
+          className="floating-btn hire-btn ask-me-btn"
+          aria-label="Open Ahsan AI assistant"
+          onClick={openAIAssistant}
         >
           <span className="ask-me-avatar">
+            {/* Animated rotating ring */}
+
             <span className="ask-me-ring" />
+
+            {/* Ahsan profile picture */}
 
             <span className="ask-me-photo-frame">
               <img
@@ -73,6 +86,8 @@ function App() {
                 className="ask-me-person"
               />
             </span>
+
+            {/* Online status */}
 
             <span className="ask-me-status" />
           </span>
