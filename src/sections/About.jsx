@@ -85,7 +85,7 @@ function About() {
   <div className="about-photo-image-wrapper">
     <motion.img
       src="/ahsan-real-profile.jpg"
-      alt="Ahsan Nasir — Full Stack Developer"
+      alt="Ahsan Nasir, Full Stack Developer and Odoo ERP Specialist based in Karachi, Pakistan"
       className="about-photo-image"
       variants={{
         initial: {

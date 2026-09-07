@@ -127,6 +127,10 @@ function Hero() {
                 className="hero-eyebrow"
                 variants={itemAnimation}
               >
+                Ahsan Nasir
+
+                <span>/</span>
+
                 Software Engineer
 
                 <span>/</span>
@@ -135,7 +139,7 @@ function Hero() {
 
                 <span>/</span>
 
-                ERP Specialist
+                Odoo ERP Specialist
               </motion.p>
 
               <motion.h1
@@ -159,7 +163,7 @@ function Hero() {
                 </span>
               </motion.h1>
 
-              <motion.div
+<motion.div
                 className="hero-bottom-content"
                 variants={itemAnimation}
               >

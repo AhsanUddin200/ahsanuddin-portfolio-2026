@@ -148,7 +148,7 @@ function ProjectCard({ project, index }) {
                   activeImageIndex
                 ]
               }
-              alt={`${title} project preview`}
+              alt={`${title} ${category} case study by Ahsan Nasir`}
               loading="lazy"
               className="case-study-gallery-image"
               initial={{
@@ -268,12 +268,14 @@ function ProjectCard({ project, index }) {
         {/* IMAGE TITLE */}
 
         <div className="case-study-image-title">
-          <span>
-            SELECTED CASE STUDY
-          </span>
+  <span>
+    SELECTED CASE STUDY
+  </span>
 
-          <h3>{title}</h3>
-        </div>
+  <div className="case-study-image-heading">
+    {title}
+  </div>
+</div>
       </div>
 
       {/* =====================================

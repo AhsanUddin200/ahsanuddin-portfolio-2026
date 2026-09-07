@@ -1,0 +1,1397 @@
+/* =========================================================
+   AHSAN PORTFOLIO
+   TYPOGRAPHY + COMPACT LAYOUT + PERFORMANCE
+   NO THEME COLOR REPLACEMENT
+========================================================= */
+
+
+/* =========================================================
+   FONT SYSTEM
+========================================================= */
+
+:root {
+  --font-primary:
+    "Outfit",
+    sans-serif;
+
+  --font-mono:
+    "JetBrains Mono",
+    monospace;
+
+  --font-serif:
+    "Outfit",
+    sans-serif;
+
+
+  /* Make complete website slightly more compact */
+
+  --container-width:
+    1120px;
+
+  --section-space:
+    105px;
+}
+
+
+/* Main font */
+
+body,
+button,
+input,
+textarea,
+select {
+  font-family:
+    var(--font-primary)
+    !important;
+}
+
+
+/*
+   Old App.css has Manrope hard coded
+   in multiple places.
+   These rules safely override it.
+*/
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+a,
+button,
+strong,
+small {
+  font-family:
+    var(--font-primary)
+    !important;
+}
+
+
+/* =========================================================
+   MONO / DEVELOPER LABELS
+========================================================= */
+
+.logo-text small,
+
+.navbar-command-btn,
+.navbar-command-btn kbd,
+
+.desktop-navigation a span,
+
+.hero-eyebrow,
+.availability-badge,
+.hero-location,
+
+.section-number,
+.section-title-label,
+
+.visual-file-name,
+.visual-status,
+.code-number,
+
+.portrait-top-bar > span,
+.portrait-live,
+.portrait-tech,
+.portrait-code-card,
+.portrait-footer strong,
+.portrait-footer-code,
+
+.skill-number,
+.skill-item,
+.skill-popover-subtitle,
+
+.project-filter-label,
+.project-smart-filter-btn,
+.project-filter-count,
+
+.case-study-number,
+.case-study-category,
+.case-study-live-button,
+.case-study-gallery-label,
+.case-study-label,
+.case-study-technologies span,
+.case-study-status,
+
+.testimonial-play-status,
+.testimonial-meta,
+
+.experience-node-number,
+.experience-type,
+
+.command-results-label,
+
+.theme-toggle-text {
+  font-family:
+    var(--font-mono)
+    !important;
+}
+
+
+/* =========================================================
+   SPECIAL HEADLINE
+========================================================= */
+
+.hero-serif-line,
+.title-highlight,
+.section-title-highlight {
+  font-family:
+    var(--font-primary)
+    !important;
+
+  font-style: italic;
+
+  font-weight: 500;
+}
+
+
+/* =========================================================
+   STRONGER BLUE BACKGROUND SHADE
+   ORIGINAL THEME REMAINS
+========================================================= */
+
+body {
+  background:
+    radial-gradient(
+      circle at 7% 12%,
+      rgba(
+        112,
+        101,
+        255,
+        0.18
+      ),
+      transparent 34%
+    ),
+
+    radial-gradient(
+      circle at 92% 28%,
+      rgba(
+        200,
+        255,
+        69,
+        0.045
+      ),
+      transparent 27%
+    ),
+
+    var(--color-background)
+    !important;
+}
+
+
+/*
+   Make existing blue hero glow
+   more visible.
+*/
+
+.hero-glow-left {
+  width: 610px
+    !important;
+
+  height: 610px
+    !important;
+
+  left: -300px
+    !important;
+
+  background:
+    rgba(
+      112,
+      101,
+      255,
+      0.37
+    )
+    !important;
+
+  filter:
+    blur(145px)
+    !important;
+}
+
+
+.hero-glow-right {
+  opacity: 0.75;
+}
+
+
+/* =========================================================
+   LIGHT MODE BLUE SHADE
+========================================================= */
+
+html[data-theme="light"]
+body {
+  background:
+    radial-gradient(
+      circle at 7% 12%,
+      rgba(
+        112,
+        101,
+        255,
+        0.10
+      ),
+      transparent 33%
+    ),
+
+    radial-gradient(
+      circle at 94% 22%,
+      rgba(
+        200,
+        255,
+        69,
+        0.08
+      ),
+      transparent 28%
+    ),
+
+    #f5f6f1
+    !important;
+}
+
+
+/* =========================================================
+   NAVBAR COMPACT
+========================================================= */
+
+.navbar {
+  height: 78px
+    !important;
+}
+
+
+.navbar-scrolled {
+  height: 68px
+    !important;
+}
+
+
+.navbar-container {
+  gap: 24px
+    !important;
+}
+
+
+.navbar .profile-brand-logo {
+  transform:
+    scale(0.92);
+
+  transform-origin:
+    left center;
+}
+
+
+/* =========================================================
+   HERO - SMALLER AT 100% BROWSER ZOOM
+========================================================= */
+
+.hero-section {
+  min-height:
+    auto !important;
+
+  padding:
+    112px 0 48px
+    !important;
+}
+
+
+.availability-row {
+  margin-bottom:
+    28px !important;
+}
+
+
+.hero-main-layout {
+  grid-template-columns:
+    minmax(0, 1.18fr)
+    minmax(300px, 0.72fr)
+    !important;
+
+  gap:
+    clamp(
+      35px,
+      4.5vw,
+      62px
+    )
+    !important;
+}
+
+
+/* Main heading was too large */
+
+.hero-heading {
+  font-size:
+    clamp(
+      48px,
+      5.7vw,
+      88px
+    )
+    !important;
+
+  line-height:
+    0.9
+    !important;
+
+  letter-spacing:
+    -4px
+    !important;
+}
+
+
+.hero-serif-line {
+  letter-spacing:
+    -3px
+    !important;
+}
+
+
+.hero-eyebrow {
+  margin-bottom:
+    19px
+    !important;
+
+  font-size:
+    8px
+    !important;
+}
+
+
+.hero-bottom-content {
+  margin-top:
+    29px !important;
+
+  gap:
+    28px !important;
+}
+
+
+.hero-description {
+  max-width:
+    360px !important;
+
+  font-size:
+    12px !important;
+
+  line-height:
+    1.7 !important;
+}
+
+
+.hero-primary-button,
+.hero-secondary-button {
+  min-height:
+    48px !important;
+
+  padding:
+    0 18px
+    !important;
+
+  gap:
+    15px
+    !important;
+
+  font-size:
+    10px !important;
+}
+
+
+/* =========================================================
+   HERO PORTRAIT COMPACT
+========================================================= */
+
+.hero-portrait {
+  max-width:
+    430px !important;
+
+  min-height:
+    500px !important;
+
+  border-radius:
+    26px !important;
+}
+
+
+.portrait-image-wrapper {
+  right:
+    30px !important;
+
+  bottom:
+    52px !important;
+
+  left:
+    30px !important;
+
+  height:
+    395px !important;
+}
+
+
+.hero-portrait-image {
+  max-width:
+    350px !important;
+}
+
+
+.portrait-top-bar {
+  min-height:
+    46px !important;
+}
+
+
+.portrait-tech {
+  padding:
+    7px 9px 7px 7px
+    !important;
+
+  font-size:
+    7px !important;
+}
+
+
+.portrait-tech > span {
+  width:
+    23px !important;
+
+  height:
+    23px !important;
+}
+
+
+.portrait-tech-react {
+  top:
+    95px !important;
+}
+
+
+.portrait-tech-python {
+  top:
+    165px !important;
+}
+
+
+.portrait-tech-odoo {
+  top:
+    260px !important;
+}
+
+
+.portrait-tech-django {
+  top:
+    325px !important;
+}
+
+
+.portrait-experience-card {
+  top:
+    78px !important;
+
+  padding:
+    9px 11px
+    !important;
+}
+
+
+.portrait-code-card {
+  bottom:
+    65px !important;
+
+  padding:
+    8px 10px
+    !important;
+}
+
+
+.portrait-footer {
+  min-height:
+    52px !important;
+}
+
+
+/* =========================================================
+   HERO STATISTICS
+========================================================= */
+
+.hero-information-bar {
+  margin-top:
+    36px !important;
+
+  padding-top:
+    22px !important;
+}
+
+
+.hero-stat-item strong {
+  font-size:
+    21px !important;
+}
+
+
+.hero-stat-item span {
+  font-size:
+    6px !important;
+}
+
+
+/* =========================================================
+   GENERAL SECTION SIZE
+========================================================= */
+
+.about-section,
+.skills-section,
+.project-chooser-section,
+.projects-section,
+.client-testimonials-section,
+.experience-section {
+  scroll-margin-top:
+    80px;
+}
+
+
+/* =========================================================
+   PROJECT SECTION COMPACT
+========================================================= */
+
+.projects-section {
+  padding:
+    100px 20px
+    !important;
+}
+
+
+.projects-container {
+  width:
+    min(
+      1080px,
+      100%
+    )
+    !important;
+}
+
+
+.projects-heading {
+  margin-bottom:
+    45px !important;
+}
+
+
+/* =========================================================
+   PROJECT GRID
+   3 compact cards on desktop
+========================================================= */
+
+.modern-projects-grid {
+  display:
+    grid !important;
+
+  grid-template-columns:
+    repeat(
+      3,
+      minmax(0, 1fr)
+    )
+    !important;
+
+  gap:
+    16px !important;
+
+  align-items:
+    start !important;
+}
+
+
+/* =========================================================
+   PROJECT CARD
+========================================================= */
+
+.case-study-card {
+  border-radius:
+    18px !important;
+
+  box-shadow:
+    0 10px 30px
+    rgba(
+      9,
+      20,
+      17,
+      0.055
+    )
+    !important;
+}
+
+
+.case-study-card:hover {
+  transform:
+    translateY(-4px)
+    !important;
+}
+
+
+/* =========================================================
+   PROJECT IMAGE
+========================================================= */
+
+.case-study-image {
+  height:
+    215px !important;
+}
+
+
+.case-study-image-header {
+  top:
+    13px !important;
+
+  right:
+    13px !important;
+
+  left:
+    13px !important;
+}
+
+
+.case-study-number {
+  width:
+    30px !important;
+
+  height:
+    30px !important;
+
+  font-size:
+    7px !important;
+}
+
+
+.case-study-category {
+  max-width:
+    72% !important;
+
+  padding:
+    6px 9px
+    !important;
+
+  font-size:
+    6px !important;
+
+  letter-spacing:
+    0.5px !important;
+}
+
+
+.case-study-live-button {
+  top:
+    50px !important;
+
+  right:
+    13px !important;
+
+  padding:
+    7px 10px
+    !important;
+
+  font-size:
+    7px !important;
+}
+
+
+.case-study-gallery-label {
+  top:
+    49px !important;
+
+  right:
+    13px !important;
+
+  padding:
+    5px 7px
+    !important;
+
+  font-size:
+    6px !important;
+}
+
+
+.case-study-image-title {
+  right:
+    17px !important;
+
+  bottom:
+    16px !important;
+
+  left:
+    17px !important;
+}
+
+
+.case-study-image-title > span {
+  margin-bottom:
+    5px !important;
+
+  font-size:
+    6px !important;
+}
+
+
+.case-study-image-title h3 {
+  max-width:
+    95% !important;
+
+  font-size:
+    clamp(
+      22px,
+      2vw,
+      30px
+    )
+    !important;
+
+  line-height:
+    1.02 !important;
+
+  letter-spacing:
+    -1.1px !important;
+}
+
+
+/* =========================================================
+   PROJECT CARD CONTENT
+========================================================= */
+
+.case-study-main-content {
+  padding:
+    17px 18px 18px
+    !important;
+}
+
+
+.case-study-label {
+  margin-bottom:
+    6px !important;
+
+  font-size:
+    6px !important;
+}
+
+
+.case-study-title-row {
+  gap:
+    12px !important;
+}
+
+
+.case-study-title-row h3 {
+  font-size:
+    17px !important;
+
+  line-height:
+    1.15 !important;
+
+  letter-spacing:
+    -0.5px !important;
+}
+
+
+.case-study-arrow {
+  width:
+    34px !important;
+
+  min-width:
+    34px !important;
+
+  height:
+    34px !important;
+}
+
+
+.case-study-arrow svg {
+  width:
+    15px;
+
+  height:
+    15px;
+}
+
+
+.case-study-description {
+  min-height:
+    55px !important;
+
+  margin:
+    14px 0 15px
+    !important;
+
+  font-size:
+    10px !important;
+
+  line-height:
+    1.65 !important;
+}
+
+
+.case-study-technologies {
+  gap:
+    5px !important;
+}
+
+
+.case-study-technologies span {
+  padding:
+    5px 7px
+    !important;
+
+  font-size:
+    6px !important;
+}
+
+
+.case-study-actions {
+  margin-top:
+    15px !important;
+
+  padding-top:
+    13px !important;
+}
+
+
+.case-study-toggle {
+  gap:
+    7px !important;
+
+  font-size:
+    9px !important;
+}
+
+
+.case-study-toggle
+> span:last-child {
+  width:
+    26px !important;
+
+  height:
+    26px !important;
+}
+
+
+.case-study-toggle svg {
+  width:
+    13px;
+
+  height:
+    13px;
+}
+
+
+.case-study-status {
+  font-size:
+    6px !important;
+}
+
+
+/* =========================================================
+   PROJECT EXPANDED DETAILS
+========================================================= */
+
+.case-study-detail-item {
+  grid-template-columns:
+    34px 1fr
+    !important;
+
+  gap:
+    10px !important;
+
+  padding:
+    14px 0
+    !important;
+}
+
+
+.case-study-detail-icon {
+  width:
+    32px !important;
+
+  height:
+    32px !important;
+}
+
+
+.case-study-detail-item h4 {
+  font-size:
+    11px !important;
+}
+
+
+.case-study-detail-item p {
+  font-size:
+    9px !important;
+}
+
+
+.case-study-bottom-link {
+  padding:
+    11px 13px
+    !important;
+
+  font-size:
+    9px !important;
+}
+
+
+/* =========================================================
+   PERFORMANCE
+   Don't paint lower sections until needed
+========================================================= */
+
+.about-section,
+.skills-section,
+.project-chooser-section,
+.projects-section,
+.client-testimonials-section,
+.experience-section,
+.contact-section {
+  content-visibility:
+    auto;
+
+  contain-intrinsic-size:
+    1px 850px;
+}
+
+
+/* =========================================================
+   REDUCE EXPENSIVE BLUR ON SMALL DEVICES
+========================================================= */
+
+@media (
+  max-width: 900px
+) {
+
+  .hero-glow {
+    filter:
+      blur(100px)
+      !important;
+  }
+
+  .portrait-tech,
+  .portrait-top-bar,
+  .portrait-footer,
+  .navbar-scrolled {
+    backdrop-filter:
+      blur(8px)
+      !important;
+
+    -webkit-backdrop-filter:
+      blur(8px)
+      !important;
+  }
+}
+
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (
+  min-width: 721px
+)
+and
+(
+  max-width: 1100px
+) {
+
+  .modern-projects-grid {
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(0, 1fr)
+      )
+      !important;
+  }
+
+
+  .case-study-image {
+    height:
+      235px !important;
+  }
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (
+  max-width: 720px
+) {
+
+  :root {
+    --section-space:
+      82px;
+  }
+
+
+  .hero-section {
+    padding:
+      105px 0 40px
+      !important;
+  }
+
+
+  .hero-heading {
+    font-size:
+      clamp(
+        44px,
+        14vw,
+        67px
+      )
+      !important;
+
+    letter-spacing:
+      -3px
+      !important;
+  }
+
+
+  .hero-main-layout {
+    grid-template-columns:
+      1fr !important;
+  }
+
+
+  .hero-portrait {
+    max-width:
+      440px !important;
+
+    min-height:
+      510px !important;
+
+    margin-top:
+      42px !important;
+  }
+
+
+  .modern-projects-grid {
+    grid-template-columns:
+      1fr !important;
+
+    max-width:
+      430px;
+
+    margin-inline:
+      auto;
+  }
+
+
+  .case-study-image {
+    height:
+      245px !important;
+  }
+
+
+  .case-study-main-content {
+    padding:
+      20px !important;
+  }
+
+
+  .case-study-title-row h3 {
+    font-size:
+      19px !important;
+  }
+
+
+  .case-study-description {
+    font-size:
+      11px !important;
+  }
+}
+
+/* =========================================================
+   DESKTOP VISUAL SCALE
+   Browser stays at 100%
+========================================================= */
+
+@media (min-width: 1100px) {
+  #root {
+    zoom: 0.88;
+  }
+}
+
+
+/* =========================================================
+   FINAL HERO PORTRAIT IMAGE FIX
+   Prevent zooming / head cropping
+========================================================= */
+
+.hero-portrait {
+  position: relative !important;
+
+  width: 100% !important;
+  max-width: 430px !important;
+
+  min-height: 555px !important;
+
+  overflow: hidden !important;
+}
+
+
+/* =========================================================
+   IMAGE AREA
+========================================================= */
+
+.portrait-image-wrapper {
+  position: absolute !important;
+
+  z-index: 3 !important;
+
+  top: 68px !important;
+  right: 24px !important;
+  bottom: 58px !important;
+  left: 24px !important;
+
+  width: auto !important;
+  height: auto !important;
+
+  display: flex !important;
+
+  align-items: flex-end !important;
+  justify-content: center !important;
+
+  overflow: hidden !important;
+
+  pointer-events: none !important;
+}
+
+
+/* =========================================================
+   PERSON IMAGE
+========================================================= */
+
+.hero-portrait-image {
+  position: relative !important;
+
+  z-index: 2 !important;
+
+  display: block !important;
+
+  width: auto !important;
+
+  height: auto !important;
+
+  max-width: 92% !important;
+
+  max-height: 100% !important;
+
+  object-fit: contain !important;
+
+  object-position:
+    center bottom !important;
+
+  margin: 0 auto !important;
+
+  transform: none !important;
+
+  filter:
+    drop-shadow(
+      0 18px 22px
+      rgba(0, 0, 0, 0.28)
+    )
+    saturate(0.96)
+    !important;
+}
+
+
+/* =========================================================
+   IMAGE SHADOW
+========================================================= */
+
+.portrait-image-shadow {
+  bottom: 3px !important;
+
+  width: 230px !important;
+
+  height: 32px !important;
+
+  opacity: 0.5 !important;
+}
+
+
+/* =========================================================
+   EXPERIENCE CARD
+========================================================= */
+
+.portrait-experience-card {
+  top: 88px !important;
+  right: 18px !important;
+}
+
+
+/* =========================================================
+   TECH PILLS
+========================================================= */
+
+.portrait-tech-react {
+  top: 115px !important;
+  left: 18px !important;
+}
+
+
+.portrait-tech-python {
+  top: 200px !important;
+  right: 18px !important;
+}
+
+
+.portrait-tech-odoo {
+  top: 300px !important;
+  left: 15px !important;
+}
+
+
+.portrait-tech-django {
+  top: 385px !important;
+  right: 17px !important;
+}
+
+
+/* =========================================================
+   CODE CARD
+========================================================= */
+
+.portrait-code-card {
+  bottom: 69px !important;
+  left: 17px !important;
+}
+
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (
+  min-width: 721px
+)
+and
+(
+  max-width: 1100px
+) {
+
+  .hero-portrait {
+    max-width:
+      420px !important;
+
+    min-height:
+      540px !important;
+  }
+
+
+  .portrait-image-wrapper {
+    top:
+      68px !important;
+
+    right:
+      25px !important;
+
+    bottom:
+      58px !important;
+
+    left:
+      25px !important;
+  }
+
+
+  .hero-portrait-image {
+    max-width:
+      90% !important;
+
+    max-height:
+      100% !important;
+  }
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (
+  max-width: 720px
+) {
+
+  .hero-portrait {
+    width:
+      min(
+        410px,
+        100%
+      )
+      !important;
+
+    min-height:
+      520px !important;
+
+    margin:
+      35px auto 0
+      !important;
+  }
+
+
+  .portrait-image-wrapper {
+    top:
+      65px !important;
+
+    right:
+      18px !important;
+
+    bottom:
+      58px !important;
+
+    left:
+      18px !important;
+  }
+
+
+  .hero-portrait-image {
+    max-width:
+      91% !important;
+
+    max-height:
+      100% !important;
+  }
+
+
+  .portrait-tech-react {
+    top:
+      105px !important;
+
+    left:
+      8px !important;
+  }
+
+
+  .portrait-tech-python {
+    top:
+      180px !important;
+
+    right:
+      7px !important;
+  }
+
+
+  .portrait-tech-odoo {
+    top:
+      270px !important;
+
+    left:
+      7px !important;
+  }
+
+
+  .portrait-tech-django {
+    top:
+      345px !important;
+
+    right:
+      7px !important;
+  }
+
+
+  .portrait-experience-card {
+    top:
+      78px !important;
+
+    right:
+      8px !important;
+  }
+}

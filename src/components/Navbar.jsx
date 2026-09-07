@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+
 import {
   motion,
   AnimatePresence,
@@ -56,37 +57,58 @@ function Navbar() {
   return (
     <motion.header
       className={`navbar ${
-        scrolled ? "navbar-scrolled" : ""
+        scrolled
+          ? "navbar-scrolled"
+          : ""
       }`}
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
+      initial={{
+        y: -100,
+      }}
+      animate={{
+        y: 0,
+      }}
       transition={{
         duration: 0.8,
-        ease: [0.22, 1, 0.36, 1],
+        ease: [
+          0.22,
+          1,
+          0.36,
+          1,
+        ],
       }}
     >
       <div className="navbar-container">
+
         {/* =====================
             LOGO
         ====================== */}
 
-        <BrandLogo onClick={closeMenu} />
+        <BrandLogo
+          onClick={closeMenu}
+        />
 
         {/* =====================
             DESKTOP NAVIGATION
         ====================== */}
 
-        <nav className="desktop-navigation">
-          {navigationLinks.map((link) => (
-            <a
-              key={link.id}
-              href={link.href}
-            >
-              <span>0{link.id}</span>
+        <nav
+          className="desktop-navigation"
+          aria-label="Primary navigation"
+        >
+          {navigationLinks.map(
+            (link) => (
+              <a
+                key={link.id}
+                href={link.href}
+              >
+                <span>
+                  0{link.id}
+                </span>
 
-              {link.name}
-            </a>
-          ))}
+                {link.name}
+              </a>
+            )
+          )}
         </nav>
 
         {/* =====================
@@ -94,13 +116,16 @@ function Navbar() {
         ====================== */}
 
         <div className="navbar-actions">
-          {/* Quick Search */}
+
+          {/* QUICK SEARCH */}
 
           <button
             type="button"
             className="navbar-command-btn"
-            onClick={openCommandPalette}
-            aria-label="Open Quick Search"
+            onClick={
+              openCommandPalette
+            }
+            aria-label="Open quick search"
           >
             <Search size={14} />
 
@@ -108,16 +133,21 @@ function Navbar() {
               Quick Search
             </span>
 
-            <kbd>Ctrl K</kbd>
+            <kbd>
+              Ctrl K
+            </kbd>
           </button>
 
-          {/* Let's Talk */}
+          {/* LET'S TALK */}
 
           <a
             href={`mailto:${personalInfo.email}`}
             className="navbar-contact-button"
+            aria-label="Contact Ahsan Nasir by email"
           >
-            <span>Let&apos;s Talk</span>
+            <span>
+              Let&apos;s Talk
+            </span>
 
             <ArrowUpRight
               size={17}
@@ -133,8 +163,15 @@ function Navbar() {
         <button
           className="mobile-menu-button"
           type="button"
-          aria-label="Open navigation menu"
-          aria-expanded={menuOpen}
+          aria-label={
+            menuOpen
+              ? "Close navigation menu"
+              : "Open navigation menu"
+          }
+          aria-expanded={
+            menuOpen
+          }
+          aria-controls="mobile-navigation-menu"
           onClick={() =>
             setMenuOpen(
               (currentValue) =>
@@ -157,7 +194,9 @@ function Navbar() {
       <AnimatePresence>
         {menuOpen && (
           <motion.nav
+            id="mobile-navigation-menu"
             className="mobile-navigation"
+            aria-label="Mobile navigation"
             initial={{
               opacity: 0,
               height: 0,
@@ -172,54 +211,73 @@ function Navbar() {
             }}
             transition={{
               duration: 0.35,
-              ease: "easeInOut",
+              ease:
+                "easeInOut",
             }}
           >
             <div className="mobile-navigation-inner">
-              {navigationLinks.map((link) => (
-                <motion.a
-                  key={link.id}
-                  href={link.href}
-                  onClick={closeMenu}
-                  initial={{
-                    opacity: 0,
-                    x: -20,
-                  }}
-                  animate={{
-                    opacity: 1,
-                    x: 0,
-                  }}
-                  transition={{
-                    delay:
-                      link.id * 0.05,
-                  }}
-                >
-                  <span>
-                    0{link.id}
-                  </span>
 
-                  <strong>
-                    {link.name}
-                  </strong>
+              {navigationLinks.map(
+                (link) => (
+                  <motion.a
+                    key={
+                      link.id
+                    }
+                    href={
+                      link.href
+                    }
+                    onClick={
+                      closeMenu
+                    }
+                    initial={{
+                      opacity: 0,
+                      x: -20,
+                    }}
+                    animate={{
+                      opacity: 1,
+                      x: 0,
+                    }}
+                    transition={{
+                      delay:
+                        link.id *
+                        0.05,
+                    }}
+                  >
+                    <span>
+                      0{link.id}
+                    </span>
 
-                  <ArrowUpRight
-                    size={18}
-                  />
-                </motion.a>
-              ))}
+                    <strong>
+                      {
+                        link.name
+                      }
+                    </strong>
 
-              {/* Mobile Quick Search */}
+                    <ArrowUpRight
+                      size={18}
+                    />
+                  </motion.a>
+                )
+              )}
+
+              {/* =====================
+                  MOBILE QUICK SEARCH
+              ====================== */}
 
               <button
                 type="button"
                 className="mobile-command-button"
+                aria-label="Open quick search"
                 onClick={() => {
                   closeMenu();
+
                   openCommandPalette();
                 }}
               >
                 <span className="mobile-command-icon">
-                  <Search size={17} />
+                  <Search
+                    size={17}
+                  />
                 </span>
 
                 <strong>
@@ -231,12 +289,17 @@ function Navbar() {
                 </kbd>
               </button>
 
-              {/* Mobile CTA */}
+              {/* =====================
+                  MOBILE CTA
+              ====================== */}
 
               <a
                 href={`mailto:${personalInfo.email}`}
                 className="mobile-contact-button"
-                onClick={closeMenu}
+                aria-label="Start a project with Ahsan Nasir"
+                onClick={
+                  closeMenu
+                }
               >
                 Start a Project
 
@@ -244,6 +307,7 @@ function Navbar() {
                   size={18}
                 />
               </a>
+
             </div>
           </motion.nav>
         )}
