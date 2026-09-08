@@ -1,3 +1,8 @@
+import {
+  Routes,
+  Route,
+} from "react-router-dom";
+
 import Navbar from "./components/Navbar";
 import CommandPalette from "./components/CommandPalette";
 import AskMeAI from "./components/AskMeAI";
@@ -11,9 +16,26 @@ import Testimonials from "./sections/Testimonials";
 import Experience from "./sections/Experience";
 import Contact from "./sections/Contact";
 
+import WarehouseERP from "./pages/WarehouseERP";
+
 import { FaWhatsapp } from "react-icons/fa";
 
 import "./App.css";
+
+function HomePage() {
+  return (
+    <>
+      <Hero />
+      <About />
+      <Skills />
+      <ProjectChooser />
+      <Projects />
+      <Testimonials />
+      <Experience />
+      <Contact />
+    </>
+  );
+}
 
 function App() {
   const openAIAssistant = (event) => {
@@ -33,14 +55,17 @@ function App() {
       <AskMeAI />
 
       <main>
-        <Hero />
-        <About />
-        <Skills />
-        <ProjectChooser />
-        <Projects />
-        <Testimonials />
-        <Experience />
-        <Contact />
+        <Routes>
+          <Route
+            path="/"
+            element={<HomePage />}
+          />
+
+          <Route
+            path="/projects/warehouse-erp"
+            element={<WarehouseERP />}
+          />
+        </Routes>
       </main>
 
       {/* ==========================
@@ -48,8 +73,6 @@ function App() {
       ========================== */}
 
       <div className="floating-actions">
-        {/* WhatsApp */}
-
         <a
           href="https://wa.me/971586073359"
           target="_blank"
@@ -64,8 +87,6 @@ function App() {
           </span>
         </a>
 
-        {/* Ask Me AI */}
-
         <a
           href="#ask-me"
           className="floating-btn hire-btn ask-me-btn"
@@ -73,11 +94,7 @@ function App() {
           onClick={openAIAssistant}
         >
           <span className="ask-me-avatar">
-            {/* Animated rotating ring */}
-
             <span className="ask-me-ring" />
-
-            {/* Ahsan profile picture */}
 
             <span className="ask-me-photo-frame">
               <img
@@ -86,8 +103,6 @@ function App() {
                 className="ask-me-person"
               />
             </span>
-
-            {/* Online status */}
 
             <span className="ask-me-status" />
           </span>

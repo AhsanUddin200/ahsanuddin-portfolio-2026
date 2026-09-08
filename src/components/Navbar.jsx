@@ -1,4 +1,11 @@
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useState,
+} from "react";
+
+import {
+  useLocation,
+} from "react-router-dom";
 
 import {
   motion,
@@ -20,15 +27,40 @@ import {
 import BrandLogo from "./BrandLogo";
 
 function Navbar() {
+  const location = useLocation();
+
   const [menuOpen, setMenuOpen] =
     useState(false);
 
   const [scrolled, setScrolled] =
     useState(false);
 
+  /* ==============================
+      CURRENT PAGE CHECK
+  ============================== */
+
+  const isHomePage =
+    location.pathname === "/";
+
+  const getNavigationHref = (
+    href
+  ) => {
+    if (isHomePage) {
+      return href;
+    }
+
+    return `/${href}`;
+  };
+
+  /* ==============================
+      SCROLL NAVBAR
+  ============================== */
+
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 40);
+      setScrolled(
+        window.scrollY > 40
+      );
     };
 
     window.addEventListener(
@@ -44,15 +76,22 @@ function Navbar() {
     };
   }, []);
 
+  /* ==============================
+      HELPERS
+  ============================== */
+
   const closeMenu = () => {
     setMenuOpen(false);
   };
 
-  const openCommandPalette = () => {
-    window.dispatchEvent(
-      new Event("open-command-palette")
-    );
-  };
+  const openCommandPalette =
+    () => {
+      window.dispatchEvent(
+        new Event(
+          "open-command-palette"
+        )
+      );
+    };
 
   return (
     <motion.header
@@ -99,7 +138,9 @@ function Navbar() {
             (link) => (
               <a
                 key={link.id}
-                href={link.href}
+                href={getNavigationHref(
+                  link.href
+                )}
               >
                 <span>
                   0{link.id}
@@ -223,9 +264,9 @@ function Navbar() {
                     key={
                       link.id
                     }
-                    href={
+                    href={getNavigationHref(
                       link.href
-                    }
+                    )}
                     onClick={
                       closeMenu
                     }

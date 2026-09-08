@@ -1,4 +1,12 @@
-import { useEffect, useMemo, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+
+import {
+  Link,
+} from "react-router-dom";
 
 import {
   motion,
@@ -15,15 +23,24 @@ import {
   Images,
 } from "lucide-react";
 
-function ProjectCard({ project, index }) {
-  const [caseStudyOpen, setCaseStudyOpen] =
-    useState(false);
+function ProjectCard({
+  project,
+  index,
+}) {
+  const [
+    caseStudyOpen,
+    setCaseStudyOpen,
+  ] = useState(false);
 
-  const [isImageHovered, setIsImageHovered] =
-    useState(false);
+  const [
+    isImageHovered,
+    setIsImageHovered,
+  ] = useState(false);
 
-  const [activeImageIndex, setActiveImageIndex] =
-    useState(0);
+  const [
+    activeImageIndex,
+    setActiveImageIndex,
+  ] = useState(0);
 
   const {
     title,
@@ -34,6 +51,7 @@ function ProjectCard({ project, index }) {
     result,
     technologies = [],
     liveUrl,
+    caseStudyUrl,
     image,
     gallery = [],
     color = "#c8ff45",
@@ -50,16 +68,20 @@ function ProjectCard({ project, index }) {
    * Otherwise:
    * use normal project image only.
    */
-  const projectImages = useMemo(() => {
-    if (
-      Array.isArray(gallery) &&
-      gallery.length > 0
-    ) {
-      return gallery;
-    }
 
-    return image ? [image] : [];
-  }, [gallery, image]);
+  const projectImages =
+    useMemo(() => {
+      if (
+        Array.isArray(gallery) &&
+        gallery.length > 0
+      ) {
+        return gallery;
+      }
+
+      return image
+        ? [image]
+        : [];
+    }, [gallery, image]);
 
   /*
    * Hover image slideshow.
@@ -67,30 +89,54 @@ function ProjectCard({ project, index }) {
    * First image remains visible normally.
    * On hover images start changing.
    */
+
   useEffect(() => {
     if (
       !isImageHovered ||
       projectImages.length <= 1
     ) {
       setActiveImageIndex(0);
+
       return undefined;
     }
 
-    const imageInterval = setInterval(() => {
-      setActiveImageIndex(
-        (currentIndex) =>
-          (currentIndex + 1) %
-          projectImages.length
-      );
-    }, 1300);
+    const imageInterval =
+      setInterval(() => {
+        setActiveImageIndex(
+          (currentIndex) =>
+            (currentIndex + 1) %
+            projectImages.length
+        );
+      }, 1300);
 
     return () => {
-      clearInterval(imageInterval);
+      clearInterval(
+        imageInterval
+      );
     };
   }, [
     isImageHovered,
     projectImages.length,
   ]);
+
+  /*
+   * VIEW CASE STUDY
+   *
+   * Always opens/closes the
+   * quick case-study details.
+   *
+   * Full case-study page is
+   * available inside the
+   * expanded section.
+   */
+
+  const handleCaseStudyClick =
+    () => {
+      setCaseStudyOpen(
+        (currentValue) =>
+          !currentValue
+      );
+    };
 
   return (
     <motion.article
@@ -114,10 +160,16 @@ function ProjectCard({ project, index }) {
       transition={{
         duration: 0.7,
         delay: index * 0.07,
-        ease: [0.22, 1, 0.36, 1],
+        ease: [
+          0.22,
+          1,
+          0.36,
+          1,
+        ],
       }}
       style={{
-        "--project-accent": color,
+        "--project-accent":
+          color,
       }}
     >
       {/* =====================================
@@ -127,16 +179,21 @@ function ProjectCard({ project, index }) {
       <div
         className="case-study-image"
         onMouseEnter={() =>
-          setIsImageHovered(true)
+          setIsImageHovered(
+            true
+          )
         }
         onMouseLeave={() =>
-          setIsImageHovered(false)
+          setIsImageHovered(
+            false
+          )
         }
       >
         {/* IMAGE SLIDESHOW */}
 
         <AnimatePresence mode="wait">
-          {projectImages.length > 0 && (
+          {projectImages.length >
+            0 && (
             <motion.img
               key={
                 projectImages[
@@ -150,6 +207,7 @@ function ProjectCard({ project, index }) {
               }
               alt={`${title} ${category} case study by Ahsan Nasir`}
               loading="lazy"
+              decoding="async"
               className="case-study-gallery-image"
               initial={{
                 opacity: 0,
@@ -157,9 +215,10 @@ function ProjectCard({ project, index }) {
               }}
               animate={{
                 opacity: 1,
-                scale: caseStudyOpen
-                  ? 1.06
-                  : 1,
+                scale:
+                  caseStudyOpen
+                    ? 1.06
+                    : 1,
               }}
               exit={{
                 opacity: 0,
@@ -169,6 +228,7 @@ function ProjectCard({ project, index }) {
                 opacity: {
                   duration: 0.38,
                 },
+
                 scale: {
                   duration: 0.6,
                   ease: [
@@ -203,18 +263,22 @@ function ProjectCard({ project, index }) {
             MULTI IMAGE INDICATOR
         ================================== */}
 
-        {projectImages.length > 1 && (
+        {projectImages.length >
+          1 && (
           <>
             <motion.div
               className="case-study-gallery-label"
               initial={false}
               animate={{
-                opacity: isImageHovered
-                  ? 1
-                  : 0.72,
+                opacity:
+                  isImageHovered
+                    ? 1
+                    : 0.72,
               }}
             >
-              <Images size={13} />
+              <Images
+                size={13}
+              />
 
               <span>
                 {isImageHovered
@@ -225,9 +289,14 @@ function ProjectCard({ project, index }) {
 
             <div className="case-study-gallery-dots">
               {projectImages.map(
-                (_, imageIndex) => (
+                (
+                  _,
+                  imageIndex
+                ) => (
                   <span
-                    key={imageIndex}
+                    key={
+                      imageIndex
+                    }
                     className={`case-study-gallery-dot ${
                       imageIndex ===
                       activeImageIndex
@@ -255,11 +324,15 @@ function ProjectCard({ project, index }) {
             whileTap={{
               scale: 0.96,
             }}
-            onClick={(event) =>
+            onClick={(
+              event
+            ) =>
               event.stopPropagation()
             }
           >
-            <Eye size={15} />
+            <Eye
+              size={15}
+            />
 
             Live Project
           </motion.a>
@@ -268,14 +341,14 @@ function ProjectCard({ project, index }) {
         {/* IMAGE TITLE */}
 
         <div className="case-study-image-title">
-  <span>
-    SELECTED CASE STUDY
-  </span>
+          <span>
+            SELECTED CASE STUDY
+          </span>
 
-  <div className="case-study-image-heading">
-    {title}
-  </div>
-</div>
+          <div className="case-study-image-heading">
+            {title}
+          </div>
+        </div>
       </div>
 
       {/* =====================================
@@ -286,10 +359,13 @@ function ProjectCard({ project, index }) {
         <div className="case-study-title-row">
           <div>
             <span className="case-study-label">
-              PROJECT / {projectNumber}
+              PROJECT /{" "}
+              {projectNumber}
             </span>
 
-            <h3>{title}</h3>
+            <h3>
+              {title}
+            </h3>
           </div>
 
           {liveUrl ? (
@@ -304,11 +380,15 @@ function ProjectCard({ project, index }) {
                 scale: 1.06,
               }}
             >
-              <ArrowUpRight size={21} />
+              <ArrowUpRight
+                size={21}
+              />
             </motion.a>
           ) : (
             <span className="case-study-arrow disabled">
-              <ArrowUpRight size={21} />
+              <ArrowUpRight
+                size={21}
+              />
             </span>
           )}
         </div>
@@ -323,8 +403,14 @@ function ProjectCard({ project, index }) {
 
         <div className="case-study-technologies">
           {technologies.map(
-            (technology) => (
-              <span key={technology}>
+            (
+              technology
+            ) => (
+              <span
+                key={
+                  technology
+                }
+              >
                 {technology}
               </span>
             )
@@ -337,12 +423,11 @@ function ProjectCard({ project, index }) {
           <button
             type="button"
             className="case-study-toggle"
-            aria-expanded={caseStudyOpen}
-            onClick={() =>
-              setCaseStudyOpen(
-                (currentValue) =>
-                  !currentValue
-              )
+            aria-expanded={
+              caseStudyOpen
+            }
+            onClick={
+              handleCaseStudyClick
             }
           >
             <span>
@@ -353,9 +438,10 @@ function ProjectCard({ project, index }) {
 
             <motion.span
               animate={{
-                rotate: caseStudyOpen
-                  ? 180
-                  : 0,
+                rotate:
+                  caseStudyOpen
+                    ? 180
+                    : 0,
               }}
               transition={{
                 duration: 0.35,
@@ -380,7 +466,9 @@ function ProjectCard({ project, index }) {
             EXPANDABLE CASE STUDY
         ================================== */}
 
-        <AnimatePresence initial={false}>
+        <AnimatePresence
+          initial={false}
+        >
           {caseStudyOpen && (
             <motion.div
               className="case-study-details"
@@ -413,7 +501,9 @@ function ProjectCard({ project, index }) {
 
               <div className="case-study-detail-item problem">
                 <div className="case-study-detail-icon">
-                  <Target size={19} />
+                  <Target
+                    size={19}
+                  />
                 </div>
 
                 <div>
@@ -425,7 +515,9 @@ function ProjectCard({ project, index }) {
                     Client Problem
                   </h4>
 
-                  <p>{problem}</p>
+                  <p>
+                    {problem}
+                  </p>
                 </div>
               </div>
 
@@ -447,7 +539,9 @@ function ProjectCard({ project, index }) {
                     Solution I Built
                   </h4>
 
-                  <p>{solution}</p>
+                  <p>
+                    {solution}
+                  </p>
                 </div>
               </div>
 
@@ -469,15 +563,36 @@ function ProjectCard({ project, index }) {
                     Business Result
                   </h4>
 
-                  <p>{result}</p>
+                  <p>
+                    {result}
+                  </p>
                 </div>
               </div>
+
+              {/* FULL CASE STUDY */}
+
+              {caseStudyUrl && (
+                <Link
+                  to={
+                    caseStudyUrl
+                  }
+                  className="case-study-bottom-link"
+                >
+                  View Full Case Study
+
+                  <ArrowUpRight
+                    size={18}
+                  />
+                </Link>
+              )}
 
               {/* LIVE LINK */}
 
               {liveUrl && (
                 <a
-                  href={liveUrl}
+                  href={
+                    liveUrl
+                  }
                   target="_blank"
                   rel="noreferrer"
                   className="case-study-bottom-link"

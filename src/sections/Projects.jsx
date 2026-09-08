@@ -94,7 +94,7 @@ const featuredProjects = [
     liveUrl:
       "https://warehousedemo.aadplus.com",
 
-    caseStudyUrl: "",
+    caseStudyUrl: "/projects/warehouse-erp",
 
     image:
       "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=1400&q=90",
