@@ -244,7 +244,7 @@ const featuredProjects = [
   ],
 
   liveUrl: "",
-  caseStudyUrl: "",
+  caseStudyUrl: "/projects/financial-management",
 
   image: "/financial-1.jpg",
 
