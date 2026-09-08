@@ -131,7 +131,7 @@ const featuredProjects = [
     liveUrl:
       "https://restaurantdemo.aadplus.com",
 
-    caseStudyUrl: "",
+    caseStudyUrl: "/projects/restaurant-erp",
 
     image:
       "https://images.unsplash.com/photo-1552566626-52f8b828add9?auto=format&fit=crop&w=1400&q=90",
