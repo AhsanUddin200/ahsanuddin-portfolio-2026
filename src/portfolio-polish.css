@@ -26,7 +26,7 @@
   /* Make complete website slightly more compact */
 
   --container-width:
-    1120px;
+    1230px;
 
   --section-space:
     105px;
@@ -560,7 +560,7 @@ body {
 .projects-container {
   width:
     min(
-      1080px,
+      1200px,
       100%
     )
     !important;
@@ -1105,7 +1105,8 @@ and
 
 @media (min-width: 1100px) {
   #root {
-    zoom: 0.88;
+    zoom: 1;
+    width: 100%;
   }
 }
 
@@ -1393,5 +1394,455 @@ and
 
     right:
       8px !important;
+  }
+}
+
+/* =========================================================
+   FINAL STANDARD DESKTOP PROPORTIONS
+   Normal professional website sizing at browser 100%
+   No theme/color changes
+========================================================= */
+
+@media (min-width: 1100px) {
+
+  /* Do not scale the entire website with CSS zoom */
+  #root {
+    zoom: 1 !important;
+    width: 100% !important;
+  }
+
+  /* ---------- NAVBAR ---------- */
+
+  .navbar {
+    height: 70px !important;
+  }
+
+  .navbar-scrolled {
+    height: 64px !important;
+  }
+
+  .navbar-container {
+    gap: 20px !important;
+  }
+
+  .navbar .profile-brand-logo {
+    transform: scale(0.88) !important;
+    transform-origin: left center !important;
+  }
+
+  /* ---------- HERO ---------- */
+
+  .hero-section {
+    min-height: auto !important;
+    padding: 100px 0 42px !important;
+  }
+
+  .availability-row {
+    margin-bottom: 22px !important;
+  }
+
+  .hero-main-layout {
+    grid-template-columns:
+      minmax(0, 1.12fr)
+      minmax(320px, 0.68fr)
+      !important;
+
+    gap: clamp(36px, 4vw, 52px) !important;
+  }
+
+  .hero-eyebrow {
+    margin-bottom: 16px !important;
+    font-size: 8px !important;
+  }
+
+  .hero-heading {
+    font-size: clamp(46px, 4.8vw, 74px) !important;
+    line-height: 0.94 !important;
+    letter-spacing: -3px !important;
+  }
+
+  .hero-serif-line {
+    letter-spacing: -2px !important;
+  }
+
+  .hero-bottom-content {
+    margin-top: 24px !important;
+    gap: 24px !important;
+  }
+
+  .hero-description {
+    max-width: 410px !important;
+    font-size: 12px !important;
+    line-height: 1.65 !important;
+  }
+
+  .hero-primary-button,
+  .hero-secondary-button {
+    min-height: 44px !important;
+    padding: 0 17px !important;
+    gap: 12px !important;
+    font-size: 9px !important;
+  }
+
+  /* ---------- HERO PORTRAIT ---------- */
+
+  .hero-portrait {
+    width: 100% !important;
+    max-width: 380px !important;
+    min-height: 485px !important;
+    border-radius: 23px !important;
+  }
+
+  .portrait-image-wrapper {
+    top: 62px !important;
+    right: 22px !important;
+    bottom: 54px !important;
+    left: 22px !important;
+  }
+
+  .hero-portrait-image {
+    max-width: 90% !important;
+    max-height: 100% !important;
+  }
+
+  .portrait-top-bar {
+    min-height: 42px !important;
+  }
+
+  .portrait-tech {
+    padding: 6px 8px 6px 6px !important;
+    font-size: 6px !important;
+  }
+
+  .portrait-tech > span {
+    width: 21px !important;
+    height: 21px !important;
+  }
+
+  .portrait-tech-react {
+    top: 100px !important;
+    left: 14px !important;
+  }
+
+  .portrait-tech-python {
+    top: 174px !important;
+    right: 14px !important;
+  }
+
+  .portrait-tech-odoo {
+    top: 258px !important;
+    left: 13px !important;
+  }
+
+  .portrait-tech-django {
+    top: 332px !important;
+    right: 13px !important;
+  }
+
+  .portrait-experience-card {
+    top: 75px !important;
+    right: 14px !important;
+    padding: 8px 10px !important;
+  }
+
+  .portrait-code-card {
+    bottom: 60px !important;
+    left: 14px !important;
+    padding: 7px 9px !important;
+  }
+
+  .portrait-footer {
+    min-height: 48px !important;
+  }
+
+  .hero-information-bar {
+    margin-top: 28px !important;
+    padding-top: 18px !important;
+  }
+
+  .hero-stat-item strong {
+    font-size: 19px !important;
+  }
+
+  /* ---------- GLOBAL SECTION RHYTHM ---------- */
+
+  :root {
+    --section-space: 88px;
+  }
+
+  .section-title {
+    margin-bottom: 52px !important;
+
+    grid-template-columns:
+      minmax(130px, 0.32fr)
+      minmax(380px, 1.2fr)
+      minmax(200px, 0.42fr)
+      !important;
+
+    gap: 32px !important;
+  }
+
+  .section-title h2 {
+    font-size: clamp(38px, 4vw, 60px) !important;
+    line-height: 1 !important;
+    letter-spacing: -2.8px !important;
+  }
+
+  .section-title-description {
+    font-size: 12px !important;
+    line-height: 1.65 !important;
+  }
+
+  .skills-section,
+  .projects-section,
+  .experience-section,
+  .contact-section {
+    padding: 88px 24px !important;
+  }
+
+  .project-chooser-section {
+    padding: 78px 24px !important;
+  }
+
+  .client-testimonials-section {
+    padding: 62px 0 66px !important;
+  }
+
+  /* ---------- ABOUT ---------- */
+
+  .about-layout {
+    grid-template-columns:
+      minmax(315px, 0.72fr)
+      minmax(430px, 1.28fr)
+      !important;
+
+    gap: clamp(46px, 5vw, 68px) !important;
+  }
+
+  .about-photo-card {
+    min-height: 490px !important;
+    border-radius: 24px !important;
+  }
+
+  .about-large-text {
+    margin-bottom: 32px !important;
+    font-size: clamp(27px, 2.8vw, 41px) !important;
+    line-height: 1.2 !important;
+    letter-spacing: -1.7px !important;
+  }
+
+  .about-description-grid {
+    gap: 26px !important;
+  }
+
+  .about-principles {
+    margin-top: 30px !important;
+  }
+
+  /* ---------- SKILLS ---------- */
+
+  .skills-grid {
+    margin-top: 48px !important;
+    gap: 14px !important;
+  }
+
+  .skill-card {
+    min-height: 335px !important;
+    padding: 22px 19px !important;
+    border-radius: 20px !important;
+  }
+
+  .skills-message {
+    padding: 20px 24px !important;
+  }
+
+  /* ---------- PROJECT CHOOSER ---------- */
+
+  .compact-project-header {
+    margin-bottom: 28px !important;
+  }
+
+  .compact-project-header h2 {
+    font-size: clamp(30px, 3.2vw, 46px) !important;
+  }
+
+  .compact-project-layout {
+    grid-template-columns: 270px 1fr !important;
+    gap: 16px !important;
+  }
+
+  .compact-project-btn {
+    padding: 12px 14px !important;
+    font-size: 12px !important;
+  }
+
+  .compact-project-card {
+    min-height: 180px !important;
+    padding: 21px 23px !important;
+  }
+
+  /* ---------- FEATURED PROJECTS ---------- */
+
+  .projects-section {
+    padding: 86px 20px !important;
+  }
+
+  .projects-container {
+    width: min(1200px, 100%) !important;
+  }
+
+  .projects-heading {
+    margin-bottom: 38px !important;
+  }
+
+  .modern-projects-grid {
+    gap: 15px !important;
+  }
+
+  .case-study-image {
+    height: 190px !important;
+  }
+
+  .case-study-image-title h3 {
+    font-size: clamp(20px, 1.7vw, 27px) !important;
+  }
+
+  .case-study-main-content {
+    padding: 15px 16px 16px !important;
+  }
+
+  .case-study-title-row h3 {
+    font-size: 16px !important;
+  }
+
+  .case-study-description {
+    min-height: 50px !important;
+    margin: 12px 0 13px !important;
+    font-size: 9px !important;
+  }
+
+  .case-study-actions {
+    margin-top: 13px !important;
+    padding-top: 11px !important;
+  }
+
+  /* ---------- TESTIMONIALS ---------- */
+
+  .client-testimonials-heading {
+    margin-bottom: 22px !important;
+  }
+
+  .client-testimonials-heading h2 {
+    font-size: clamp(29px, 3.4vw, 48px) !important;
+  }
+
+  .client-testimonial-card {
+    min-height: 205px !important;
+
+    grid-template-columns:
+      170px
+      minmax(0, 1fr)
+      210px
+      !important;
+
+    padding: 25px 24px 21px !important;
+    gap: 22px !important;
+  }
+
+  .testimonial-avatar-ring {
+    width: 58px !important;
+    height: 58px !important;
+  }
+
+  /* ---------- EXPERIENCE ---------- */
+
+  .experience-layout {
+    grid-template-columns:
+      minmax(245px, 0.7fr)
+      minmax(0, 1.3fr)
+      !important;
+
+    gap: 66px !important;
+    margin-top: 50px !important;
+  }
+
+  .experience-intro {
+    top: 100px !important;
+    padding: 27px !important;
+    border-radius: 23px !important;
+  }
+
+  .experience-card {
+    padding: 27px !important;
+    border-radius: 23px !important;
+  }
+
+  .experience-card h3 {
+    font-size: clamp(20px, 2.2vw, 26px) !important;
+  }
+
+  .experience-card > p {
+    margin: 18px 0 !important;
+    padding-top: 16px !important;
+    font-size: 12px !important;
+  }
+
+  /* ---------- CONTACT ---------- */
+
+  .contact-layout {
+    grid-template-columns: 0.84fr 1.16fr !important;
+    gap: 20px !important;
+    margin-top: 50px !important;
+  }
+
+  .contact-information,
+  .contact-form-wrapper {
+    padding: 30px !important;
+    border-radius: 24px !important;
+  }
+
+  .contact-information > h3 {
+    margin: 27px 0 14px !important;
+    font-size: clamp(27px, 3vw, 36px) !important;
+  }
+
+  .contact-information > p {
+    margin-bottom: 28px !important;
+    font-size: 12px !important;
+  }
+
+  .contact-method {
+    padding: 11px 12px !important;
+  }
+
+  .contact-method-icon {
+    width: 39px !important;
+    height: 39px !important;
+  }
+
+  .contact-form-header {
+    margin-bottom: 27px !important;
+    padding-bottom: 20px !important;
+  }
+
+  .contact-form-header h3 {
+    font-size: clamp(23px, 2.4vw, 29px) !important;
+  }
+
+  .contact-form {
+    gap: 16px !important;
+  }
+
+  .contact-form input,
+  .contact-form select {
+    min-height: 48px !important;
+  }
+
+  .contact-form textarea {
+    min-height: 122px !important;
+  }
+
+  .contact-submit-button {
+    min-height: 50px !important;
   }
 }
