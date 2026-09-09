@@ -20,6 +20,8 @@ import WarehouseERP from "./pages/WarehouseERP";
 import FinancialManagement from "./pages/FinancialManagement";
 import RestaurantERP from "./pages/RestaurantERP";
 
+import SiteMotion from "./components/SiteMotion";
+
 import { FaWhatsapp } from "react-icons/fa";
 
 import "./App.css";
@@ -50,6 +52,7 @@ function App() {
 
   return (
     <>
+    <SiteMotion />
       <Navbar />
 
       <CommandPalette />
