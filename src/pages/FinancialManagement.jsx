@@ -40,7 +40,7 @@ function FinancialManagement() {
     if (canonical) {
       canonical.setAttribute(
         "href",
-        "https://ahsanuddin-portfolio-2026.vercel.app/projects/financial-management"
+        "https://ahsannasir.runs-on.dev/projects/financial-management"
       );
     }
 
@@ -53,7 +53,7 @@ function FinancialManagement() {
       if (canonical) {
         canonical.setAttribute(
           "href",
-          "https://ahsanuddin-portfolio-2026.vercel.app/"
+          "https://ahsannasir.runs-on.dev/"
         );
       }
     };

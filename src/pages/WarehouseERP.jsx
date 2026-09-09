@@ -38,7 +38,7 @@ function WarehouseERP() {
     if (canonical) {
       canonical.setAttribute(
         "href",
-        "https://ahsanuddin-portfolio-2026.vercel.app/projects/warehouse-erp"
+        "https://ahsannasir.runs-on.dev/projects/warehouse-erp"
       );
     }
 
@@ -51,7 +51,7 @@ function WarehouseERP() {
       if (canonical) {
         canonical.setAttribute(
           "href",
-          "https://ahsanuddin-portfolio-2026.vercel.app/"
+          "https://ahsannasir.runs-on.dev/"
         );
       }
     };
