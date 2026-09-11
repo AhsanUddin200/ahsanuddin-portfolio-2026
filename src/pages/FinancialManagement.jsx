@@ -14,48 +14,343 @@ import {
 
 function FinancialManagement() {
   useEffect(() => {
-    document.title =
+    const pageTitle =
       "Financial Management System Case Study | Ahsan Nasir";
 
-    const description =
-      "Explore a Financial Management System case study by Ahsan Nasir featuring financial reporting, salaries, inventory, ledgers, audit logs and role-based business management.";
+    const pageDescription =
+      "Explore a financial management system for income, expenses, assets, liabilities, payroll, inventory, ledgers and business reporting.";
 
-    const metaDescription =
-      document.querySelector(
-        'meta[name="description"]'
-      );
+    const pageUrl =
+      "https://ahsannasir.runs-on.dev/projects/financial-management";
 
-    if (metaDescription) {
-      metaDescription.setAttribute(
+    const pageImage =
+      "https://ahsannasir.runs-on.dev/financial-1.jpg";
+
+    const originalTitle =
+      document.title;
+
+    const restoreActions = [];
+
+    const setMeta = (
+      selector,
+      attributeName,
+      attributeValue,
+      content
+    ) => {
+      let element =
+        document.head.querySelector(
+          selector
+        );
+
+      const existed =
+        Boolean(element);
+
+      const previousContent =
+        element?.getAttribute(
+          "content"
+        );
+
+      if (!element) {
+        element =
+          document.createElement(
+            "meta"
+          );
+
+        element.setAttribute(
+          attributeName,
+          attributeValue
+        );
+
+        document.head.appendChild(
+          element
+        );
+      }
+
+      element.setAttribute(
         "content",
-        description
-      );
-    }
-
-    const canonical =
-      document.querySelector(
-        'link[rel="canonical"]'
+        content
       );
 
-    if (canonical) {
+      restoreActions.push(() => {
+        if (!existed) {
+          element.remove();
+          return;
+        }
+
+        if (previousContent === null) {
+          element.removeAttribute(
+            "content"
+          );
+        } else {
+          element.setAttribute(
+            "content",
+            previousContent
+          );
+        }
+      });
+    };
+
+    const setCanonical = () => {
+      let canonical =
+        document.head.querySelector(
+          'link[rel="canonical"]'
+        );
+
+      const existed =
+        Boolean(canonical);
+
+      const previousHref =
+        canonical?.getAttribute(
+          "href"
+        );
+
+      if (!canonical) {
+        canonical =
+          document.createElement(
+            "link"
+          );
+
+        canonical.setAttribute(
+          "rel",
+          "canonical"
+        );
+
+        document.head.appendChild(
+          canonical
+        );
+      }
+
       canonical.setAttribute(
         "href",
-        "https://ahsannasir.runs-on.dev/projects/financial-management"
+        pageUrl
       );
+
+      restoreActions.push(() => {
+        if (!existed) {
+          canonical.remove();
+          return;
+        }
+
+        if (previousHref === null) {
+          canonical.removeAttribute(
+            "href"
+          );
+        } else {
+          canonical.setAttribute(
+            "href",
+            previousHref
+          );
+        }
+      });
+    };
+
+    document.title =
+      pageTitle;
+
+    setMeta(
+      'meta[name="description"]',
+      "name",
+      "description",
+      pageDescription
+    );
+
+    setMeta(
+      'meta[property="og:type"]',
+      "property",
+      "og:type",
+      "article"
+    );
+
+    setMeta(
+      'meta[property="og:title"]',
+      "property",
+      "og:title",
+      pageTitle
+    );
+
+    setMeta(
+      'meta[property="og:description"]',
+      "property",
+      "og:description",
+      pageDescription
+    );
+
+    setMeta(
+      'meta[property="og:url"]',
+      "property",
+      "og:url",
+      pageUrl
+    );
+
+    setMeta(
+      'meta[property="og:image"]',
+      "property",
+      "og:image",
+      pageImage
+    );
+
+    setMeta(
+      'meta[property="og:image:alt"]',
+      "property",
+      "og:image:alt",
+      "Financial Management System case study by Ahsan Nasir"
+    );
+
+    setMeta(
+      'meta[name="twitter:card"]',
+      "name",
+      "twitter:card",
+      "summary_large_image"
+    );
+
+    setMeta(
+      'meta[name="twitter:title"]',
+      "name",
+      "twitter:title",
+      pageTitle
+    );
+
+    setMeta(
+      'meta[name="twitter:description"]',
+      "name",
+      "twitter:description",
+      pageDescription
+    );
+
+    setMeta(
+      'meta[name="twitter:image"]',
+      "name",
+      "twitter:image",
+      pageImage
+    );
+
+    setMeta(
+      'meta[name="twitter:image:alt"]',
+      "name",
+      "twitter:image:alt",
+      "Financial Management System case study by Ahsan Nasir"
+    );
+
+    setCanonical();
+
+    const existingSchema =
+      document.getElementById(
+        "financial-management-seo-schema"
+      );
+
+    if (existingSchema) {
+      existingSchema.remove();
     }
+
+    const schema =
+      document.createElement(
+        "script"
+      );
+
+    schema.id =
+      "financial-management-seo-schema";
+
+    schema.type =
+      "application/ld+json";
+
+    schema.textContent =
+      JSON.stringify({
+        "@context":
+          "https://schema.org",
+
+        "@graph": [
+          {
+            "@type": "WebPage",
+            "@id":
+              `${pageUrl}#webpage`,
+            url: pageUrl,
+            name: pageTitle,
+            description:
+              pageDescription,
+            isPartOf: {
+              "@id":
+                "https://ahsannasir.runs-on.dev/#website",
+            },
+            author: {
+              "@id":
+                "https://ahsannasir.runs-on.dev/#person",
+            },
+            about: {
+              "@id":
+                `${pageUrl}#project`,
+            },
+          },
+          {
+            "@type":
+              "CreativeWork",
+            "@id":
+              `${pageUrl}#project`,
+            name:
+              "Financial Management System",
+            description:
+              "A centralized business management platform for financial records, salaries, inventory, ledgers, reporting and administrative operations.",
+            url: pageUrl,
+            image: pageImage,
+            creator: {
+              "@id":
+                "https://ahsannasir.runs-on.dev/#person",
+            },
+            keywords:
+              ["Financial Management System", "PHP", "MySQL", "Business Reporting", "Payroll", "Inventory", "Business Automation"],
+          },
+          {
+            "@type":
+              "BreadcrumbList",
+            itemListElement: [
+              {
+                "@type":
+                  "ListItem",
+                position: 1,
+                name:
+                  "Ahsan Nasir Portfolio",
+                item:
+                  "https://ahsannasir.runs-on.dev/",
+              },
+              {
+                "@type":
+                  "ListItem",
+                position: 2,
+                name:
+                  "Projects",
+                item:
+                  "https://ahsannasir.runs-on.dev/#projects",
+              },
+              {
+                "@type":
+                  "ListItem",
+                position: 3,
+                name:
+                  "Financial Management System",
+                item: pageUrl,
+              },
+            ],
+          },
+        ],
+      });
+
+    document.head.appendChild(
+      schema
+    );
 
     window.scrollTo(0, 0);
 
     return () => {
       document.title =
-        "Ahsan Nasir Portfolio | Software Engineer & Odoo Developer";
+        originalTitle;
 
-      if (canonical) {
-        canonical.setAttribute(
-          "href",
-          "https://ahsannasir.runs-on.dev/"
+      schema.remove();
+
+      restoreActions
+        .reverse()
+        .forEach(
+          (restore) =>
+            restore()
         );
-      }
     };
   }, []);
 

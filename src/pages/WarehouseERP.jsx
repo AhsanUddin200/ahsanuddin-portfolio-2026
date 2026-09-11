@@ -14,46 +14,343 @@ import {
 
 function WarehouseERP() {
   useEffect(() => {
-    document.title =
+    const pageTitle =
       "Warehouse ERP Case Study | Odoo Developer Ahsan Nasir";
 
-    const description =
-      "Explore a Warehouse ERP case study by Ahsan Nasir, covering Odoo inventory management, purchasing, sales, stock transfers and real-time warehouse reporting.";
+    const pageDescription =
+      "See how Ahsan Nasir built an Odoo warehouse ERP for inventory tracking, stock movements, purchasing, sales and real-time reporting.";
 
-    let metaDescription = document.querySelector(
-      'meta[name="description"]'
-    );
+    const pageUrl =
+      "https://ahsannasir.runs-on.dev/projects/warehouse-erp";
 
-    if (metaDescription) {
-      metaDescription.setAttribute(
+    const pageImage =
+      "https://ahsannasir.runs-on.dev/og-image.jpg";
+
+    const originalTitle =
+      document.title;
+
+    const restoreActions = [];
+
+    const setMeta = (
+      selector,
+      attributeName,
+      attributeValue,
+      content
+    ) => {
+      let element =
+        document.head.querySelector(
+          selector
+        );
+
+      const existed =
+        Boolean(element);
+
+      const previousContent =
+        element?.getAttribute(
+          "content"
+        );
+
+      if (!element) {
+        element =
+          document.createElement(
+            "meta"
+          );
+
+        element.setAttribute(
+          attributeName,
+          attributeValue
+        );
+
+        document.head.appendChild(
+          element
+        );
+      }
+
+      element.setAttribute(
         "content",
-        description
+        content
       );
-    }
 
-    let canonical = document.querySelector(
-      'link[rel="canonical"]'
-    );
+      restoreActions.push(() => {
+        if (!existed) {
+          element.remove();
+          return;
+        }
 
-    if (canonical) {
+        if (previousContent === null) {
+          element.removeAttribute(
+            "content"
+          );
+        } else {
+          element.setAttribute(
+            "content",
+            previousContent
+          );
+        }
+      });
+    };
+
+    const setCanonical = () => {
+      let canonical =
+        document.head.querySelector(
+          'link[rel="canonical"]'
+        );
+
+      const existed =
+        Boolean(canonical);
+
+      const previousHref =
+        canonical?.getAttribute(
+          "href"
+        );
+
+      if (!canonical) {
+        canonical =
+          document.createElement(
+            "link"
+          );
+
+        canonical.setAttribute(
+          "rel",
+          "canonical"
+        );
+
+        document.head.appendChild(
+          canonical
+        );
+      }
+
       canonical.setAttribute(
         "href",
-        "https://ahsannasir.runs-on.dev/projects/warehouse-erp"
+        pageUrl
       );
+
+      restoreActions.push(() => {
+        if (!existed) {
+          canonical.remove();
+          return;
+        }
+
+        if (previousHref === null) {
+          canonical.removeAttribute(
+            "href"
+          );
+        } else {
+          canonical.setAttribute(
+            "href",
+            previousHref
+          );
+        }
+      });
+    };
+
+    document.title =
+      pageTitle;
+
+    setMeta(
+      'meta[name="description"]',
+      "name",
+      "description",
+      pageDescription
+    );
+
+    setMeta(
+      'meta[property="og:type"]',
+      "property",
+      "og:type",
+      "article"
+    );
+
+    setMeta(
+      'meta[property="og:title"]',
+      "property",
+      "og:title",
+      pageTitle
+    );
+
+    setMeta(
+      'meta[property="og:description"]',
+      "property",
+      "og:description",
+      pageDescription
+    );
+
+    setMeta(
+      'meta[property="og:url"]',
+      "property",
+      "og:url",
+      pageUrl
+    );
+
+    setMeta(
+      'meta[property="og:image"]',
+      "property",
+      "og:image",
+      pageImage
+    );
+
+    setMeta(
+      'meta[property="og:image:alt"]',
+      "property",
+      "og:image:alt",
+      "Warehouse ERP Management System case study by Ahsan Nasir"
+    );
+
+    setMeta(
+      'meta[name="twitter:card"]',
+      "name",
+      "twitter:card",
+      "summary_large_image"
+    );
+
+    setMeta(
+      'meta[name="twitter:title"]',
+      "name",
+      "twitter:title",
+      pageTitle
+    );
+
+    setMeta(
+      'meta[name="twitter:description"]',
+      "name",
+      "twitter:description",
+      pageDescription
+    );
+
+    setMeta(
+      'meta[name="twitter:image"]',
+      "name",
+      "twitter:image",
+      pageImage
+    );
+
+    setMeta(
+      'meta[name="twitter:image:alt"]',
+      "name",
+      "twitter:image:alt",
+      "Warehouse ERP Management System case study by Ahsan Nasir"
+    );
+
+    setCanonical();
+
+    const existingSchema =
+      document.getElementById(
+        "warehouse-erp-seo-schema"
+      );
+
+    if (existingSchema) {
+      existingSchema.remove();
     }
+
+    const schema =
+      document.createElement(
+        "script"
+      );
+
+    schema.id =
+      "warehouse-erp-seo-schema";
+
+    schema.type =
+      "application/ld+json";
+
+    schema.textContent =
+      JSON.stringify({
+        "@context":
+          "https://schema.org",
+
+        "@graph": [
+          {
+            "@type": "WebPage",
+            "@id":
+              `${pageUrl}#webpage`,
+            url: pageUrl,
+            name: pageTitle,
+            description:
+              pageDescription,
+            isPartOf: {
+              "@id":
+                "https://ahsannasir.runs-on.dev/#website",
+            },
+            author: {
+              "@id":
+                "https://ahsannasir.runs-on.dev/#person",
+            },
+            about: {
+              "@id":
+                `${pageUrl}#project`,
+            },
+          },
+          {
+            "@type":
+              "CreativeWork",
+            "@id":
+              `${pageUrl}#project`,
+            name:
+              "Warehouse ERP Management System",
+            description:
+              "A centralized Odoo ERP solution for warehouse inventory, purchasing, sales, stock transfers and operational reporting.",
+            url: pageUrl,
+            image: pageImage,
+            creator: {
+              "@id":
+                "https://ahsannasir.runs-on.dev/#person",
+            },
+            keywords:
+              ["Odoo ERP", "Warehouse Management", "Inventory Management", "Python", "PostgreSQL", "Business Automation"],
+          },
+          {
+            "@type":
+              "BreadcrumbList",
+            itemListElement: [
+              {
+                "@type":
+                  "ListItem",
+                position: 1,
+                name:
+                  "Ahsan Nasir Portfolio",
+                item:
+                  "https://ahsannasir.runs-on.dev/",
+              },
+              {
+                "@type":
+                  "ListItem",
+                position: 2,
+                name:
+                  "Projects",
+                item:
+                  "https://ahsannasir.runs-on.dev/#projects",
+              },
+              {
+                "@type":
+                  "ListItem",
+                position: 3,
+                name:
+                  "Warehouse ERP Management System",
+                item: pageUrl,
+              },
+            ],
+          },
+        ],
+      });
+
+    document.head.appendChild(
+      schema
+    );
 
     window.scrollTo(0, 0);
 
     return () => {
       document.title =
-        "Ahsan Nasir Portfolio | Software Engineer & Odoo Developer";
+        originalTitle;
 
-      if (canonical) {
-        canonical.setAttribute(
-          "href",
-          "https://ahsannasir.runs-on.dev/"
+      schema.remove();
+
+      restoreActions
+        .reverse()
+        .forEach(
+          (restore) =>
+            restore()
         );
-      }
     };
   }, []);
 
