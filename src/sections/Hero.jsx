@@ -26,6 +26,14 @@ import {
 function Hero() {
   const prefersReducedMotion = useReducedMotion();
 
+  const isMobile =
+    typeof window !== "undefined" &&
+    window.matchMedia("(max-width: 768px)").matches;
+
+  const HeroBottomContent = isMobile
+    ? "div"
+    : motion.div;
+
   const pointerX = useMotionValue(0);
   const pointerY = useMotionValue(0);
 
@@ -267,9 +275,16 @@ function Hero() {
                 </span>
               </motion.h1>
 
-<motion.div
+              <HeroBottomContent
                 className="hero-bottom-content"
-                variants={itemAnimation}
+                {...(
+                  isMobile
+                    ? {}
+                    : {
+                        variants:
+                          itemAnimation,
+                      }
+                )}
               >
                 <p className="hero-description">
                   I build web applications and ERP systems
@@ -295,7 +310,7 @@ function Hero() {
                     <ArrowUpRight size={18} />
                   </a>
                 </div>
-              </motion.div>
+              </HeroBottomContent>
             </div>
 
             {/* ===============================
