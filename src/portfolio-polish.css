@@ -2945,3 +2945,16 @@ html[data-theme="light"]
     display: none !important;
   }
 }
+
+/* =========================================================
+   MOBILE HERO LCP FIX
+   Desktop animation remains unchanged
+========================================================= */
+
+@media (max-width: 768px) {
+  .hero-bottom-content {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}
