@@ -137,7 +137,7 @@ function Hero() {
 
       <div className="hero-grid-background" />
 
-      <CodeCinema />
+      {!isMobile && <CodeCinema />}
 
       <motion.div
         className="hero-cursor-spotlight"
