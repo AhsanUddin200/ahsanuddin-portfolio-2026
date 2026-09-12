@@ -2934,3 +2934,14 @@ html[data-theme="light"]
     display: none;
   }
 }
+
+/* =========================================================
+   MOBILE PERFORMANCE FIX
+   Keep cinematic code animation on desktop only
+========================================================= */
+
+@media (max-width: 768px) {
+  .code-cinema {
+    display: none !important;
+  }
+}
