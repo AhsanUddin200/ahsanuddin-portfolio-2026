@@ -182,11 +182,22 @@ export const projects = [
     category: "Odoo ERP Solution",
     description:
       "A complete warehouse ERP for stock operations, inventory tracking, automated billing, analytics and business reporting.",
-    technologies: ["Odoo 19", "Python", "PostgreSQL"],
-    liveLink: "https://warehousedemo.aadplus.com/",
+    technologies: [
+      "Odoo 19",
+      "Python",
+      "PostgreSQL",
+    ],
+
+    caseStudyUrl:
+      "/projects/warehouse-erp",
+
+    liveLink:
+      "https://warehousedemo.aadplus.com/",
+
     githubLink: "",
     featured: true,
   },
+
   {
     id: 2,
     number: "02",
@@ -194,11 +205,17 @@ export const projects = [
     category: "Restaurant ERP & POS",
     description:
       "An integrated restaurant platform covering POS, tables, kitchen workflows, order processing, inventory and billing.",
-    technologies: ["Odoo 19", "Python", "PostgreSQL"],
-    liveLink: "https://restaurantdemo.aadplus.com/",
+    technologies: [
+      "Odoo 19",
+      "Python",
+      "PostgreSQL",
+    ],
+    liveLink:
+      "https://restaurantdemo.aadplus.com/",
     githubLink: "",
     featured: true,
   },
+
   {
     id: 3,
     number: "03",
@@ -206,11 +223,17 @@ export const projects = [
     category: "Business Automation",
     description:
       "Laundry management software with bookings, QR tracking, washing stages, invoicing, delivery operations and reports.",
-    technologies: ["Odoo 19", "Python", "PostgreSQL"],
-    liveLink: "https://laundrydemo.aadplus.com/",
+    technologies: [
+      "Odoo 19",
+      "Python",
+      "PostgreSQL",
+    ],
+    liveLink:
+      "https://laundrydemo.aadplus.com/",
     githubLink: "",
     featured: true,
   },
+
   {
     id: 4,
     number: "04",
@@ -218,11 +241,18 @@ export const projects = [
     category: "MERN Stack Application",
     description:
       "A role-based financial platform with separate administrator and user panels for financial operations and activity management.",
-    technologies: ["React.js", "Node.js", "Express.js", "MongoDB"],
+    technologies: [
+      "React.js",
+      "Node.js",
+      "Express.js",
+      "MongoDB",
+    ],
     liveLink: "",
-    githubLink: "https://github.com/AhsanUddin200",
+    githubLink:
+      "https://github.com/AhsanUddin200",
     featured: false,
   },
+
   {
     id: 5,
     number: "05",
@@ -230,11 +260,18 @@ export const projects = [
     category: "E-commerce Platform",
     description:
       "An online bookstore with product browsing, order tracking, cash payments, installment options and Stripe integration.",
-    technologies: ["React.js", "Node.js", "MongoDB", "Stripe"],
+    technologies: [
+      "React.js",
+      "Node.js",
+      "MongoDB",
+      "Stripe",
+    ],
     liveLink: "",
-    githubLink: "https://github.com/AhsanUddin200",
+    githubLink:
+      "https://github.com/AhsanUddin200",
     featured: false,
   },
+
   {
     id: 6,
     number: "06",
@@ -242,9 +279,14 @@ export const projects = [
     category: "Booking Management Platform",
     description:
       "A real-time parking slot booking platform supporting available and occupied slot tracking for more than 1,000 users.",
-    technologies: ["Next.js", "Node.js", "MongoDB"],
+    technologies: [
+      "Next.js",
+      "Node.js",
+      "MongoDB",
+    ],
     liveLink: "",
-    githubLink: "https://github.com/AhsanUddin200",
+    githubLink:
+      "https://github.com/AhsanUddin200",
     featured: false,
   },
 ];
@@ -253,40 +295,54 @@ export const experiences = [
   {
     id: 1,
     period: "June 2025 — Present",
-    position: "Software Engineer / Mid-Level Developer",
-    company: "AADPlus IT Solution Groups",
+    position:
+      "Software Engineer / Mid-Level Developer",
+    company:
+      "AADPlus IT Solution Groups",
     description:
       "Developing production websites, Odoo ERP solutions, warehouse systems and managing cloud deployments, Linux servers, DNS and SSL.",
   },
   {
     id: 2,
-    period: "April 2024 — June 2025",
-    position: "MERN Stack Instructor",
-    company: "Aptech Computer Education",
+    period:
+      "April 2024 — June 2025",
+    position:
+      "MERN Stack Instructor",
+    company:
+      "Aptech Computer Education",
     description:
       "Trained more than 60 students in React, Next.js, Node.js, Express.js, MongoDB, authentication and project-based development.",
   },
   {
     id: 3,
-    period: "September 2024 — April 2025",
-    position: "Junior Software Engineer",
-    company: "Rehan Foundation",
+    period:
+      "September 2024 — April 2025",
+    position:
+      "Junior Software Engineer",
+    company:
+      "Rehan Foundation",
     description:
       "Developed financial management, online bookstore and inventory-related application features.",
   },
   {
     id: 4,
-    period: "August 2024 — September 2024",
-    position: "Full Stack Developer — Contract",
-    company: "Console, United States",
+    period:
+      "August 2024 — September 2024",
+    position:
+      "Full Stack Developer — Contract",
+    company:
+      "Console, United States",
     description:
       "Developed a scalable parking management platform supporting real-time slot availability and booking workflows.",
   },
   {
     id: 5,
-    period: "February 2024 — June 2024",
-    position: "Web Development Intern",
-    company: "One Click Digital",
+    period:
+      "February 2024 — June 2024",
+    position:
+      "Web Development Intern",
+    company:
+      "One Click Digital",
     description:
       "Contributed to insurance and healthcare websites, frontend development and responsive user-interface improvements.",
   },

@@ -13453,3 +13453,449 @@ a.contact-method:hover {
   white-space: nowrap;
   border: 0;
 }
+
+
+/* =========================================================
+   WAREHOUSE ERP CASE STUDY
+========================================================= */
+
+.warehouse-case-study {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+  padding: 145px 0 110px;
+  background:
+    radial-gradient(
+      circle at 15% 20%,
+      rgba(73, 75, 180, 0.16),
+      transparent 30%
+    ),
+    radial-gradient(
+      circle at 85% 20%,
+      rgba(200, 255, 69, 0.07),
+      transparent 30%
+    ),
+    #0b0d11;
+}
+
+.warehouse-case-container {
+  position: relative;
+  z-index: 2;
+  width: min(1180px, calc(100% - 48px));
+  margin: 0 auto;
+}
+
+.warehouse-case-glow {
+  position: absolute;
+  width: 460px;
+  height: 460px;
+  border-radius: 50%;
+  filter: blur(120px);
+  pointer-events: none;
+}
+
+.warehouse-case-glow-one {
+  top: 70px;
+  left: -180px;
+  background: rgba(69, 72, 190, 0.11);
+}
+
+.warehouse-case-glow-two {
+  top: 300px;
+  right: -200px;
+  background: rgba(200, 255, 69, 0.06);
+}
+
+.warehouse-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 60px;
+  color: #a5a8b2;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
+  transition: 0.25s ease;
+}
+
+.warehouse-back-link:hover {
+  color: #c8ff45;
+  transform: translateX(-3px);
+}
+
+.warehouse-case-hero {
+  max-width: 1000px;
+  padding-bottom: 80px;
+}
+
+.warehouse-case-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 22px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: #a6aaaf;
+}
+
+.warehouse-case-label span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #c8ff45;
+  box-shadow: 0 0 18px rgba(200, 255, 69, 0.65);
+}
+
+.warehouse-case-hero h1 {
+  max-width: 950px;
+  margin: 0;
+  font-size: clamp(52px, 7vw, 94px);
+  line-height: 0.96;
+  letter-spacing: -4px;
+  color: #fff;
+}
+
+.warehouse-case-hero h1 span {
+  color: #c8ff45;
+}
+
+.warehouse-case-intro {
+  max-width: 780px;
+  margin-top: 30px;
+  color: #a8abb4;
+  font-size: 18px;
+  line-height: 1.75;
+}
+
+.warehouse-case-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 34px;
+}
+
+.warehouse-primary-btn,
+.warehouse-secondary-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 52px;
+  padding: 0 24px;
+  border-radius: 999px;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 700;
+  transition: 0.25s ease;
+}
+
+.warehouse-primary-btn {
+  background: #c8ff45;
+  color: #07090c;
+}
+
+.warehouse-primary-btn:hover {
+  transform: translateY(-2px);
+}
+
+.warehouse-secondary-btn {
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  color: #fff;
+}
+
+.warehouse-secondary-btn:hover {
+  border-color: rgba(200, 255, 69, 0.45);
+}
+
+.warehouse-case-meta {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  margin-top: 65px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+.warehouse-case-meta > div {
+  padding: 24px;
+  background: #101318;
+}
+
+.warehouse-case-meta small {
+  display: block;
+  margin-bottom: 8px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  color: #777d88;
+}
+
+.warehouse-case-meta strong {
+  color: #f4f5f7;
+  font-size: 14px;
+}
+
+.warehouse-case-section {
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  gap: 40px;
+  padding: 100px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.warehouse-section-number {
+  font-family: "JetBrains Mono", monospace;
+  color: #c8ff45;
+  font-size: 13px;
+}
+
+.warehouse-section-content {
+  max-width: 850px;
+}
+
+.warehouse-section-label {
+  margin: 0 0 16px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: #838891;
+}
+
+.warehouse-section-content h2,
+.warehouse-feature-heading h2,
+.warehouse-case-cta h2 {
+  margin: 0;
+  color: #fff;
+  font-size: clamp(36px, 5vw, 64px);
+  line-height: 1.02;
+  letter-spacing: -2.5px;
+}
+
+.warehouse-section-content h2 span,
+.warehouse-feature-heading h2 span {
+  color: #c8ff45;
+}
+
+.warehouse-section-content > p:last-child {
+  max-width: 760px;
+  margin-top: 26px;
+  color: #9da1aa;
+  line-height: 1.8;
+  font-size: 16px;
+}
+
+.warehouse-story-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  padding-bottom: 110px;
+}
+
+.warehouse-story-card,
+.warehouse-feature-card {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.warehouse-story-card {
+  min-height: 300px;
+  padding: 30px;
+}
+
+.warehouse-story-card > span {
+  font-family: "JetBrains Mono", monospace;
+  color: #c8ff45;
+  font-size: 11px;
+}
+
+.warehouse-story-card h3 {
+  margin: 55px 0 15px;
+  color: #fff;
+  font-size: 25px;
+}
+
+.warehouse-story-card p {
+  margin: 0;
+  color: #9196a0;
+  line-height: 1.75;
+}
+
+.warehouse-features-section {
+  padding: 100px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.warehouse-feature-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 30px;
+  margin-bottom: 48px;
+}
+
+.warehouse-feature-heading > svg {
+  color: #c8ff45;
+}
+
+.warehouse-feature-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px;
+}
+
+.warehouse-feature-card {
+  padding: 26px;
+}
+
+.warehouse-feature-icon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  margin-bottom: 34px;
+  background: rgba(200, 255, 69, 0.09);
+  color: #c8ff45;
+}
+
+.warehouse-feature-card h3 {
+  margin: 0 0 12px;
+  color: #fff;
+  font-size: 18px;
+}
+
+.warehouse-feature-card p {
+  margin: 0;
+  color: #8f949d;
+  line-height: 1.7;
+  font-size: 14px;
+}
+
+.warehouse-tech-section {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 40px;
+  padding: 70px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.warehouse-tech-section > div:first-child {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #c8ff45;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  letter-spacing: 1.4px;
+}
+
+.warehouse-tech-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+  max-width: 700px;
+}
+
+.warehouse-tech-list span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 999px;
+  color: #c4c7ce;
+  font-size: 12px;
+}
+
+.warehouse-tech-list svg {
+  color: #c8ff45;
+}
+
+.warehouse-case-cta {
+  margin-top: 70px;
+  padding: 70px;
+  border: 1px solid rgba(200, 255, 69, 0.15);
+  border-radius: 28px;
+  background:
+    radial-gradient(
+      circle at 80% 20%,
+      rgba(200, 255, 69, 0.1),
+      transparent 35%
+    ),
+    #101318;
+}
+
+.warehouse-case-cta > span {
+  font-family: "JetBrains Mono", monospace;
+  color: #c8ff45;
+  font-size: 11px;
+  letter-spacing: 2px;
+}
+
+.warehouse-case-cta h2 {
+  max-width: 800px;
+  margin-top: 18px;
+}
+
+.warehouse-case-cta p {
+  max-width: 620px;
+  margin: 22px 0 30px;
+  color: #9da1aa;
+  line-height: 1.7;
+}
+
+@media (max-width: 900px) {
+  .warehouse-case-study {
+    padding-top: 120px;
+  }
+
+  .warehouse-case-meta,
+  .warehouse-story-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .warehouse-feature-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .warehouse-case-section {
+    grid-template-columns: 1fr;
+  }
+
+  .warehouse-tech-section {
+    flex-direction: column;
+  }
+
+  .warehouse-tech-list {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 600px) {
+  .warehouse-case-container {
+    width: min(100% - 28px, 1180px);
+  }
+
+  .warehouse-case-hero h1 {
+    font-size: 48px;
+    letter-spacing: -2.5px;
+  }
+
+  .warehouse-case-intro {
+    font-size: 16px;
+  }
+
+  .warehouse-feature-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .warehouse-case-cta {
+    padding: 38px 24px;
+  }
+}
