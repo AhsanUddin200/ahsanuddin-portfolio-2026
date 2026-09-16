@@ -14,48 +14,343 @@ import {
 
 function RestaurantERP() {
   useEffect(() => {
-    document.title =
+    const pageTitle =
       "Restaurant ERP Case Study | Odoo Developer Ahsan Nasir";
 
-    const description =
-      "Explore a Restaurant ERP case study by Ahsan Nasir covering Odoo POS, restaurant floor management, kitchen workflows, inventory, purchasing and business automation.";
+    const pageDescription =
+      "Explore an Odoo restaurant ERP covering POS, kitchen workflow, inventory, purchasing, accounting and restaurant order management.";
 
-    const metaDescription =
-      document.querySelector(
-        'meta[name="description"]'
-      );
+    const pageUrl =
+      "https://ahsannasir.runs-on.dev/projects/restaurant-erp";
 
-    if (metaDescription) {
-      metaDescription.setAttribute(
+    const pageImage =
+      "https://ahsannasir.runs-on.dev/restaurant-1.jpg";
+
+    const originalTitle =
+      document.title;
+
+    const restoreActions = [];
+
+    const setMeta = (
+      selector,
+      attributeName,
+      attributeValue,
+      content
+    ) => {
+      let element =
+        document.head.querySelector(
+          selector
+        );
+
+      const existed =
+        Boolean(element);
+
+      const previousContent =
+        element?.getAttribute(
+          "content"
+        );
+
+      if (!element) {
+        element =
+          document.createElement(
+            "meta"
+          );
+
+        element.setAttribute(
+          attributeName,
+          attributeValue
+        );
+
+        document.head.appendChild(
+          element
+        );
+      }
+
+      element.setAttribute(
         "content",
-        description
-      );
-    }
-
-    const canonical =
-      document.querySelector(
-        'link[rel="canonical"]'
+        content
       );
 
-    if (canonical) {
+      restoreActions.push(() => {
+        if (!existed) {
+          element.remove();
+          return;
+        }
+
+        if (previousContent === null) {
+          element.removeAttribute(
+            "content"
+          );
+        } else {
+          element.setAttribute(
+            "content",
+            previousContent
+          );
+        }
+      });
+    };
+
+    const setCanonical = () => {
+      let canonical =
+        document.head.querySelector(
+          'link[rel="canonical"]'
+        );
+
+      const existed =
+        Boolean(canonical);
+
+      const previousHref =
+        canonical?.getAttribute(
+          "href"
+        );
+
+      if (!canonical) {
+        canonical =
+          document.createElement(
+            "link"
+          );
+
+        canonical.setAttribute(
+          "rel",
+          "canonical"
+        );
+
+        document.head.appendChild(
+          canonical
+        );
+      }
+
       canonical.setAttribute(
         "href",
-        "https://ahsannasir.runs-on.dev/projects/restaurant-erp"
+        pageUrl
       );
+
+      restoreActions.push(() => {
+        if (!existed) {
+          canonical.remove();
+          return;
+        }
+
+        if (previousHref === null) {
+          canonical.removeAttribute(
+            "href"
+          );
+        } else {
+          canonical.setAttribute(
+            "href",
+            previousHref
+          );
+        }
+      });
+    };
+
+    document.title =
+      pageTitle;
+
+    setMeta(
+      'meta[name="description"]',
+      "name",
+      "description",
+      pageDescription
+    );
+
+    setMeta(
+      'meta[property="og:type"]',
+      "property",
+      "og:type",
+      "article"
+    );
+
+    setMeta(
+      'meta[property="og:title"]',
+      "property",
+      "og:title",
+      pageTitle
+    );
+
+    setMeta(
+      'meta[property="og:description"]',
+      "property",
+      "og:description",
+      pageDescription
+    );
+
+    setMeta(
+      'meta[property="og:url"]',
+      "property",
+      "og:url",
+      pageUrl
+    );
+
+    setMeta(
+      'meta[property="og:image"]',
+      "property",
+      "og:image",
+      pageImage
+    );
+
+    setMeta(
+      'meta[property="og:image:alt"]',
+      "property",
+      "og:image:alt",
+      "Restaurant ERP Management System case study by Ahsan Nasir"
+    );
+
+    setMeta(
+      'meta[name="twitter:card"]',
+      "name",
+      "twitter:card",
+      "summary_large_image"
+    );
+
+    setMeta(
+      'meta[name="twitter:title"]',
+      "name",
+      "twitter:title",
+      pageTitle
+    );
+
+    setMeta(
+      'meta[name="twitter:description"]',
+      "name",
+      "twitter:description",
+      pageDescription
+    );
+
+    setMeta(
+      'meta[name="twitter:image"]',
+      "name",
+      "twitter:image",
+      pageImage
+    );
+
+    setMeta(
+      'meta[name="twitter:image:alt"]',
+      "name",
+      "twitter:image:alt",
+      "Restaurant ERP Management System case study by Ahsan Nasir"
+    );
+
+    setCanonical();
+
+    const existingSchema =
+      document.getElementById(
+        "restaurant-erp-seo-schema"
+      );
+
+    if (existingSchema) {
+      existingSchema.remove();
     }
+
+    const schema =
+      document.createElement(
+        "script"
+      );
+
+    schema.id =
+      "restaurant-erp-seo-schema";
+
+    schema.type =
+      "application/ld+json";
+
+    schema.textContent =
+      JSON.stringify({
+        "@context":
+          "https://schema.org",
+
+        "@graph": [
+          {
+            "@type": "WebPage",
+            "@id":
+              `${pageUrl}#webpage`,
+            url: pageUrl,
+            name: pageTitle,
+            description:
+              pageDescription,
+            isPartOf: {
+              "@id":
+                "https://ahsannasir.runs-on.dev/#website",
+            },
+            author: {
+              "@id":
+                "https://ahsannasir.runs-on.dev/#person",
+            },
+            about: {
+              "@id":
+                `${pageUrl}#project`,
+            },
+          },
+          {
+            "@type":
+              "CreativeWork",
+            "@id":
+              `${pageUrl}#project`,
+            name:
+              "Restaurant ERP Management System",
+            description:
+              "An integrated Odoo restaurant management system connecting point of sale, dine-in operations, kitchen workflows, menu products and inventory.",
+            url: pageUrl,
+            image: pageImage,
+            creator: {
+              "@id":
+                "https://ahsannasir.runs-on.dev/#person",
+            },
+            keywords:
+              ["Odoo ERP", "Restaurant ERP", "Odoo POS", "Restaurant Management", "Python", "PostgreSQL", "Business Automation"],
+          },
+          {
+            "@type":
+              "BreadcrumbList",
+            itemListElement: [
+              {
+                "@type":
+                  "ListItem",
+                position: 1,
+                name:
+                  "Ahsan Nasir Portfolio",
+                item:
+                  "https://ahsannasir.runs-on.dev/",
+              },
+              {
+                "@type":
+                  "ListItem",
+                position: 2,
+                name:
+                  "Projects",
+                item:
+                  "https://ahsannasir.runs-on.dev/#projects",
+              },
+              {
+                "@type":
+                  "ListItem",
+                position: 3,
+                name:
+                  "Restaurant ERP Management System",
+                item: pageUrl,
+              },
+            ],
+          },
+        ],
+      });
+
+    document.head.appendChild(
+      schema
+    );
 
     window.scrollTo(0, 0);
 
     return () => {
       document.title =
-        "Ahsan Nasir Portfolio | Software Engineer & Odoo Developer";
+        originalTitle;
 
-      if (canonical) {
-        canonical.setAttribute(
-          "href",
-          "https://ahsannasir.runs-on.dev/"
+      schema.remove();
+
+      restoreActions
+        .reverse()
+        .forEach(
+          (restore) =>
+            restore()
         );
-      }
     };
   }, []);
 
