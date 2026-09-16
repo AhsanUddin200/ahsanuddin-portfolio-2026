@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+
 import {
   Braces,
   Code2,
@@ -34,34 +35,49 @@ function HeroPortrait() {
   return (
     <motion.div
       className="hero-portrait"
-      initial={{ opacity: 0, scale: 0.88, rotate: 3 }}
-      whileInView={{ opacity: 1, scale: 1, rotate: 0 }}
-      viewport={{ once: false, amount: 0.3 }}
+      initial={{
+        opacity: 0,
+        scale: 0.94,
+      }}
+      whileInView={{
+        opacity: 1,
+        scale: 1,
+      }}
+      viewport={{
+        once: true,
+        amount: 0.2,
+      }}
       transition={{
-        duration: 0.9,
+        duration: 0.7,
         ease: [0.22, 1, 0.36, 1],
       }}
     >
+      {/* BACKGROUND */}
+
       <div className="portrait-grid" />
 
       <motion.div
         className="portrait-glow"
         animate={{
-          scale: [1, 1.12, 1],
-          opacity: [0.35, 0.58, 0.35],
+          scale: [1, 1.08, 1],
+          opacity: [0.3, 0.45, 0.3],
         }}
         transition={{
-          duration: 4,
+          duration: 5,
           repeat: Infinity,
           ease: "easeInOut",
         }}
       />
 
+      {/* ORBITS */}
+
       <motion.div
         className="portrait-orbit portrait-orbit-one"
-        animate={{ rotate: 360 }}
+        animate={{
+          rotate: 360,
+        }}
         transition={{
-          duration: 18,
+          duration: 22,
           repeat: Infinity,
           ease: "linear",
         }}
@@ -71,15 +87,19 @@ function HeroPortrait() {
 
       <motion.div
         className="portrait-orbit portrait-orbit-two"
-        animate={{ rotate: -360 }}
+        animate={{
+          rotate: -360,
+        }}
         transition={{
-          duration: 24,
+          duration: 28,
           repeat: Infinity,
           ease: "linear",
         }}
       >
         <span />
       </motion.div>
+
+      {/* TOP BAR */}
 
       <div className="portrait-top-bar">
         <div className="portrait-window-dots">
@@ -88,7 +108,9 @@ function HeroPortrait() {
           <span />
         </div>
 
-        <span>developer.profile</span>
+        <span>
+          developer.profile
+        </span>
 
         <div className="portrait-live">
           <i />
@@ -96,59 +118,76 @@ function HeroPortrait() {
         </div>
       </div>
 
+      {/* =========================
+          MAIN IMAGE
+      ========================= */}
+
       <div className="portrait-image-wrapper">
-        <motion.img
-          src="/ahsan-profile-animated.png"
-          alt="Ahsan Nasir — Software Engineer"
-          className="hero-portrait-image"
-          animate={{
-            y: [0, -9, 0],
-          }}
-          transition={{
-            duration: 4,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        />
+        <img
+  src="/ahsan-hero.webp"
+  alt="Ahsan Nasir, Software Engineer, Full Stack Developer and Odoo ERP Specialist"
+  className="hero-portrait-image"
+  loading="eager"
+  decoding="async"
+  fetchPriority="high"
+  draggable="false"
+/>
 
         <div className="portrait-image-shadow" />
       </div>
 
-      {technologies.map((technology, index) => {
-        const Icon = technology.icon;
+      {/* TECHNOLOGIES */}
 
-        return (
-          <motion.div
-            className={`portrait-tech ${technology.className}`}
-            key={technology.name}
-            animate={{
-              y: [0, index % 2 === 0 ? -7 : 7, 0],
-            }}
-            transition={{
-              duration: 3 + index * 0.35,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-            whileHover={{
-              scale: 1.08,
-            }}
-          >
-            <span>
-              <Icon size={14} />
-            </span>
+      {technologies.map(
+        (technology, index) => {
+          const Icon =
+            technology.icon;
 
-            {technology.name}
-          </motion.div>
-        );
-      })}
+          return (
+            <motion.div
+              key={
+                technology.name
+              }
+              className={`portrait-tech ${technology.className}`}
+              animate={{
+                y: [
+                  0,
+                  index % 2 === 0
+                    ? -4
+                    : 4,
+                  0,
+                ],
+              }}
+              transition={{
+                duration:
+                  3.4 +
+                  index * 0.3,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+              whileHover={{
+                scale: 1.05,
+              }}
+            >
+              <span>
+                <Icon size={14} />
+              </span>
+
+              {technology.name}
+            </motion.div>
+          );
+        }
+      )}
+
+      {/* EXPERIENCE */}
 
       <motion.div
         className="portrait-experience-card"
         animate={{
-          x: [0, 6, 0],
+          x: [0, 4, 0],
         }}
         transition={{
-          duration: 3.5,
+          duration: 4,
           repeat: Infinity,
           ease: "easeInOut",
         }}
@@ -156,30 +195,49 @@ function HeroPortrait() {
         <Sparkles size={16} />
 
         <div>
-          <strong>2+ Years</strong>
-          <span>Building digital products</span>
+          <strong>
+            2+ Years
+          </strong>
+
+          <span>
+            Building digital products
+          </span>
         </div>
       </motion.div>
 
+      {/* CODE */}
+
       <div className="portrait-code-card">
         <span>
-          <i>const</i> developer =
+          <i>const</i>{" "}
+          developer =
         </span>
 
-        <strong>&quot;Ahsan Nasir&quot;;</strong>
+        <strong>
+          &quot;Ahsan Nasir&quot;;
+        </strong>
       </div>
+
+      {/* FOOTER */}
 
       <div className="portrait-footer">
         <div>
           <span className="portrait-status-dot" />
 
           <p>
-            <strong>AVAILABLE</strong>
-            <small>For freelance projects</small>
+            <strong>
+              AVAILABLE
+            </strong>
+
+            <small>
+              For freelance projects
+            </small>
           </p>
         </div>
 
-        <span className="portrait-footer-code">&lt;/&gt;</span>
+        <span className="portrait-footer-code">
+          &lt;/&gt;
+        </span>
       </div>
     </motion.div>
   );
