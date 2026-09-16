@@ -1,7 +1,14 @@
-import { motion } from "framer-motion";
+import {
+  motion,
+  useMotionTemplate,
+  useMotionValue,
+  useReducedMotion,
+  useSpring,
+} from "framer-motion";
 
 import CountUp from "../components/CountUp";
 import HeroPortrait from "../components/HeroPortrait";
+import CodeCinema from "../components/CodeCinema";
 
 import {
   ArrowDownRight,
@@ -17,6 +24,41 @@ import {
 } from "../data/portfolioData";
 
 function Hero() {
+  const prefersReducedMotion = useReducedMotion();
+
+  const pointerX = useMotionValue(0);
+  const pointerY = useMotionValue(0);
+
+  const smoothPointerX = useSpring(pointerX, {
+    stiffness: 150,
+    damping: 28,
+    mass: 0.3,
+  });
+
+  const smoothPointerY = useSpring(pointerY, {
+    stiffness: 150,
+    damping: 28,
+    mass: 0.3,
+  });
+
+  const spotlightBackground = useMotionTemplate`
+    radial-gradient(
+      520px circle at ${smoothPointerX}px ${smoothPointerY}px,
+      rgba(200, 255, 69, 0.11),
+      rgba(112, 101, 255, 0.07) 34%,
+      transparent 70%
+    )
+  `;
+
+  const handleHeroPointerMove = (event) => {
+    if (prefersReducedMotion) return;
+
+    const bounds = event.currentTarget.getBoundingClientRect();
+
+    pointerX.set(event.clientX - bounds.left);
+    pointerY.set(event.clientY - bounds.top);
+  };
+
   const containerAnimation = {
     hidden: {},
     visible: {
@@ -44,16 +86,58 @@ function Hero() {
     },
   };
 
+  const headingAnimation = {
+    hidden: {},
+    visible: {
+      transition: {
+        staggerChildren: prefersReducedMotion ? 0 : 0.095,
+        delayChildren: prefersReducedMotion ? 0 : 0.08,
+      },
+    },
+  };
+
+  const headingLineAnimation = {
+    hidden: prefersReducedMotion
+      ? { opacity: 1, y: 0 }
+      : {
+          opacity: 0,
+          y: "115%",
+          rotate: 1.4,
+        },
+
+    visible: {
+      opacity: 1,
+      y: 0,
+      rotate: 0,
+
+      transition: {
+        duration: prefersReducedMotion ? 0 : 0.82,
+        ease: [0.22, 1, 0.36, 1],
+      },
+    },
+  };
+
   return (
     <section
       id="home"
       className="hero-section"
+      onPointerMove={handleHeroPointerMove}
     >
       {/* =====================================
           BACKGROUND
       ====================================== */}
 
       <div className="hero-grid-background" />
+
+      <CodeCinema />
+
+      <motion.div
+        className="hero-cursor-spotlight"
+        aria-hidden="true"
+        style={{
+          background: spotlightBackground,
+        }}
+      />
 
       <motion.div
         className="hero-glow hero-glow-left"
@@ -144,22 +228,42 @@ function Hero() {
 
               <motion.h1
                 className="hero-heading"
-                variants={itemAnimation}
+                variants={headingAnimation}
               >
-                <span className="hero-heading-line">
-                  I build
+                <span className="hero-heading-mask">
+                  <motion.span
+                    className="hero-heading-line"
+                    variants={headingLineAnimation}
+                  >
+                    I build
+                  </motion.span>
                 </span>
 
-                <span className="hero-heading-line hero-outline-text">
-                  digital systems
+                <span className="hero-heading-mask">
+                  <motion.span
+                    className="hero-heading-line hero-outline-text"
+                    variants={headingLineAnimation}
+                  >
+                    digital systems
+                  </motion.span>
                 </span>
 
-                <span className="hero-heading-line">
-                  that create
+                <span className="hero-heading-mask">
+                  <motion.span
+                    className="hero-heading-line"
+                    variants={headingLineAnimation}
+                  >
+                    that create
+                  </motion.span>
                 </span>
 
-                <span className="hero-heading-line hero-serif-line">
-                  real impact.
+                <span className="hero-heading-mask">
+                  <motion.span
+                    className="hero-heading-line hero-serif-line"
+                    variants={headingLineAnimation}
+                  >
+                    real impact.
+                  </motion.span>
                 </span>
               </motion.h1>
 

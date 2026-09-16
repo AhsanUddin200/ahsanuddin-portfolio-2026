@@ -1103,10 +1103,18 @@ and
    Browser stays at 100%
 ========================================================= */
 
+/* HERO PORTRAIT — MOVE SLIGHTLY AWAY FROM RIGHT EDGE */
+/* HERO — EQUAL SPACE FROM LEFT & RIGHT EDGES */
 @media (min-width: 1100px) {
-  #root {
-    zoom: 1;
-    width: 100%;
+
+  .hero-left-content {
+    position: relative;
+    left: 28px;
+  }
+
+  .hero-portrait-stack {
+    position: relative;
+    right: 28px;
   }
 }
 
@@ -1844,5 +1852,1085 @@ and
 
   .contact-submit-button {
     min-height: 50px !important;
+  }
+}
+
+
+/* =========================================================
+   2026 HERO MOTION UPGRADE
+   Cursor spotlight + masked headline reveal
+   Theme and layout remain unchanged
+========================================================= */
+
+.hero-section {
+  position: relative !important;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.hero-container {
+  position: relative;
+  z-index: 3;
+}
+
+.hero-grid-background {
+  position: absolute;
+  z-index: 0;
+}
+
+.hero-glow {
+  z-index: 0;
+}
+
+.hero-cursor-spotlight {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+
+  pointer-events: none;
+
+  opacity: 0.95;
+
+  will-change: background;
+}
+
+.hero-heading-mask {
+  display: block;
+
+  overflow: hidden;
+
+  padding-bottom: 0.07em;
+  margin-bottom: -0.07em;
+}
+
+.hero-heading-mask .hero-heading-line {
+  display: block;
+
+  transform-origin: left bottom;
+
+  will-change:
+    transform,
+    opacity;
+}
+
+/* Keep interactive content above the cursor-light layer */
+.hero-content,
+.hero-scroll-indicator {
+  position: relative;
+  z-index: 3;
+}
+
+/* Cursor tracking is desktop-only. Touch devices keep the clean static design. */
+@media (hover: none), (pointer: coarse), (max-width: 900px) {
+  .hero-cursor-spotlight {
+    display: none;
+  }
+}
+
+/* Accessibility: respect users who disable motion. */
+@media (prefers-reduced-motion: reduce) {
+  .hero-cursor-spotlight {
+    display: none;
+  }
+
+  .hero-heading-mask .hero-heading-line {
+    transform: none !important;
+    opacity: 1 !important;
+  }
+}
+
+
+/* =========================================================
+   MODERN MOTION LAYER
+   Inspired by motion-led 2026 portfolio sites:
+   ambient background + cursor halo + magnetic CTAs
+   + clipped section heading reveals + scroll progress.
+
+   No content, layout, theme or SEO text is changed.
+========================================================= */
+
+
+/* ---------- SAFE ROOT STACK ---------- */
+
+#root {
+  position: relative;
+  isolation: isolate;
+}
+
+
+/* ---------- SCROLL PROGRESS ---------- */
+
+.site-scroll-progress {
+  position: fixed;
+
+  z-index: 99999;
+
+  top: 0;
+  right: 0;
+  left: 0;
+
+  height: 2px;
+
+  transform-origin:
+    0 50%;
+
+  background:
+    linear-gradient(
+      90deg,
+      #c8ff45 0%,
+      #8eff8a 45%,
+      #7065ff 100%
+    );
+
+  box-shadow:
+    0 0 15px
+    rgba(
+      200,
+      255,
+      69,
+      0.35
+    );
+
+  pointer-events: none;
+}
+
+
+/* ---------- VIDEO-LIKE AMBIENT BACKDROP ---------- */
+
+.site-motion-backdrop {
+  position: fixed;
+
+  z-index: -1;
+
+  inset: 0;
+
+  overflow: hidden;
+
+  pointer-events: none;
+
+  opacity: 0.9;
+}
+
+.site-motion-orb {
+  position: absolute;
+
+  display: block;
+
+  width: min(
+    42vw,
+    620px
+  );
+
+  aspect-ratio: 1;
+
+  border-radius: 999px;
+
+  filter:
+    blur(92px);
+
+  will-change:
+    transform;
+}
+
+.site-motion-orb-a {
+  top: -13%;
+  left: -10%;
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(
+        112,
+        101,
+        255,
+        0.20
+      ) 0%,
+      rgba(
+        112,
+        101,
+        255,
+        0.08
+      ) 42%,
+      transparent 72%
+    );
+}
+
+.site-motion-orb-b {
+  right: -13%;
+  bottom: 3%;
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(
+        200,
+        255,
+        69,
+        0.12
+      ) 0%,
+      rgba(
+        200,
+        255,
+        69,
+        0.045
+      ) 44%,
+      transparent 72%
+    );
+}
+
+.site-motion-grid {
+  position: absolute;
+
+  inset: 0;
+
+  opacity: 0.13;
+
+  background-image:
+    linear-gradient(
+      rgba(
+        255,
+        255,
+        255,
+        0.045
+      ) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      rgba(
+        255,
+        255,
+        255,
+        0.045
+      ) 1px,
+      transparent 1px
+    );
+
+  background-size:
+    72px 72px;
+
+  mask-image:
+    radial-gradient(
+      circle at 50% 35%,
+      black 0%,
+      transparent 72%
+    );
+}
+
+
+/* ---------- CURSOR HALO ---------- */
+
+.site-cursor-halo {
+  position: fixed;
+
+  z-index: 99998;
+
+  top: -14px;
+  left: -14px;
+
+  width: 28px;
+  height: 28px;
+
+  border:
+    1px solid
+    rgba(
+      200,
+      255,
+      69,
+      0.55
+    );
+
+  border-radius: 50%;
+
+  background:
+    rgba(
+      200,
+      255,
+      69,
+      0.035
+    );
+
+  box-shadow:
+    0 0 28px
+    rgba(
+      200,
+      255,
+      69,
+      0.13
+    );
+
+  pointer-events: none;
+
+  will-change:
+    transform,
+    opacity;
+
+  backdrop-filter:
+    blur(1px);
+}
+
+.site-cursor-halo-active {
+  border-color:
+    rgba(
+      200,
+      255,
+      69,
+      0.82
+    );
+
+  background:
+    rgba(
+      200,
+      255,
+      69,
+      0.065
+    );
+}
+
+
+/* ---------- MAGNETIC INTERACTIONS ---------- */
+
+.hero-primary-button,
+.hero-secondary-button,
+.case-study-toggle,
+.case-study-bottom-link,
+.contact-submit-button,
+.navbar-command-btn {
+  transition:
+    translate 180ms
+      cubic-bezier(
+        0.22,
+        1,
+        0.36,
+        1
+      ),
+    box-shadow 220ms ease,
+    border-color 220ms ease,
+    background-color 220ms ease
+    !important;
+}
+
+
+/* ---------- SECTION TITLE CLIP REVEAL ---------- */
+
+.site-motion-enabled
+.section-title
+h2 {
+  clip-path:
+    inset(
+      0 100% 0 0
+    );
+
+  transition:
+    clip-path 900ms
+      cubic-bezier(
+        0.22,
+        1,
+        0.36,
+        1
+      );
+}
+
+.site-motion-enabled
+.section-title.motion-reveal-active
+h2 {
+  clip-path:
+    inset(
+      0 0 0 0
+    );
+}
+
+
+/*
+ * A tiny animated accent line under headings.
+ * It is attached to the title wrapper instead
+ * of the h2, so existing typography stays intact.
+ */
+
+.site-motion-enabled
+.section-title {
+  position: relative;
+}
+
+.site-motion-enabled
+.section-title::after {
+  content: "";
+
+  position: absolute;
+
+  right: 0;
+  bottom: -16px;
+  left: 0;
+
+  width: 0;
+  height: 1px;
+
+  margin: auto;
+
+  opacity: 0;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(
+        200,
+        255,
+        69,
+        0.55
+      ),
+      rgba(
+        112,
+        101,
+        255,
+        0.35
+      ),
+      transparent
+    );
+
+  transition:
+    width 950ms
+      cubic-bezier(
+        0.22,
+        1,
+        0.36,
+        1
+      )
+      120ms,
+    opacity 500ms ease
+      120ms;
+}
+
+.site-motion-enabled
+.section-title.motion-reveal-active::after {
+  width: 100%;
+  opacity: 1;
+}
+
+
+/* ---------- SUBTLE INTERACTIVE DEPTH ---------- */
+
+@media (
+  hover: hover
+)
+and
+(
+  pointer: fine
+) {
+
+  .case-study-card,
+  .skill-card,
+  .experience-card,
+  .contact-method {
+    transition:
+      border-color 260ms ease,
+      box-shadow 260ms ease,
+      filter 260ms ease
+      !important;
+  }
+
+  .case-study-card:hover,
+  .skill-card:hover,
+  .experience-card:hover {
+    filter:
+      brightness(1.025);
+
+    box-shadow:
+      0 20px 55px
+      rgba(
+        0,
+        0,
+        0,
+        0.13
+      ),
+      0 0 0 1px
+      rgba(
+        200,
+        255,
+        69,
+        0.055
+      );
+  }
+
+  .contact-method:hover {
+    box-shadow:
+      0 12px 30px
+      rgba(
+        0,
+        0,
+        0,
+        0.09
+      );
+  }
+}
+
+
+/* ---------- LIGHT MODE ---------- */
+
+html[data-theme="light"]
+.site-motion-orb-a {
+  opacity: 0.56;
+}
+
+html[data-theme="light"]
+.site-motion-orb-b {
+  opacity: 0.50;
+}
+
+html[data-theme="light"]
+.site-motion-grid {
+  opacity: 0.08;
+}
+
+html[data-theme="light"]
+.site-cursor-halo {
+  border-color:
+    rgba(
+      90,
+      116,
+      20,
+      0.42
+    );
+
+  background:
+    rgba(
+      200,
+      255,
+      69,
+      0.025
+    );
+}
+
+
+/* ---------- PERFORMANCE / ACCESSIBILITY ---------- */
+
+@media (
+  max-width: 900px
+),
+(
+  hover: none
+),
+(
+  pointer: coarse
+) {
+
+  .site-cursor-halo {
+    display: none;
+  }
+
+  .site-motion-orb {
+    filter:
+      blur(70px);
+
+    opacity: 0.65;
+  }
+
+  .hero-primary-button,
+  .hero-secondary-button,
+  .case-study-toggle,
+  .case-study-bottom-link,
+  .contact-submit-button,
+  .navbar-command-btn {
+    translate:
+      0 0 !important;
+  }
+}
+
+
+@media (
+  prefers-reduced-motion:
+  reduce
+) {
+
+  .site-motion-backdrop,
+  .site-cursor-halo {
+    display: none;
+  }
+
+  .site-scroll-progress {
+    transition: none !important;
+  }
+
+  .site-motion-enabled
+  .section-title
+  h2 {
+    clip-path:
+      none !important;
+
+    transition:
+      none !important;
+  }
+
+  .site-motion-enabled
+  .section-title::after {
+    display: none;
+  }
+
+  .hero-primary-button,
+  .hero-secondary-button,
+  .case-study-toggle,
+  .case-study-bottom-link,
+  .contact-submit-button,
+  .navbar-command-btn {
+    translate:
+      0 0 !important;
+
+    transition:
+      none !important;
+  }
+}
+
+
+/* =========================================================
+   CINEMATIC CODE BACKGROUND
+   Visible "video-like" motion for the Hero section
+========================================================= */
+
+.code-cinema {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.code-cinema-stage {
+  position: absolute;
+  inset: -8% 0 -8% 0;
+
+  display: grid;
+  grid-template-columns:
+    1fr
+    0.95fr
+    1fr;
+
+  gap: clamp(
+    30px,
+    6vw,
+    90px
+  );
+
+  padding:
+    0 clamp(
+      24px,
+      6vw,
+      110px
+    );
+
+  transform:
+    perspective(1000px)
+    rotateX(3deg)
+    rotateZ(-2deg)
+    scale(1.06);
+
+  transform-origin:
+    center;
+
+  opacity: 0.34;
+}
+
+.code-cinema-column {
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+
+  mask-image:
+    linear-gradient(
+      to bottom,
+      transparent 0%,
+      #000 10%,
+      #000 88%,
+      transparent 100%
+    );
+}
+
+.code-cinema-column-left {
+  transform:
+    translateY(-4%);
+}
+
+.code-cinema-column-center {
+  opacity: 0.72;
+
+  transform:
+    translateY(7%);
+}
+
+.code-cinema-column-right {
+  transform:
+    translateY(-9%);
+}
+
+.code-cinema-track {
+  will-change:
+    transform;
+}
+
+.code-cinema-block {
+  display: flex;
+  flex-direction: column;
+
+  min-height: 100%;
+
+  padding:
+    38px 0;
+
+  font-family:
+    "JetBrains Mono",
+    monospace;
+
+  font-size:
+    clamp(
+      9px,
+      0.78vw,
+      13px
+    );
+
+  line-height:
+    1.9;
+
+  letter-spacing:
+    0.02em;
+
+  color:
+    rgba(
+      224,
+      231,
+      239,
+      0.68
+    );
+
+  text-shadow:
+    0 0 16px
+    rgba(
+      255,
+      255,
+      255,
+      0.04
+    );
+
+  white-space: pre;
+}
+
+.code-cinema-block span {
+  display: block;
+
+  opacity: 0.74;
+}
+
+.code-cinema-block span:nth-child(3n + 1) {
+  color:
+    rgba(
+      200,
+      255,
+      69,
+      0.82
+    );
+}
+
+.code-cinema-block span:nth-child(4n + 2) {
+  color:
+    rgba(
+      139,
+      131,
+      255,
+      0.76
+    );
+}
+
+.code-cinema-highlight {
+  color:
+    #c8ff45
+    !important;
+
+  font-weight: 700;
+
+  text-shadow:
+    0 0 20px
+    rgba(
+      200,
+      255,
+      69,
+      0.25
+    );
+}
+
+
+.code-cinema-scanline {
+  position: absolute;
+  z-index: 3;
+
+  top: 0;
+  right: 0;
+  left: 0;
+
+  height: 120px;
+
+  background:
+    linear-gradient(
+      to bottom,
+      transparent,
+      rgba(
+        200,
+        255,
+        69,
+        0.035
+      ),
+      rgba(
+        255,
+        255,
+        255,
+        0.055
+      ),
+      transparent
+    );
+
+  filter:
+    blur(8px);
+
+  mix-blend-mode:
+    screen;
+}
+
+
+.code-cinema-flare {
+  position: absolute;
+  z-index: 2;
+
+  width: min(
+    36vw,
+    520px
+  );
+
+  aspect-ratio: 1;
+
+  border-radius: 50%;
+
+  filter:
+    blur(90px);
+
+  will-change:
+    transform,
+    opacity;
+}
+
+.code-cinema-flare-a {
+  top: 7%;
+  left: 7%;
+
+  background:
+    rgba(
+      112,
+      101,
+      255,
+      0.19
+    );
+}
+
+.code-cinema-flare-b {
+  right: 3%;
+  bottom: 0;
+
+  background:
+    rgba(
+      200,
+      255,
+      69,
+      0.12
+    );
+}
+
+
+.code-cinema-vignette {
+  position: absolute;
+  z-index: 4;
+  inset: 0;
+
+  background:
+    radial-gradient(
+      circle at 53% 43%,
+      transparent 0%,
+      rgba(
+        13,
+        16,
+        21,
+        0.08
+      ) 36%,
+      rgba(
+        13,
+        16,
+        21,
+        0.50
+      ) 78%,
+      rgba(
+        13,
+        16,
+        21,
+        0.83
+      ) 100%
+    );
+}
+
+
+.code-cinema-fade {
+  position: absolute;
+  z-index: 5;
+  inset: 0;
+
+  background:
+    linear-gradient(
+      90deg,
+      rgba(
+        13,
+        16,
+        21,
+        0.62
+      ) 0%,
+      rgba(
+        13,
+        16,
+        21,
+        0.24
+      ) 34%,
+      rgba(
+        13,
+        16,
+        21,
+        0.20
+      ) 68%,
+      rgba(
+        13,
+        16,
+        21,
+        0.55
+      ) 100%
+    );
+}
+
+
+/*
+ * Keep the actual Hero content clearly
+ * above the cinematic background.
+ *
+ * IMPORTANT:
+ * Do not change the original positioning of the Hero glow
+ * or cursor spotlight. They must remain absolute, otherwise
+ * they enter normal document flow and disturb the old layout.
+ */
+.hero-container {
+  position: relative;
+  z-index: 5;
+}
+
+.hero-cursor-spotlight {
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.hero-glow {
+  position: absolute !important;
+  z-index: 2;
+  pointer-events: none;
+}
+
+
+html[data-theme="light"]
+.code-cinema-stage {
+  opacity: 0.15;
+}
+
+html[data-theme="light"]
+.code-cinema-vignette {
+  background:
+    radial-gradient(
+      circle at 53% 43%,
+      transparent 0%,
+      rgba(
+        245,
+        247,
+        250,
+        0.20
+      ) 45%,
+      rgba(
+        245,
+        247,
+        250,
+        0.75
+      ) 100%
+    );
+}
+
+html[data-theme="light"]
+.code-cinema-fade {
+  background:
+    rgba(
+      245,
+      247,
+      250,
+      0.30
+    );
+}
+
+
+@media (
+  max-width: 900px
+) {
+  .code-cinema-stage {
+    grid-template-columns:
+      1fr
+      1fr;
+
+    opacity: 0.18;
+
+    padding:
+      0 20px;
+  }
+
+  .code-cinema-column-center {
+    display: none;
+  }
+
+  .code-cinema-stage {
+    transform:
+      rotateZ(-2deg)
+      scale(1.08);
+  }
+}
+
+
+@media (
+  max-width: 600px
+) {
+  .code-cinema-stage {
+    grid-template-columns:
+      1fr;
+
+    opacity: 0.12;
+  }
+
+  .code-cinema-column-right {
+    display: none;
+  }
+
+  .code-cinema-block {
+    font-size:
+      9px;
+  }
+}
+
+
+@media (
+  prefers-reduced-motion:
+  reduce
+) {
+  .code-cinema-stage {
+    opacity: 0.12;
+  }
+
+  .code-cinema-scanline,
+  .code-cinema-flare {
+    display: none;
   }
 }
