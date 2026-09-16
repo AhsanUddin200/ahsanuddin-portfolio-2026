@@ -1,16 +1,37 @@
-# React + Vite
+# Ahsan Uddin — Developer Portfolio
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+A personal portfolio for my software engineering work, with a focus on Odoo ERP, business applications, and full-stack development.
 
-Currently, two official plugins are available:
+**Live site:** [ahsannasir.runs-on.dev](https://ahsannasir.runs-on.dev/)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## What's inside
 
-## React Compiler
+- About, skills, experience, project, testimonial, and contact sections
+- Project case study pages for warehouse, financial management, and restaurant ERP work
+- Responsive React interface with motion effects and route-based code splitting
+- Command palette and an on-site AI assistant interface
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Built with
 
-## Expanding the Oxlint configuration
+React 19, Vite 8, React Router, Framer Motion, Lucide, React Icons, CSS, and Oxlint.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+## Run locally
+
+Requires a Node.js version supported by Vite 8.
+
+```bash
+npm install
+npm run dev
+```
+
+Open the local URL shown by Vite. To check or build the project:
+
+```bash
+npm run lint
+npm run build
+npm run preview
+```
+
+## Contact
+
+[LinkedIn](https://www.linkedin.com/in/ahsan-uddin-b16b72227/) · [GitHub](https://github.com/AhsanUddin200) · [Email](mailto:ahsanuddin160@gmail.com)
