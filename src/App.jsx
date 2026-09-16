@@ -18,6 +18,7 @@ import Contact from "./sections/Contact";
 
 import WarehouseERP from "./pages/WarehouseERP";
 import FinancialManagement from "./pages/FinancialManagement";
+import RestaurantERP from "./pages/RestaurantERP";
 
 import { FaWhatsapp } from "react-icons/fa";
 
@@ -71,16 +72,15 @@ function App() {
             path="/projects/financial-management"
             element={<FinancialManagement />}
           />
+
+          <Route
+            path="/projects/restaurant-erp"
+            element={<RestaurantERP />}
+          />
         </Routes>
       </main>
 
-      {/* ==========================
-          FLOATING ACTION BUTTONS
-      ========================== */}
-
       <div className="floating-actions">
-        {/* WhatsApp */}
-
         <a
           href="https://wa.me/971586073359"
           target="_blank"
@@ -94,8 +94,6 @@ function App() {
             WhatsApp
           </span>
         </a>
-
-        {/* Ask Me AI */}
 
         <a
           href="#ask-me"
