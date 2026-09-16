@@ -1,5 +1,15 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+
+import {
+  AnimatePresence,
+  motion,
+} from "framer-motion";
+
 import {
   Search,
   FolderKanban,
@@ -35,12 +45,12 @@ const commands = [
     target: "#project-type",
   },
   {
-  id: "testimonials",
-  label: "Testimonials",
-  description: "See what clients say about my work",
-  icon: MessageSquareQuote,
-  target: "#testimonials",
-},
+    id: "testimonials",
+    label: "Testimonials",
+    description: "See what clients say about my work",
+    icon: MessageSquareQuote,
+    target: "#testimonials",
+  },
   {
     id: "contact",
     label: "Contact Me",
@@ -51,16 +61,17 @@ const commands = [
   {
     id: "ask",
     label: "Ask Me",
-    description: "Portfolio AI assistant",
+    description: "Ask Ahsan's AI portfolio assistant",
     icon: Bot,
-    disabled: true,
+    action: "open-ai",
   },
 ];
 
 function CommandPalette() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const [activeIndex, setActiveIndex] = useState(0);
+  const [activeIndex, setActiveIndex] =
+    useState(0);
 
   const inputRef = useRef(null);
 
@@ -73,8 +84,12 @@ function CommandPalette() {
 
     return commands.filter((command) => {
       return (
-        command.label.toLowerCase().includes(value) ||
-        command.description.toLowerCase().includes(value)
+        command.label
+          .toLowerCase()
+          .includes(value) ||
+        command.description
+          .toLowerCase()
+          .includes(value)
       );
     });
   }, [query]);
@@ -92,11 +107,27 @@ function CommandPalette() {
 
     closePalette();
 
+    if (command.action === "open-ai") {
+      setTimeout(() => {
+        window.dispatchEvent(
+          new Event("open-ai-assistant")
+        );
+      }, 180);
+
+      return;
+    }
+
+    if (!command.target) {
+      return;
+    }
+
     setTimeout(() => {
-      document.querySelector(command.target)?.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
+      document
+        .querySelector(command.target)
+        ?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
     }, 80);
   };
 
@@ -108,7 +139,10 @@ function CommandPalette() {
       ) {
         event.preventDefault();
 
-        setOpen((currentValue) => !currentValue);
+        setOpen(
+          (currentValue) => !currentValue
+        );
+
         return;
       }
 
@@ -121,7 +155,10 @@ function CommandPalette() {
       setOpen(true);
     };
 
-    window.addEventListener("keydown", handleShortcut);
+    window.addEventListener(
+      "keydown",
+      handleShortcut
+    );
 
     window.addEventListener(
       "open-command-palette",
@@ -148,9 +185,13 @@ function CommandPalette() {
 
     setActiveIndex(0);
 
-    setTimeout(() => {
+    const focusTimer = setTimeout(() => {
       inputRef.current?.focus();
     }, 120);
+
+    return () => {
+      clearTimeout(focusTimer);
+    };
   }, [open]);
 
   useEffect(() => {
@@ -166,7 +207,10 @@ function CommandPalette() {
       event.preventDefault();
 
       setActiveIndex((currentIndex) => {
-        return (currentIndex + 1) % filteredCommands.length;
+        return (
+          (currentIndex + 1) %
+          filteredCommands.length
+        );
       });
     }
 
@@ -185,7 +229,9 @@ function CommandPalette() {
     if (event.key === "Enter") {
       event.preventDefault();
 
-      runCommand(filteredCommands[activeIndex]);
+      runCommand(
+        filteredCommands[activeIndex]
+      );
     }
   };
 
@@ -221,10 +267,12 @@ function CommandPalette() {
               duration: 0.25,
               ease: [0.22, 1, 0.36, 1],
             }}
-            onMouseDown={(event) =>
-              event.stopPropagation()
-            }
+            onMouseDown={(event) => {
+              event.stopPropagation();
+            }}
           >
+            {/* Header */}
+
             <div className="command-palette-top">
               <div className="command-brand">
                 <span className="command-brand-icon">
@@ -232,8 +280,14 @@ function CommandPalette() {
                 </span>
 
                 <div>
-                  <strong>Command Palette</strong>
-                  <small>Navigate Ahsan&apos;s portfolio</small>
+                  <strong>
+                    Command Palette
+                  </strong>
+
+                  <small>
+                    Navigate Ahsan&apos;s
+                    portfolio
+                  </small>
                 </div>
               </div>
 
@@ -247,6 +301,8 @@ function CommandPalette() {
               </button>
             </div>
 
+            {/* Search */}
+
             <div className="command-search">
               <Search size={18} />
 
@@ -255,24 +311,32 @@ function CommandPalette() {
                 type="text"
                 value={query}
                 placeholder="Search portfolio..."
-                onChange={(event) =>
-                  setQuery(event.target.value)
+                onChange={(event) => {
+                  setQuery(
+                    event.target.value
+                  );
+                }}
+                onKeyDown={
+                  handleInputKeyDown
                 }
-                onKeyDown={handleInputKeyDown}
               />
 
               <kbd>ESC</kbd>
             </div>
+
+            {/* Results */}
 
             <div className="command-results">
               <div className="command-results-label">
                 NAVIGATE
               </div>
 
-              {filteredCommands.length > 0 ? (
+              {filteredCommands.length >
+              0 ? (
                 filteredCommands.map(
                   (command, index) => {
-                    const Icon = command.icon;
+                    const Icon =
+                      command.icon;
 
                     return (
                       <button
@@ -287,12 +351,16 @@ function CommandPalette() {
                             ? "disabled"
                             : ""
                         }`}
-                        onMouseEnter={() =>
-                          setActiveIndex(index)
-                        }
-                        onClick={() =>
-                          runCommand(command)
-                        }
+                        onMouseEnter={() => {
+                          setActiveIndex(
+                            index
+                          );
+                        }}
+                        onClick={() => {
+                          runCommand(
+                            command
+                          );
+                        }}
                       >
                         <span className="command-result-icon">
                           <Icon size={17} />
@@ -304,7 +372,9 @@ function CommandPalette() {
                           </strong>
 
                           <small>
-                            {command.description}
+                            {
+                              command.description
+                            }
                           </small>
                         </span>
 
@@ -326,11 +396,14 @@ function CommandPalette() {
                   <Search size={20} />
 
                   <span>
-                    No matching command found
+                    No matching command
+                    found
                   </span>
                 </div>
               )}
             </div>
+
+            {/* Footer */}
 
             <div className="command-footer">
               <div>
