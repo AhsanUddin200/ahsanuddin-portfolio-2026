@@ -40,7 +40,7 @@ function RestaurantERP() {
     if (canonical) {
       canonical.setAttribute(
         "href",
-        "https://ahsanuddin-portfolio-2026.vercel.app/projects/restaurant-erp"
+        "https://ahsannasir.runs-on.dev/projects/restaurant-erp"
       );
     }
 
@@ -53,7 +53,7 @@ function RestaurantERP() {
       if (canonical) {
         canonical.setAttribute(
           "href",
-          "https://ahsanuddin-portfolio-2026.vercel.app/"
+          "https://ahsannasir.runs-on.dev/"
         );
       }
     };

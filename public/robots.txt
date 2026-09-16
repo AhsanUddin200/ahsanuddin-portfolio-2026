@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://ahsanuddin-portfolio-2026.vercel.app/sitemap.xml
+Sitemap: https://ahsannasir.runs-on.dev/sitemap.xml
