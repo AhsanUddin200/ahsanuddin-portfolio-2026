@@ -457,3 +457,131 @@ body:has(.tmv-family){background:#f5f7f2}
   .tmv-group-title span{font-size:11px}
 }
 @media(prefers-reduced-motion:reduce){.tmv-family *{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+
+/* ============================================================
+   V6 · Family-first editorial design and bilingual summary chat
+   No shared portfolio styles or backend routes are changed.
+============================================================ */
+.tm-page{
+  --tm-green:#195943;--tm-dark:#223329;--tm-muted:#64736a;--tm-line:#dfe6df;
+  font-family:Inter,"Segoe UI",system-ui,-apple-system,sans-serif!important;
+  background:#f8faf7!important;color:var(--tm-dark);font-size:16px;letter-spacing:normal;
+}
+.tm-page h1,.tm-page h2,.tm-page h3,.tm-page strong{font-family:inherit;letter-spacing:-.025em;font-weight:700}
+.tm-page button,.tm-page input,.tm-page select,.tm-page textarea{font-family:inherit}
+.tm-page .tm-primary{background:#195943;border-color:#195943;border-radius:12px;font-weight:650;min-height:54px;letter-spacing:0}
+.tm-page .tm-primary:hover:not(:disabled){background:#104734}
+.tm-page.tmv-family{background:#f8faf7!important}
+.tm-page.tmv-family .tmv-shell{max-width:710px;width:min(100% - 38px,710px)}
+.tmv-header{padding:17px 0 15px;border-bottom:1px solid #e4e9e3}
+.tmv-logo{background:#195943;border-radius:12px;width:37px;height:37px}
+.tmv-brand strong{font-size:17px;font-weight:720;letter-spacing:-.025em}
+.tmv-brand small{font-size:12px;color:#6c7b70}
+.tmv-logout{border-color:#e4e9e3;background:#fff;color:#506256;border-radius:11px;min-height:43px;font-weight:600}
+.tmv-family-view{padding-top:26px;gap:15px}
+.tmv-intro{padding:0 2px 2px}
+.tmv-intro-kicker{display:block;font-size:11px;font-weight:680;letter-spacing:.08em;color:#557766;margin:0 0 7px}
+.tmv-intro h1{font-size:clamp(27px,5.8vw,37px)!important;line-height:1.15!important;letter-spacing:-.04em!important;font-weight:735!important;margin:0 0 7px!important;color:#20372b}
+.tmv-intro p{font-size:15px;line-height:1.45;color:#66776d}
+.tmv-day-nav{border-radius:15px;box-shadow:none;padding:8px;background:#fff}
+.tmv-day-nav>button{border-radius:10px;background:#f0f5f0;width:44px;min-width:44px;height:44px;min-height:44px}
+.tmv-day-center span{font-size:10px;font-weight:700;letter-spacing:.065em}
+.tmv-day-center strong{font-size:14px;font-weight:650}
+.tmv-group-title h2{font-size:19px;font-weight:700;letter-spacing:-.02em}
+.tmv-story-card{border-radius:17px;box-shadow:none;padding:19px;gap:13px}
+.tmv-card-heading h2{font-size:17px;font-weight:700;letter-spacing:-.015em}
+.tmv-card-icon{border-radius:12px;width:38px;height:38px}
+.tmv-read-more{font-weight:650}
+.tmv-task-title h3,.tmv-detail-heading h2{font-weight:700}
+.tmv-summary-entry{background:#163d30;border:1px solid #163d30;border-radius:17px;padding:20px;display:flex;flex-direction:column;gap:15px;color:#fff}
+.tmv-summary-entry-text{display:flex;gap:12px;align-items:center}
+.tmv-summary-symbol{display:grid;place-items:center;flex:0 0 42px;width:42px;height:42px;border:1px solid #47735c;border-radius:12px;background:#24513e;color:#d8f4dc}
+.tmv-summary-entry h2{color:#fff;font-size:19px;margin:0 0 3px;line-height:1.3;font-weight:700}
+.tmv-summary-entry p{color:#d7e7dc;font-size:14px;margin:0;line-height:1.55;text-align:left}
+.tmv-summary-entry button{width:100%;display:flex;align-items:center;justify-content:center;position:relative;flex-direction:column;gap:3px;min-height:66px;border:0;border-radius:11px;background:#f4faf4;color:#194b35;padding:11px 35px 11px 15px;font-weight:700;font-size:16px}
+.tmv-summary-entry button span:nth-child(2){font-size:13px;font-weight:500}
+.tmv-summary-entry button>svg{position:absolute;right:15px;top:calc(50% - 10px)}
+.tmv-summary-entry button:hover{background:#e3f2e8}
+/* Clean, adult login: no oversized lock, playful type or gradients. */
+.tm-page .tmv-signin{min-height:100dvh;gap:15px;padding:32px 18px;justify-content:center;background:#f8faf7}
+.tm-page .tmv-signin .tm-access-card{max-width:440px;width:100%;padding:36px 33px 27px;background:#fff;border:1px solid #e2e8e2;border-radius:18px;box-shadow:0 14px 50px rgba(15,44,25,.035)}
+.tmv-signin-wordmark{display:flex;align-items:center;gap:11px;color:#244536;font-weight:730;font-size:12px;letter-spacing:.06em;margin-bottom:39px}
+.tmv-signin-mark{display:grid;place-items:center;background:#195943;color:#fff;width:37px;height:37px;border-radius:10px;font-size:18px;font-weight:700;letter-spacing:0}
+.tmv-wordmark-light{font-weight:450}.tmv-wordmark-dot{color:#83a18c}
+.tmv-login-eyebrow{font-size:11px;color:#608171;font-weight:700;letter-spacing:.07em;margin:0 0 9px}
+.tm-page .tmv-signin h1{text-align:left;font-size:clamp(27px,6vw,36px);line-height:1.17;margin:0 0 12px;color:#193b2e;font-weight:735;letter-spacing:-.04em}
+.tm-page .tmv-signin .tm-access-copy{text-align:left;font-size:15px;line-height:1.55;color:#687b6f;margin:0 0 30px}
+.tm-page .tmv-signin .tm-field>span{font-size:13px;color:#2f4939;font-weight:650}
+.tm-page .tmv-signin .tm-input-icon{border-color:#dce6de;border-radius:11px;min-height:55px}
+.tm-page .tmv-signin .tm-input-icon:focus-within{border-color:#548d69}
+.tm-page .tmv-signin .tm-input-icon input{font-size:16px;min-height:50px}
+.tm-page .tmv-signin .tm-primary{margin-top:2px;font-size:15px}
+.tmv-signin-note{display:flex;justify-content:center;align-items:center;gap:7px;font-size:12px;color:#819084;margin:23px 0 0}
+.tm-page .tmv-signin .tm-return{color:#687f70!important;font-size:13px;font-weight:550}
+/* Welcome screen is kept, but without cartoon styling */
+.tm-page .tm-welcome-card{border-radius:18px;box-shadow:none}
+.tm-page .tm-warning-icon{background:#f6f3eb;color:#8a6a3a;border-radius:12px;width:44px;height:44px}
+.tm-page .tm-welcome-card h2{font-weight:700;font-size:26px}
+.tm-page .tm-typing{background:#fbfaf5;border:1px solid #eee8db;color:#66543d;font-weight:575;font-size:16px;border-radius:11px}
+/* Chat: desktop modal, mobile fullscreen and keyboard-safe footer */
+.tmv-chat-backdrop{background:rgba(18,37,27,.55);padding:18px;align-items:center;justify-content:center}
+.tmv-chat{width:min(100%,565px);height:min(730px,calc(100dvh - 36px));max-height:calc(100dvh - 36px);background:#f8faf8;color:#213c2c;display:flex;flex-direction:column;overflow:hidden;border:1px solid #e2e8e1;border-radius:20px;box-shadow:0 16px 70px rgba(12,37,21,.22)}
+.tmv-chat-head{display:flex;align-items:center;gap:11px;padding:16px 18px;border-bottom:1px solid #e2e9e3;background:#fff;flex:0 0 auto}
+.tmv-chat-avatar{width:41px;height:41px;flex:0 0 41px;border-radius:12px;display:grid;place-items:center;background:#e7f3e8;color:#246747}
+.tmv-chat-head>div:nth-child(2){display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
+.tmv-chat-head strong{font-size:15px;font-weight:700;line-height:1.3}
+.tmv-chat-head>div:nth-child(2)>span{font-size:12px;text-align:left;color:#697a6e;align-self:flex-start}
+.tmv-chat-close{width:43px;height:43px;min-width:43px;border:0;border-radius:10px;background:#f1f5f0;color:#3f5946;display:grid;place-items:center}
+.tmv-chat-scroll{padding:22px 17px 25px;flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:14px}
+.tmv-chat-bubble{max-width:92%;padding:14px 15px;border-radius:16px;border:1px solid #e5ebe4;box-shadow:0 1px 6px rgba(0,0,0,.012)}
+.tmv-chat-bot{align-self:flex-start;background:#fff;border-top-left-radius:5px}
+.tmv-chat-user{align-self:flex-end;border-color:#d5e9d9;background:#e6f3e8;color:#16452d;border-top-right-radius:5px}
+.tmv-chat-bubble p{font-size:14px;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere;margin:0 0 6px}
+.tmv-chat-bubble p:last-child{margin-bottom:0}
+.tmv-chat-bubble .tmv-chat-urdu{font-family:"Noto Naskh Arabic","Noto Sans Arabic","Segoe UI",Tahoma,sans-serif;font-size:15px;line-height:1.9;color:#4f6657;text-align:right;direction:rtl}
+.tmv-chat-user p{font-size:15px;font-weight:575}
+.tmv-chat-report{border-top:1px solid #e5ebe4;margin-top:11px;padding-top:4px}
+.tmv-chat-report-line{padding:12px 0;border-bottom:1px solid #eef2ed}
+.tmv-chat-report-line:last-child{border-bottom:0}
+.tmv-chat-report-line p:first-child{font-weight:575}
+.tmv-ai-insight{color:#405449;line-height:1.7!important;white-space:pre-wrap!important}
+.tmv-chat-system{border-color:#e8e9df;background:#fcfbf3}
+.tmv-chat-controls{flex:0 0 auto;border-top:1px solid #e2e9e2;background:#fff;padding:13px 16px 10px}
+.tmv-chat-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;max-height:202px;overflow:auto;padding-bottom:8px}
+.tmv-chat-options button{display:flex;align-items:center;justify-content:flex-start;gap:10px;min-width:0;min-height:57px;padding:8px 11px;background:#fbfcfb;border:1px solid #dfe8df;border-radius:11px;color:#234735;text-align:left}
+.tmv-chat-options button:hover{border-color:#6aa27a;background:#eff8f1}
+.tmv-chat-options button>b{width:26px;height:26px;flex:0 0 26px;display:grid;place-items:center;border:1px solid #d8e6db;border-radius:8px;background:#eef5ef;font-size:12px;color:#447058}
+.tmv-chat-options button>span{min-width:0;display:flex;flex-direction:column;gap:1px}
+.tmv-chat-options button strong{font-size:13px;line-height:1.3;font-weight:650}
+.tmv-chat-options button small{align-self:flex-start;text-align:left;font-size:12px;color:#667b6c;font-weight:450;line-height:1.5}
+.tmv-chat-inputbar{display:flex;align-items:center;gap:8px;margin-top:8px}
+.tmv-chat-inputbar input{flex:1;min-width:0;height:49px;border:1px solid #dbe5dc;border-radius:11px;padding:10px 13px;background:#fff;font-size:14px;color:#1d402f}
+.tmv-chat-inputbar input:focus{outline:2px solid #8dbfa0;outline-offset:1px}
+.tmv-chat-inputbar button{flex:0 0 49px;display:grid;place-items:center;min-height:49px;border:0;border-radius:11px;background:#195943;color:#fff}
+.tmv-chat-inputbar button:disabled{background:#c8d6cc}
+.tmv-chat-privacy{margin:8px 1px 0;color:#7d8e7f;font-size:10px;line-height:1.45}
+.tmv-chat-privacy span{display:block;text-align:left;font-family:"Noto Naskh Arabic","Segoe UI",Tahoma,sans-serif;font-size:11px}
+.tmv-chat-again{width:100%;min-height:52px;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;column-gap:9px;row-gap:3px;padding:10px;background:#195943;color:#fff;border:0;border-radius:11px;font-size:14px;font-weight:700}
+.tmv-chat-again span{font-size:13px;font-weight:450}
+@media(max-width:600px){
+  .tm-page .tmv-signin .tm-access-card{padding:31px 23px 24px;border-radius:17px}
+  .tmv-signin-wordmark{margin-bottom:32px}
+  .tm-page.tmv-family .tmv-shell{width:calc(100% - 30px)}
+  .tmv-chat-backdrop{padding:0;align-items:stretch}
+  .tmv-chat{width:100%;height:100dvh;max-height:100dvh;border-radius:0;border:0;box-shadow:none}
+  .tmv-chat-head{padding:12px 14px}
+  .tmv-chat-scroll{padding:15px 13px 24px}
+  .tmv-chat-controls{padding:11px 12px calc(9px + env(safe-area-inset-bottom))}
+  .tmv-chat-options{max-height:230px;gap:7px}
+  .tmv-chat-options button{min-height:59px;padding:8px}
+  .tmv-summary-entry{padding:18px 16px;border-radius:15px}
+  .tmv-summary-entry h2{font-size:18px}
+  .tmv-summary-entry button{min-height:67px}
+}
+@media(max-width:360px){
+  .tmv-chat-options button strong{font-size:12px}
+  .tmv-chat-options button small{font-size:11px}
+  .tmv-chat-bubble{max-width:96%}
+  .tmv-summary-entry h2{font-size:17px}
+}
+@media(prefers-reduced-motion:reduce){.tmv-chat *{transition:none!important;animation:none!important;scroll-behavior:auto!important}}

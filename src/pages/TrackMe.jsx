@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ArrowLeft, ArrowRight, BookOpen, BriefcaseBusiness, CalendarDays, Check,
@@ -66,23 +66,24 @@ async function api(body) {
 function LoginScreen({ password, setPassword, onSubmit, busy, error }) {
   const [show, setShow] = useState(false);
   return (
-    <div className="tm-access-screen">
+    <div className="tm-access-screen tmv-signin">
       <div className="tm-access-card">
-        <div className="tm-lock-icon"><LockKeyhole size={28}/></div>
-        <h1>Track Me</h1>
-        <p className="tm-access-copy">A private page for family to follow Ahsan’s daily updates.</p>
+        <div className="tmv-signin-wordmark"><span className="tmv-signin-mark">A</span><span>AH<span className="tmv-wordmark-light">SAN</span> <span className="tmv-wordmark-dot">·</span> DAILY UPDATES</span></div>
+        <p className="tmv-login-eyebrow">PRIVATE FAMILY ACCESS</p>
+        <h1>Stay close,<br/>wherever you are.</h1>
+        <p className="tm-access-copy">See Ahsan’s latest updates in one simple place.</p>
         <form onSubmit={onSubmit} className="tm-stack">
-          <label className="tm-field"><span>Family password</span>
-            <div className="tm-input-icon"><KeyRound size={18}/><input required type={show ? 'text' : 'password'} autoComplete="current-password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Enter password" maxLength={200}/>
+          <label className="tm-field"><span>Password</span>
+            <div className="tm-input-icon"><LockKeyhole size={18}/><input required type={show ? 'text' : 'password'} autoComplete="current-password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Enter family password" maxLength={200}/>
               <button type="button" aria-label={show ? 'Hide password' : 'Show password'} onClick={() => setShow(x => !x)}>{show ? <EyeOff size={19}/> : <Eye size={19}/>}</button>
             </div>
           </label>
           {error && <div role="alert" className="tm-error">{error}</div>}
-          <button type="submit" className="tm-primary tm-wide" disabled={busy}>{busy ? 'Opening...' : 'See Ahsan’s Updates'} <ArrowRight size={19}/></button>
+          <button type="submit" className="tm-primary tm-wide" disabled={busy}>{busy ? 'Opening…' : 'View daily updates'} <ArrowRight size={19}/></button>
         </form>
-        <p className="tm-footnote"><ShieldCheck size={16}/> Private and protected</p>
+        <p className="tmv-signin-note"><ShieldCheck size={15}/> Only for Ahsan’s family</p>
       </div>
-      <Link className="tm-return" to="/"><ArrowLeft size={18}/> Back to website</Link>
+      <Link className="tm-return" to="/"><ArrowLeft size={17}/> Back to website</Link>
     </div>
   );
 }
@@ -169,22 +170,245 @@ function TaskEditor({ initial, saving, onClose, onSave }) {
   );
 }
 
-function SummaryModal({ section, busy, result, onGenerate, onClose }) {
-  const [period, setPeriod] = useState('week');
-  const [scope, setScope] = useState(section);
-  const [language, setLanguage] = useState('en');
+/* ============================================================
+   FAMILY SUMMARY CHAT — frontend only.
+   Every scripted assistant message is English + Urdu script.
+   The existing API is used unchanged for optional AI insight
+   (today/week only). Month is computed from saved records.
+============================================================ */
+
+const CHAT_PERIODS = [
+  { id: 'today', en: 'Today', ur: 'آج', days: 1 },
+  { id: 'week', en: 'Last 7 days', ur: 'پچھلے ۷ دن', days: 7 },
+  { id: 'month', en: 'Last 30 days', ur: 'پچھلے ۳۰ دن', days: 30 },
+];
+const CHAT_TOPICS = [
+  { id: 'all', number: '1', en: 'Everything', ur: 'سب کچھ' },
+  { id: 'prayer', number: '2', en: 'Prayer', ur: 'نماز' },
+  { id: 'quran', number: '3', en: 'Quran', ur: 'قرآن' },
+  { id: 'office', number: '4', en: 'Office work', ur: 'دفتر کا کام' },
+  { id: 'university', number: '5', en: 'University', ur: 'یونیورسٹی' },
+  { id: 'personal', number: '6', en: 'Personal', ur: 'ذاتی کام' },
+];
+const BOT_INTRO = {
+  role: 'bot',
+  en: 'Hello! I can explain Ahsan’s saved updates. How many days would you like?',
+  ur: 'السلام علیکم! میں احسن کی محفوظ شدہ اپڈیٹس بتا سکتا ہوں۔ کتنے دنوں کی سمری چاہیے؟',
+};
+
+function parseChatPeriod(raw) {
+  const s = String(raw || '').trim().toLowerCase().replace(/\s+/g, ' ');
+  if (!s) return null;
+  if (/^(1|۱|١)$/.test(s) || /today|to day|24\s*(hour|hr)|aaj|^aj$|aaj ki|aj ki|abhi|آج|اج|آج کی|آج کا/.test(s)) return 'today';
+  if (/^(2|۲|٢)$/.test(s) || /week|7\s*(days|day|din)|seven days|hafta|haftay|hafty|ہفت|سات دن|۷\s*دن|٧\s*دن/.test(s)) return 'week';
+  if (/^(3|۳|٣)$/.test(s) || /month|30\s*(days|day|din)|thirty days|mahina|maheena|mahine|maheen|مہین|ماہ|تیس دن|۳۰\s*دن|٣٠\s*دن/.test(s)) return 'month';
+  return null;
+}
+function parseChatTopic(raw) {
+  const s = String(raw || '').trim().toLowerCase().replace(/\s+/g, ' ');
+  if (!s) return null;
+  if (/^(1|۱|١)$/.test(s) || /everything|all details|all topics|sab kuch|sari|saari|sab|puri|poori|تمام|سب کچھ|ساری|سارے|مکمل|ہر چیز|سب کی|تمام تفصیلات|^all$/.test(s)) return 'all';
+  if (/^(2|۲|٢)$/.test(s) || /prayer|namaz|namaaz|salah|salat|jamaat|qaza|نماز|جماعت|قضا/.test(s)) return 'prayer';
+  if (/^(3|۳|٣)$/.test(s) || /quran|quraan|qur'an|para|parah|قرآن|قران|پارہ|سپارہ|تلاوت/.test(s)) return 'quran';
+  if (/^(4|۴|٤)$/.test(s) || /office|project|job|client|kaam|kam|work|دفتر|کام|پروجیکٹ/.test(s)) return 'office';
+  if (/^(5|۵|٥)$/.test(s) || /university|uni\b|college|admission|application|interview|یونیورسٹی|داخلہ|کالج|انٹرویو/.test(s)) return 'university';
+  if (/^(6|۶|٦)$/.test(s) || /personal|family|life|ghar|routine|myself|ذاتی|گھر|خاندانی/.test(s)) return 'personal';
+  return null;
+}
+
+function buildFamilyReport({ entries, prayerDays, quranEntries, period, topic }) {
+  const days = CHAT_PERIODS.find(x => x.id === period)?.days || 7;
+  const start = shiftDay(dayISO(), -(days - 1));
+  const end = dayISO();
+  const within = date => Boolean(date && date >= start && date <= end);
+  const withinTime = time => {
+    if (!time) return false;
+    const date = new Date(time);
+    return !Number.isNaN(date.getTime()) && within(dayISO(date));
+  };
+  const rows = [];
+  let hasData = false;
+  const push = (en, ur) => rows.push({ en, ur });
+  const include = section => topic === 'all' || topic === section;
+
+  if (include('prayer')) {
+    const selected = Object.entries(prayerDays || {}).filter(([date]) => within(date));
+    let group = 0, makeup = 0, activeDays = 0;
+    for (const [, day] of selected) {
+      let marked = 0;
+      for (const [key] of PRAYERS) {
+        if (day?.group?.[key]) { group++; marked++; }
+        else if (day?.makeup?.[key]) { makeup++; marked++; }
+      }
+      if (marked) activeDays++;
+    }
+    hasData ||= group + makeup > 0;
+    push(`Prayer: ${group} Jamaat and ${makeup} Qaza entries on ${activeDays} day${activeDays === 1 ? '' : 's'}.`,
+      `نماز: ${activeDays} دنوں میں ${group} جماعت اور ${makeup} قضا کی انٹریاں محفوظ ہیں۔`);
+    if (period === 'today' && activeDays) {
+      const p = prayerDays?.[end] || {};
+      const en = [], ur = [];
+      const urNames = { fajr: 'فجر', dhuhr: 'ظہر', asr: 'عصر', maghrib: 'مغرب', isha: 'عشاء' };
+      for (const [key, label] of PRAYERS) {
+        if (p?.group?.[key]) { en.push(`${label}: Jamaat`); ur.push(`${urNames[key]}: جماعت`); }
+        else if (p?.makeup?.[key]) { en.push(`${label}: Qaza`); ur.push(`${urNames[key]}: قضا`); }
+      }
+      if (en.length) push(en.join(' · '), ur.join(' · '));
+    }
+    push('Unmarked prayers mean no record, not necessarily a missed prayer.',
+      'جس نماز کی انٹری نہیں، اس کا مطلب نماز چھوٹنا نہیں؛ صرف ریکارڈ موجود نہیں۔');
+  }
+  if (include('quran')) {
+    const readings = (quranEntries || []).filter(x => within(x.date));
+    const pages = readings.reduce((sum, x) => sum + (Number(x.pagesRead) || 0), 0);
+    const paras = [...new Set(readings.map(x => x.para))].sort((a, b) => a - b);
+    hasData ||= readings.length > 0;
+    push(`Quran: ${pages} page${pages === 1 ? '' : 's'} recorded in ${readings.length} reading session${readings.length === 1 ? '' : 's'}.`,
+      `قرآن: ${readings.length} نشستوں میں ${pages} صفحات کی تلاوت درج ہے۔`);
+    if (paras.length) push(`Para: ${paras.join(', ')}.`, `پارہ: ${paras.join('، ')}۔`);
+  }
+  const categoryNames = {
+    office: ['Office work', 'دفتر کا کام'],
+    university: ['University', 'یونیورسٹی'],
+    personal: ['Personal', 'ذاتی کام'],
+  };
+  for (const section of ['office', 'university', 'personal']) {
+    if (!include(section)) continue;
+    const matching = (entries || []).filter(x => x.section === section);
+    const notes = matching.flatMap(x => (x.logs || []).filter(log => withinTime(log.createdAt))
+      .map(log => ({ task: x.title, note: log.note, at: log.createdAt })));
+    const active = matching.filter(x => withinTime(x.updatedAt) || withinTime(x.createdAt) || notes.some(n => n.task === x.title));
+    const done = active.filter(x => x.status === 'done').length;
+    const [enName, urName] = categoryNames[section];
+    hasData ||= notes.length > 0 || active.length > 0;
+    push(`${enName}: ${notes.length} daily update${notes.length === 1 ? '' : 's'}; ${done} recorded task${done === 1 ? '' : 's'} currently marked completed.`,
+      `${urName}: ${notes.length} روزانہ اپڈیٹس ہیں، ${done} کام مکمل نشان زد ہیں۔`);
+    const latest = notes.sort((a,b) => String(b.at).localeCompare(String(a.at))).slice(0, 2);
+    for (const item of latest) push(`${item.task}: ${String(item.note || '').slice(0, 220)}`,
+      `محفوظ شدہ نوٹ (${item.task}): ${String(item.note || '').slice(0, 220)}`);
+    if (section === 'university') {
+      const upcoming = matching.filter(x => x.meta?.upcomingDate && x.meta.upcomingDate >= end)
+        .sort((a,b)=>String(a.meta.upcomingDate).localeCompare(String(b.meta.upcomingDate))).slice(0, 2);
+      for (const x of upcoming) push(`Upcoming: ${x.meta?.university || x.title} — ${prettyDate(x.meta.upcomingDate)}.`,
+        `آنے والی تاریخ: ${x.meta?.university || x.title} — ${prettyDate(x.meta.upcomingDate)}۔`);
+      hasData ||= upcoming.length > 0;
+    }
+  }
+  if (!hasData) return [{
+    en: 'No saved updates were found for this selection. It does not mean nothing happened.',
+    ur: 'اس انتخاب کے لیے کوئی محفوظ شدہ اپڈیٹ نہیں ملی۔ اس کا مطلب یہ نہیں کہ کوئی کام نہیں ہوا۔',
+  }];
+  return rows;
+}
+
+function SummaryChat({ entries, prayerDays, quranEntries, onClose, onSessionError }) {
+  const [messages, setMessages] = useState([BOT_INTRO]);
+  const [step, setStep] = useState('period');
+  const [period, setPeriod] = useState(null);
+  const [topic, setTopic] = useState(null);
+  const [text, setText] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [aiInsight, setAiInsight] = useState('');
+  const [aiError, setAiError] = useState('');
+  const endRef = useRef(null);
+  useEffect(() => { endRef.current?.scrollIntoView({ block: 'end', behavior: 'smooth' }); }, [messages, busy, aiInsight, aiError]);
+  useEffect(() => {
+    const onKey = event => { if (event.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [onClose]);
+
+  function beginAgain() {
+    setStep('period'); setPeriod(null); setTopic(null); setText(''); setBusy(false);
+    setAiInsight(''); setAiError(''); setMessages([BOT_INTRO]);
+  }
+  async function showReport(selectedPeriod, selectedTopic, seedMessages) {
+    setTopic(selectedTopic);
+    setStep('done');
+    const p = CHAT_PERIODS.find(x => x.id === selectedPeriod);
+    const s = CHAT_TOPICS.find(x => x.id === selectedTopic);
+    const lines = buildFamilyReport({ entries, prayerDays, quranEntries, period: selectedPeriod, topic: selectedTopic });
+    setMessages([...seedMessages, {
+      role: 'bot',
+      en: `Here is Ahsan’s ${p.en.toLowerCase()} summary for ${s.en.toLowerCase()}.`,
+      ur: `یہ احسن کی ${p.ur} کی ${s.ur} سے متعلق محفوظ شدہ سمری ہے۔`,
+      lines,
+    }]);
+    if (selectedPeriod === 'month') {
+      setAiError('The 30-day report is calculated from saved records. The current AI API supports only today and 7 days. / پچھلے ۳۰ دن کی سمری محفوظ شدہ ریکارڈ سے تیار ہوئی ہے۔ موجودہ AI سروس صرف آج اور ۷ دن کی سمری دیتی ہے۔');
+      return;
+    }
+    setBusy(true);
+    try {
+      const data = await api({ action: 'summary', period: selectedPeriod, section: selectedTopic, language: 'en' });
+      setAiInsight(String(data.summary || ''));
+    } catch (err) {
+      if (err.status === 401) onSessionError(err);
+      setAiError('Extra AI insight is unavailable; the saved-data summary above is still available. / اضافی AI وضاحت فی الحال دستیاب نہیں، لیکن محفوظ شدہ ریکارڈ کی سمری اوپر موجود ہے۔');
+    } finally {
+      setBusy(false);
+    }
+  }
+  function submit(raw) {
+    const value = String(raw || '').trim().slice(0, 250);
+    if (!value || busy || step === 'done') return;
+    setText('');
+    const next = [...messages, { role: 'user', text: value }];
+    if (step === 'period') {
+      const selected = parseChatPeriod(value);
+      if (!selected) {
+        setMessages([...next, { role: 'bot', en: 'Please choose Today, Last 7 days or Last 30 days. You can type in English, اردو or Roman Urdu.', ur: 'براہِ کرم آج، پچھلے ۷ دن یا پچھلے ۳۰ دن منتخب کریں۔ آپ انگریزی، اردو یا رومن اردو میں بھی لکھ سکتے ہیں۔' }]);
+        return;
+      }
+      setPeriod(selected);
+      const together = /^(?:[123۱۲۳١٢٣])$/.test(value) ? null : parseChatTopic(value);
+      // A complete sentence such as "week office" can skip the second question.
+      if (together) { showReport(selected, together, next); return; }
+      setStep('topic');
+      setMessages([...next, { role: 'bot', en: 'What would you like me to summarize? Choose a number, tap an option, or write it in your own words.', ur: 'کس چیز کی سمری چاہیے؟ نمبر منتخب کریں، بٹن دبائیں یا اپنی زبان میں لکھیں۔' }]);
+      return;
+    }
+    const selected = parseChatTopic(value);
+    if (!selected) {
+      setMessages([...next, { role: 'bot', en: 'Please choose 1 to 6, or write Prayer, Quran, Office, University or Personal.', ur: 'براہِ کرم ۱ سے ۶ تک نمبر منتخب کریں، یا نماز، قرآن، دفتر، یونیورسٹی یا ذاتی کام لکھیں۔' }]);
+      return;
+    }
+    showReport(period, selected, next);
+  }
+  const options = step === 'period' ? CHAT_PERIODS : step === 'topic' ? CHAT_TOPICS : [];
   return (
-    <div className="tm-modal-backdrop" onMouseDown={e => e.target === e.currentTarget && onClose()}>
-      <section className="tm-modal tm-summary-modal" role="dialog" aria-modal="true" aria-label="AI summary">
-        <div className="tm-modal-heading"><h2><Sparkles size={22}/> My Progress Summary</h2><button type="button" className="tm-close" aria-label="Close" onClick={onClose}><X size={21}/></button></div>
-        <p className="tm-muted">Get a short, easy-to-read explanation of your progress.</p>
-        <div className="tm-stack">
-          <label className="tm-field"><span>Which days?</span><select value={period} onChange={e => setPeriod(e.target.value)}><option value="today">Today</option><option value="week">Last 7 days</option><option value="all">All days</option></select></label>
-          <label className="tm-field"><span>Which section?</span><select value={scope} onChange={e => setScope(e.target.value)}><option value="all">Everything</option>{ALL_SECTIONS.map(x => <option key={x.key} value={x.key}>{x.name}</option>)}</select></label>
-          <details className="tm-details"><summary>Language (optional)</summary><label className="tm-field"><span>Language</span><select value={language} onChange={e => setLanguage(e.target.value)}><option value="en">English</option><option value="roman">Roman Urdu</option></select></label></details>
-          <button type="button" disabled={busy} className="tm-primary tm-wide" onClick={() => onGenerate({period, section:scope, language})}><Sparkles size={18}/>{busy ? 'Preparing...' : 'Show My Summary'}</button>
-          <p className="tm-footnote"><LockKeyhole size={14}/> Your selected progress records are sent to Groq AI for this summary.</p>
-          {result && <div className={result.error ? 'tm-error' : 'tm-summary-result'} role="status">{result.error || result.summary}</div>}
+    <div className="tm-modal-backdrop tmv-chat-backdrop" onMouseDown={event => event.target === event.currentTarget && onClose()}>
+      <section className="tmv-chat" role="dialog" aria-modal="true" aria-label="Family summary chat">
+        <header className="tmv-chat-head">
+          <div className="tmv-chat-avatar"><Sparkles size={20}/></div>
+          <div><strong>Ask about Ahsan’s day</strong><span lang="ur" dir="rtl">احسن کے دن کے بارے میں پوچھیں</span></div>
+          <button type="button" className="tmv-chat-close" onClick={onClose} aria-label="Close chat"><X size={21}/></button>
+        </header>
+        <div className="tmv-chat-scroll" aria-live="polite" aria-relevant="additions text">
+          {messages.map((m, idx) => <div key={idx} className={`tmv-chat-bubble tmv-chat-${m.role}`}>
+            {m.role === 'user' ? <p>{m.text}</p> : <>
+              <p lang="en">{m.en}</p><p className="tmv-chat-urdu" lang="ur" dir="rtl">{m.ur}</p>
+              {m.lines && <div className="tmv-chat-report">{m.lines.map((line, i) => <div className="tmv-chat-report-line" key={i}>
+                <p lang="en">{line.en}</p><p className="tmv-chat-urdu" lang="ur" dir="rtl">{line.ur}</p>
+              </div>)}</div>}
+            </>}
+          </div>)}
+          {busy && <div className="tmv-chat-bubble tmv-chat-bot tmv-chat-wait"><p>Adding an AI explanation…</p><p lang="ur" dir="rtl">AI کی اضافی وضاحت تیار ہو رہی ہے…</p></div>}
+          {step === 'done' && aiInsight && <div className="tmv-chat-bubble tmv-chat-bot"><p><strong>Additional AI insight (English)</strong></p><p lang="ur" dir="rtl" className="tmv-chat-urdu">اضافی اے آئی وضاحت (انگریزی میں)</p><p className="tmv-ai-insight">{aiInsight}</p></div>}
+          {step === 'done' && aiError && <div className="tmv-chat-bubble tmv-chat-bot tmv-chat-system"><p>{aiError.split(' / ')[0]}</p><p className="tmv-chat-urdu" dir="rtl" lang="ur">{aiError.split(' / ')[1]}</p></div>}
+          <div ref={endRef}/>
+        </div>
+        <div className="tmv-chat-controls">
+          {step !== 'done' ? <>
+            <div className="tmv-chat-options">{options.map(option => <button type="button" key={option.id} onClick={() => submit(step === 'topic' ? option.number : option.id === 'today' ? '1' : option.id === 'week' ? '2' : '3')}>
+              {step === 'topic' && <b>{option.number}</b>}<span><strong>{option.en}</strong><small lang="ur" dir="rtl">{option.ur}</small></span>
+            </button>)}</div>
+            <form className="tmv-chat-inputbar" onSubmit={event => { event.preventDefault(); submit(text); }}>
+              <input aria-label="Type your question in English or Urdu" value={text} onChange={event => setText(event.target.value)} placeholder="Type English / اردو / Roman Urdu" maxLength={250}/>
+              <button type="submit" disabled={!text.trim()} aria-label="Send message"><Send size={20}/></button>
+            </form>
+          </> : <button type="button" className="tmv-chat-again" onClick={beginAgain}>Ask for another summary <span lang="ur" dir="rtl">دوبارہ سمری پوچھیں</span><ArrowRight size={19}/></button>}
+          <p className="tmv-chat-privacy">Answers use saved updates only. AI requests share relevant records with Groq. <span lang="ur" dir="rtl">جواب صرف محفوظ ریکارڈ سے بنتے ہیں۔ AI کے لیے متعلقہ ڈیٹا Groq کو بھیجا جاتا ہے۔</span></p>
         </div>
       </section>
     </div>
@@ -243,7 +467,7 @@ function DailyEntries({ entries, date, section, onOpen }) {
 }
 function xDate(x) { return x.meta?.upcomingDate || x.dueDate || ''; }
 
-function FamilyToday({ entries, days, quran, viewDate, setViewDate, onOpen, onAI, aiBusy, aiResult, ownerMode, onNew }) {
+function FamilyToday({ entries, days, quran, viewDate, setViewDate, onOpen, onOpenSummary, ownerMode, onNew }) {
   const read = quran.filter(item => item.date === viewDate).sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt)));
   const pages = read.reduce((n,item)=>n+Number(item.pagesRead||0),0);
   const noteCount = entries.reduce((sum,item)=>sum+(item.logs||[]).filter(log=>dayISO(log.createdAt)===viewDate).length,0);
@@ -251,8 +475,12 @@ function FamilyToday({ entries, days, quran, viewDate, setViewDate, onOpen, onAI
   const recorded = PRAYERS.filter(([key])=>prayer.group?.[key]||prayer.makeup?.[key]).length;
   const hasAny = noteCount || pages || recorded;
   return <div className="tmv-family-view">
-    <div className="tmv-intro"><span className="tmv-pill"><span className="tmv-live-dot"/> PRIVATE FAMILY JOURNAL</span><h1>Ahsan’s day,<br/><em>shared with you.</em></h1><p>A simple way to stay close to what Ahsan has been doing.</p></div>
+    <div className="tmv-intro"><span className="tmv-intro-kicker">FAMILY UPDATES</span><h1>Ahsan’s daily updates</h1><p>See what Ahsan has shared with you.</p></div>
     <DayNavigator value={viewDate} setValue={setViewDate}/>
+    <section className="tmv-summary-entry" aria-label="Ask for a summary">
+      <div className="tmv-summary-entry-text"><span className="tmv-summary-symbol"><Sparkles size={22}/></span><div><h2>Want a quick summary?</h2><p lang="ur" dir="rtl">کیا آپ مختصر سمری دیکھنا چاہتے ہیں؟</p></div></div>
+      <button type="button" onClick={onOpenSummary}><span>Summarize all details</span><span lang="ur" dir="rtl">تمام تفصیلات کی سمری یہاں دیکھیں</span><ArrowRight size={19}/></button>
+    </section>
     {!hasAny && <div className="tmv-empty-day" role="status"><Clock3 size={21}/><span>No daily update has been posted for this date yet. You can still see current projects and upcoming university dates below.</span></div>}
     <div className="tmv-group-title"><h2>Daily Life</h2><span>Actual saved updates</span></div>
     <section className="tmv-story-card tmv-prayer-card">
@@ -271,12 +499,6 @@ function FamilyToday({ entries, days, quran, viewDate, setViewDate, onOpen, onAI
     <DailyEntries entries={entries} date={viewDate} section="office" onOpen={onOpen}/>
     <DailyEntries entries={entries} date={viewDate} section="university" onOpen={onOpen}/>
     <DailyEntries entries={entries} date={viewDate} section="personal" onOpen={onOpen}/>
-    <section className="tmv-ai-card"><span className="tmv-ai-icon"><Sparkles size={22}/></span><h2>Want the full picture?</h2><p>Get an easy English explanation of Ahsan’s recent progress, what is done and what is coming next.</p>
-      <button type="button" className="tmv-ai-main" disabled={aiBusy} onClick={()=>onAI('today')}><Sparkles size={19}/>{aiBusy?'Preparing update…':'Explain the last 24 hours'}</button>
-      <button type="button" className="tmv-ai-week" disabled={aiBusy} onClick={()=>onAI('week')}>Or read the last 7 days <ArrowRight size={16}/></button>
-      {aiResult && <div className={aiResult.error ? 'tm-error' : 'tmv-ai-result'} role="status">{aiResult.error || aiResult.summary}</div>}
-      <small>AI uses the updates Ahsan has saved. It does not know unreported activities. Records are shared with Groq only when you request a summary.</small>
-    </section>
     {ownerMode && <button className="tmv-owner-quick" type="button" onClick={()=>onNew('office')}><Plus size={18}/> Add a new work task</button>}
     <p className="tmv-end-note">A family connection, one day at a time. <Heart size={14}/></p>
   </div>;
@@ -371,7 +593,6 @@ export default function TrackMe() {
   const [search,setSearch]=useState('');
   const [filter,setFilter]=useState('all');
   const [summaryOpen,setSummaryOpen]=useState(false);
-  const [summaryResult,setSummaryResult]=useState(null);
   useEffect(()=>{
     let mounted=true;
     api().then(data=>{if(mounted){setAuthenticated(Boolean(data.authenticated));setEntries(data.entries||[]);setPrayerDays(data.prayerDays||{});setQuranEntries(data.quranEntries||[]);}})
@@ -397,7 +618,6 @@ export default function TrackMe() {
   async function togglePrayer(payload){setBusy(true);try{const data=await api({action:'prayer_update',...payload});setPrayerDays(old=>({...old,[data.date]:data.day}));setNotice('Prayer updated.');}catch(err){fail(err);}finally{setBusy(false);}}
   async function addQuran(form){setBusy(true);try{const data=await api({action:'quran_add',...form});setQuranEntries(list=>[...list,data.entry]);setNotice('Quran reading saved.');return true;}catch(err){fail(err);return false;}finally{setBusy(false);}}
   async function deleteQuran(item){if(!window.confirm(`Delete this Para ${item.para} reading?`))return;setBusy(true);try{await api({action:'quran_delete',id:item.id});setQuranEntries(list=>list.filter(x=>x.id!==item.id));setNotice('Reading deleted.');}catch(err){fail(err);}finally{setBusy(false);}}
-  async function makeSummary(settings){setBusy(true);setSummaryResult(null);try{const data=await api({action:'summary',...settings});setSummaryResult({summary:data.summary});}catch(err){setSummaryResult({error:err.message});if(err.status===401)fail(err);}finally{setBusy(false);}}
   function go(key){setSection(key);setExpanded(null);setNote('');setSearch('');setFilter('all');setNotice('');if(typeof window!=='undefined')window.scrollTo({top:0,behavior:'instant'});}
   if(loading)return <main className="tm-page tm-loading" role="status"><div className="tm-spinner"/><p>Opening family updates…</p></main>;
   if(!authenticated)return <main className="tm-page"><LoginScreen password={password} setPassword={setPassword} onSubmit={signIn} busy={busy} error={loginError}/></main>;
@@ -407,7 +627,7 @@ export default function TrackMe() {
     {section!=='overview'&&<button type="button" className="tmv-back" onClick={()=>go('overview')}><ArrowLeft size={20}/> Back to daily updates</button>}
     {notice&&<div className="tmv-notice" role="status"><CheckCircle2 size={19}/><span>{notice}</span><button type="button" onClick={()=>setNotice('')} aria-label="Dismiss"><X size={17}/></button></div>}
     {ownerMode&&<div className="tmv-owner-banner"><span><LockKeyhole size={16}/> Owner editing is ON</span><button type="button" onClick={lockOwner}>Finish editing</button></div>}
-    {section==='overview'&&<FamilyToday entries={entries} days={prayerDays} quran={quranEntries} viewDate={viewDate} setViewDate={setViewDate} onOpen={go} ownerMode={ownerMode} onNew={newTask} aiBusy={busy} aiResult={summaryResult} onAI={period=>makeSummary({period,section:'all',language:'en'})}/>}
+    {section==='overview'&&<FamilyToday entries={entries} days={prayerDays} quran={quranEntries} viewDate={viewDate} setViewDate={setViewDate} onOpen={go} ownerMode={ownerMode} onNew={newTask} onOpenSummary={()=>setSummaryOpen(true)}/>}
     {['office','personal','university'].includes(section)&&<WorkPanel section={section} ownerMode={ownerMode} entries={entries} busy={busy} search={search} setSearch={setSearch} filter={filter} setFilter={setFilter} expanded={expanded} setExpanded={setExpanded} note={note} setNote={setNote} onNew={newTask} onNote={addNote} onEdit={item=>setEditor({...item})} onDelete={deleteTask} onStatus={updateTask}/>}
     {section==='prayer'&&<PrayerPanel ownerMode={ownerMode} date={prayerDate} setDate={setPrayerDate} days={prayerDays} busy={busy} onToggle={togglePrayer}/>}
     {section==='quran'&&<QuranPanel ownerMode={ownerMode} quran={quranEntries} busy={busy} onAdd={addQuran} onDelete={deleteQuran}/>}
@@ -415,6 +635,6 @@ export default function TrackMe() {
   </div>
   {pinOpen&&<PinModal busy={busy} onVerify={verifyPin} onClose={()=>setPinOpen(false)} error={pinError}/>}
   {editor&&<TaskEditor key={editor.id||`new-${editor.section}`} initial={editor} saving={busy} onClose={()=>setEditor(null)} onSave={saveTask}/>}
-  {summaryOpen&&<SummaryModal section="all" busy={busy} result={summaryResult} onGenerate={makeSummary} onClose={()=>setSummaryOpen(false)}/>}
+  {summaryOpen&&<SummaryChat entries={entries} prayerDays={prayerDays} quranEntries={quranEntries} onClose={()=>setSummaryOpen(false)} onSessionError={fail}/>}
   </main>;
 }
