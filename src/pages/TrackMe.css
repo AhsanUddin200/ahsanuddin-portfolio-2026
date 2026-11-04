@@ -158,3 +158,151 @@ body:has(.tm-page){background:#f6f8f5}
  .tm-brand{font-size:20px}.tm-home-event{flex-wrap:wrap}
 }
 @media(prefers-reduced-motion:reduce){.tm-page *{animation-duration:.001ms!important;transition-duration:.001ms!important;scroll-behavior:auto!important}}
+
+/* ============================================================
+   Track Me v4 — English, human-friendly, mobile-first experience
+   Focus: one readable Today screen, clear actions, calm cards.
+   Existing forms, privacy, Redis actions and history stay intact.
+   ============================================================ */
+body:has(.tm-page){background:#f5f6f2}
+.tm-page{
+  --tm-green:#1b7355;--tm-dark:#20362e;--tm-muted:#65746c;--tm-line:#e5eae3;
+  background:#f5f6f2!important;color:var(--tm-dark);min-height:100dvh;
+  padding-bottom:calc(110px + env(safe-area-inset-bottom));
+  -webkit-font-smoothing:antialiased;
+}
+.tm-page .tm-shell{width:min(calc(100% - 32px),660px);max-width:660px;margin:0 auto}
+.tm-page .tm-body{display:block;padding:0 0 24px}
+.tm-page .tm-sidebar{display:none!important}
+.tm-page .tm-content-area{width:100%;max-width:100%}
+.tm-page .tm-footer{display:none}
+.tm-page .tm-topbar{margin:0 0 22px;padding:19px 2px;border-color:transparent}
+.tm-brand{gap:10px!important;font-size:19px!important;letter-spacing:-.035em}
+.tm-brand-mark{width:36px;height:36px;border-radius:12px;background:#1a7453}
+.tm-topbar-lock{background:transparent;border:0;color:#63766a;font-size:13px;font-weight:650;padding:0 4px}
+.tm-topbar-lock:hover{color:#17694e}
+.tm-page .tm-mobile-nav{
+  display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr));
+  position:fixed;left:50%;bottom:0;right:auto;transform:translateX(-50%);
+  width:min(100%,660px);z-index:2500;background:rgba(255,255,255,.97);
+  border:1px solid #e3e9e0;border-bottom:0;box-shadow:0 -8px 30px rgba(35,65,44,.07);
+  border-radius:20px 20px 0 0;
+  padding:9px 10px calc(10px + env(safe-area-inset-bottom));
+  backdrop-filter:blur(12px)
+}
+.tm-page .tm-mobile-nav button{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  min-height:53px;min-width:0;padding:5px 0;border:0;border-radius:12px;
+  font-size:11px;font-weight:750;color:#758479;background:transparent;
+  white-space:nowrap
+}
+.tm-page .tm-mobile-nav button svg{width:22px;height:22px}
+.tm-page .tm-mobile-nav button.tm-current{background:#eaf4ed;color:#176c50}
+.tm-page .tm-back-home{min-height:44px;font-size:14px;margin:1px 0 13px}
+.tm-today{display:flex;flex-direction:column;gap:15px;padding:0 1px 12px}
+.tm-today-intro{padding:10px 2px 10px}
+.tm-today-intro .tm-day-label{
+  display:flex;align-items:center;gap:8px;color:#668373;font-size:10px;
+  font-weight:850;letter-spacing:.115em
+}
+.tm-day-dot{width:8px;height:8px;border-radius:50%;background:#63b88c;box-shadow:0 0 0 4px #e3f2e7}
+.tm-today-intro h1{
+  font-size:clamp(29px,7vw,40px);letter-spacing:-.048em!important;line-height:1.15;
+  margin:13px 0 6px;color:#192f26;font-weight:850
+}
+.tm-today-intro h1 span{font-size:.73em;color:#e6a94d;vertical-align:3px;margin-left:3px}
+.tm-today-intro p{margin:0;color:#738477;font-size:15px;font-weight:500}
+.tm-today-heading{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:3px 2px 0}
+.tm-today-heading h2{margin:0;font-size:19px;font-weight:800;letter-spacing:-.028em!important}
+.tm-today-heading>span{font-size:12px;color:#879388}
+.tm-today-heading-second{margin-top:10px}
+.tm-home-card{
+  width:100%;border:1px solid #e2e8df;border-radius:22px;background:#fff;
+  box-shadow:0 4px 22px rgba(21,58,33,.035);padding:19px 20px;
+  text-align:left;color:#20362e;display:flex;flex-direction:column;gap:13px;
+  transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease;
+}
+.tm-home-card:active,.tm-life-item:active{transform:scale(.992)}
+.tm-home-card:hover,.tm-life-item:hover{border-color:#bfdbcb;box-shadow:0 7px 24px rgba(21,58,33,.07)}
+.tm-home-card-header{display:flex;align-items:center;gap:12px;width:100%}
+.tm-home-card-header>svg:last-child{margin-left:auto;color:#9baaa0;flex-shrink:0}
+.tm-home-icon{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;flex-shrink:0}
+.tm-home-icon-prayer{background:#eaf5ee;color:#18724f}
+.tm-home-icon-quran{background:#edf0ff;color:#5066a3}
+.tm-home-card-title{display:flex;flex-direction:column;gap:2px;min-width:0}
+.tm-home-card-title strong{font-size:17px;line-height:1.3;font-weight:800}
+.tm-home-card-title small{color:#748476;font-size:13px;font-weight:500}
+.tm-home-prayer{background:#fff}
+.tm-home-prayers{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:3px;margin:4px 0 0;width:100%}
+.tm-home-prayer{display:flex;flex-direction:column;align-items:center;gap:7px;color:#637368;font-size:11px;font-weight:700;min-width:0}
+.tm-home-prayer-ring{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;border:1.5px solid #e0e6df;background:#f6f8f5;color:#92a398}
+.tm-home-prayer-ring.tm-home-prayer-done{background:#e0f4e7;color:#18734c;border-color:#cae8d4}
+.tm-home-prayer-empty{width:7px;height:7px;border-radius:50%;background:#d1dcd3}
+.tm-home-card-link{display:inline-flex;align-items:center;gap:5px;color:#1b7355;font-size:13px;font-weight:750;margin-top:4px}
+.tm-quran-hero-count{font-size:22px;font-weight:850;line-height:1.2;letter-spacing:-.025em;color:#233a34}
+.tm-quran-mid-dot{color:#abb8af}
+.tm-card-subnote{font-size:13px;color:#7b887f;margin-top:-5px}
+.tm-life-list{border-radius:21px;background:#fff;border:1px solid #e3e8df;overflow:hidden;box-shadow:0 4px 18px rgba(21,58,33,.022)}
+.tm-life-item{display:flex;align-items:center;gap:13px;width:100%;min-height:91px;padding:15px 17px;background:#fff;border:0;border-bottom:1px solid #eef1ec;text-align:left;color:#20362e}
+.tm-life-item:last-child{border-bottom:0}
+.tm-life-icon{display:grid;place-items:center;flex-shrink:0;width:46px;height:46px;border-radius:15px;background:#fff1dc;color:#94672c}
+.tm-life-university .tm-life-icon{background:#eaf2ff;color:#547bb0}
+.tm-life-personal .tm-life-icon{background:#fff0f1;color:#b65a6f}
+.tm-life-copy{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}
+.tm-life-copy strong{font-size:16px;line-height:1.25;font-weight:800}
+.tm-life-copy>span{font-size:13px;color:#64796a}
+.tm-life-copy small{font-size:12px;color:#8a998c;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.tm-life-arrow{color:#a4b2a5;flex-shrink:0}
+.tm-explain-card{border:1px solid #d8e7dd;border-radius:21px;background:linear-gradient(140deg,#eff7f0,#f5faf4);padding:21px 19px;display:flex;flex-direction:column;gap:14px;margin-top:8px}
+.tm-explain-top{display:flex;align-items:flex-start;gap:12px}
+.tm-explain-icon{display:grid;place-items:center;width:43px;height:43px;border-radius:14px;flex-shrink:0;background:#dbeee0;color:#196b4e}
+.tm-explain-top strong{font-size:17px;font-weight:800}
+.tm-explain-top p{font-size:14px;line-height:1.5;color:#607868;margin:4px 0 0}
+.tm-explain-btn{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;min-height:54px;background:#19724f;border:1px solid #19724f;border-radius:15px;color:#fff;font-size:15px;font-weight:800;padding:10px}
+.tm-explain-btn:disabled{opacity:.58}
+.tm-explain-card>small{font-size:12px;color:#81978a;text-align:center}
+.tm-inline-summary{margin-top:4px;max-height:none;line-height:1.6;font-size:15px}
+.tm-page .tm-home-hint{font-size:12px;justify-content:center;margin:13px 0 1px;color:#88968c}
+/* Detail screens: natural one-column steps, no dashboard framing. */
+.tm-page .tm-panel{border:1px solid #e2e8df;border-radius:22px;padding:22px 20px;box-shadow:0 4px 20px rgba(22,56,40,.03)}
+.tm-page .tm-panel-head h2{font-size:clamp(23px,5vw,29px);letter-spacing:-.04em!important}
+.tm-page .tm-panel-head p{font-size:14px;line-height:1.5}
+.tm-page .tm-primary{background:#1b7355;border-color:#1b7355;font-size:15px;font-weight:750}
+.tm-page .tm-update-button{justify-content:space-between;border-radius:14px}
+.tm-page .tm-prayer-row{min-height:69px}
+.tm-page .tm-prayer-choice{min-height:49px;border-radius:13px}
+.tm-page .tm-prayer-choice.tm-picked{background:#e0f5e9;color:#176d4c}
+.tm-page .tm-reading-count{border-radius:16px}
+.tm-page .tm-task-card{box-shadow:none;border-radius:16px;padding:17px}
+.tm-page .tm-task-list{gap:11px}
+.tm-page .tm-task-top{gap:8px;flex-wrap:wrap}
+.tm-page .tm-task-top h3{font-size:17px}
+.tm-page .tm-more-panel{border-radius:20px;box-shadow:0 3px 19px rgba(22,56,40,.025)}
+.tm-page .tm-modal{border-radius:22px}
+@media(max-width:450px){
+  .tm-page .tm-shell{width:calc(100% - 24px)}
+  .tm-page .tm-topbar{margin-bottom:14px}
+  .tm-today{gap:13px}
+  .tm-today-intro{padding:4px 2px 7px}
+  .tm-today-heading>span{font-size:11px}
+  .tm-home-card{padding:17px 15px;border-radius:19px}
+  .tm-home-prayer-ring{width:37px;height:37px}
+  .tm-life-item{padding:13px;gap:11px;min-height:83px}
+  .tm-life-icon{width:42px;height:42px}
+  .tm-life-copy strong{font-size:15px}
+  .tm-life-copy>span{font-size:12px}
+  .tm-page .tm-panel{padding:18px 14px}
+  .tm-page .tm-mobile-nav{border-radius:17px 17px 0 0}
+}
+@media(min-width:851px){
+  .tm-page{padding-bottom:105px}
+  .tm-page .tm-shell{max-width:660px;width:min(calc(100% - 48px),660px)}
+  .tm-page .tm-body{display:block}
+}
+/* Reading-first task cards: progress is visible before any tap. */
+.tm-task-latest{padding:14px 15px;margin:13px 0 3px;border-left:3px solid #64af88;background:#f3f9f4;border-radius:0 12px 12px 0}
+.tm-task-latest>span{color:#5f856e;font-size:12px;font-weight:750}
+.tm-task-latest p{margin:5px 0 0;font-size:14px;line-height:1.55;color:#263d2e;white-space:pre-wrap;overflow-wrap:anywhere}
+.tm-owner-add{margin:19px 0 0!important}
+.tm-owner-add summary{min-height:50px;display:flex;align-items:center;gap:8px;color:#708077!important;font-size:14px!important;font-weight:650!important}
+.tm-owner-add .tm-quiet-btn{margin-top:12px}

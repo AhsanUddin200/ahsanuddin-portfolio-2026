@@ -70,9 +70,9 @@ function LoginScreen({ password, setPassword, onSubmit, busy, error }) {
       <div className="tm-access-card">
         <div className="tm-lock-icon"><LockKeyhole size={28}/></div>
         <h1>Track Me</h1>
-        <p className="tm-access-copy">Apna roz ka kaam aur progress yahan dekhein.</p>
+        <p className="tm-access-copy">Your day, your progress — all in one simple place.</p>
         <form onSubmit={onSubmit} className="tm-stack">
-          <label className="tm-field"><span>Your password / Password dalein</span>
+          <label className="tm-field"><span>Your password</span>
             <div className="tm-input-icon"><KeyRound size={18}/><input required type={show ? 'text' : 'password'} autoComplete="current-password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Enter password" maxLength={200}/>
               <button type="button" aria-label={show ? 'Hide password' : 'Show password'} onClick={() => setShow(x => !x)}>{show ? <EyeOff size={19}/> : <Eye size={19}/>}</button>
             </div>
@@ -107,7 +107,7 @@ function CautionWelcome({ onContinue }) {
         <p className="tm-eyebrow">PRIVATE REMINDER / CAUTION</p>
         <h2>Every day matters.</h2>
         <div className="tm-typing" aria-label={message}>{typed}<span aria-hidden="true" className="tm-caret">▌</span></div>
-        <p>Roz thora sa progress bhi important hai.</p>
+        <p>Small steps, every day, make a difference.</p>
         <button className="tm-primary tm-wide" type="button" onClick={onContinue}>Continue <ArrowRight size={19}/></button>
       </div>
     </div>
@@ -123,7 +123,7 @@ function PinModal({ busy, onVerify, onClose, error }) {
         <button className="tm-close" type="button" onClick={onClose} aria-label="Close"><X size={21}/></button>
         <div className="tm-lock-icon"><LockKeyhole size={26}/></div>
         <h2>New Task Code</h2>
-        <p className="tm-muted">Sirf owner new task bana sakta hai. Apna secret code dalein.</p>
+        <p className="tm-muted">Enter the private code to add a new task.</p>
         <form className="tm-stack" onSubmit={e => {e.preventDefault(); onVerify(pin);}}>
           <label className="tm-field"><span>Secret code</span><div className="tm-input-icon"><KeyRound size={18}/><input required autoFocus maxLength={200} autoComplete="off" type={show ? 'text' : 'password'} value={pin} onChange={e => setPin(e.target.value)} placeholder="Enter code"/><button type="button" onClick={() => setShow(x => !x)} aria-label="Show or hide code">{show ? <EyeOff size={20}/> : <Eye size={20}/>}</button></div></label>
           {error && <div className="tm-error" role="alert">{error}</div>}
@@ -172,18 +172,18 @@ function TaskEditor({ initial, saving, onClose, onSave }) {
 function SummaryModal({ section, busy, result, onGenerate, onClose }) {
   const [period, setPeriod] = useState('week');
   const [scope, setScope] = useState(section);
-  const [language, setLanguage] = useState('roman');
+  const [language, setLanguage] = useState('en');
   return (
     <div className="tm-modal-backdrop" onMouseDown={e => e.target === e.currentTarget && onClose()}>
       <section className="tm-modal tm-summary-modal" role="dialog" aria-modal="true" aria-label="AI summary">
         <div className="tm-modal-heading"><h2><Sparkles size={22}/> My Progress Summary</h2><button type="button" className="tm-close" aria-label="Close" onClick={onClose}><X size={21}/></button></div>
-        <p className="tm-muted">Apni saved progress ka short summary dekhein.</p>
+        <p className="tm-muted">Get a short, easy-to-read explanation of your progress.</p>
         <div className="tm-stack">
           <label className="tm-field"><span>Which days?</span><select value={period} onChange={e => setPeriod(e.target.value)}><option value="today">Today</option><option value="week">Last 7 days</option><option value="all">All days</option></select></label>
           <label className="tm-field"><span>Which section?</span><select value={scope} onChange={e => setScope(e.target.value)}><option value="all">Everything</option>{ALL_SECTIONS.map(x => <option key={x.key} value={x.key}>{x.name}</option>)}</select></label>
-          <details className="tm-details"><summary>Language (optional)</summary><label className="tm-field"><span>Language</span><select value={language} onChange={e => setLanguage(e.target.value)}><option value="roman">Roman Urdu</option><option value="en">English</option></select></label></details>
+          <details className="tm-details"><summary>Language (optional)</summary><label className="tm-field"><span>Language</span><select value={language} onChange={e => setLanguage(e.target.value)}><option value="en">English</option><option value="roman">Roman Urdu</option></select></label></details>
           <button type="button" disabled={busy} className="tm-primary tm-wide" onClick={() => onGenerate({period, section:scope, language})}><Sparkles size={18}/>{busy ? 'Preparing...' : 'Show My Summary'}</button>
-          <p className="tm-footnote"><LockKeyhole size={14}/> Summary ke liye selected data Groq AI ko send hota hai.</p>
+          <p className="tm-footnote"><LockKeyhole size={14}/> Your selected progress records are sent to Groq AI for this summary.</p>
           {result && <div className={result.error ? 'tm-error' : 'tm-summary-result'} role="status">{result.error || result.summary}</div>}
         </div>
       </section>
@@ -194,7 +194,8 @@ function SummaryModal({ section, busy, result, onGenerate, onClose }) {
 function TaskCard({ item, expanded, onExpand, note, setNote, busy, onNote, onEdit, onDelete, onStatus }) {
   const meta = item.meta || {};
   const project = item.section === 'office' ? meta.project : item.section === 'university' ? meta.university : (meta.area || '');
-  const question = item.section === 'office' ? 'Aaj is project mein kya kiya?' : item.section === 'university' ? 'Application ke baare mein kya update hai?' : 'Aaj kya progress hui?';
+  const question = item.section === 'office' ? 'What did you work on today?' : item.section === 'university' ? 'What changed with this application?' : 'What did you do today?';
+  const latestLog = (item.logs || []).slice().sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)))[0];
   return (
     <article className="tm-task-card">
       <div className="tm-task-top"><h3>{item.title}</h3><span className={`tm-state tm-state-${item.status}`}>{STATUS[item.status] || 'To Do'}</span></div>
@@ -202,7 +203,8 @@ function TaskCard({ item, expanded, onExpand, note, setNote, busy, onNote, onEdi
       {item.detail && <p className="tm-task-detail">{item.detail}</p>}
       {item.section === 'university' && <p className="tm-task-detail"><strong>{APP_STATUS[meta.applicationStatus] || 'Planning'}</strong>{meta.upcomingDate ? ` · Next date: ${prettyDate(meta.upcomingDate)}` : ''}</p>}
       {item.dueDate && <p className="tm-task-detail"><CalendarDays size={15}/> Due: {prettyDate(item.dueDate)}</p>}
-      <button type="button" className="tm-update-button" aria-expanded={expanded} onClick={() => onExpand(item.id)}><Send size={18}/>{expanded ? 'Close Daily Update' : 'Aaj kya kiya? / Add Update'}<ChevronRight size={19} className={expanded ? 'tm-rotate' : ''}/></button>
+      {latestLog && <div className="tm-task-latest"><span>Latest update · {prettyDate(latestLog.createdAt)}</span><p>{latestLog.note}</p></div>}
+      <button type="button" className="tm-update-button" aria-expanded={expanded} onClick={() => onExpand(item.id)}><Send size={18}/>{expanded ? 'Close Daily Update' : "Add today's update"}<ChevronRight size={19} className={expanded ? 'tm-rotate' : ''}/></button>
       {expanded && <div className="tm-note-panel">
         <form className="tm-stack" onSubmit={e => { e.preventDefault(); onNote(item.id); }}>
           <label className="tm-field"><span>{question}</span><textarea required rows={3} maxLength={1000} value={note} onChange={e => setNote(e.target.value)} placeholder="Write your update here..."/></label>
@@ -221,20 +223,20 @@ function PrayerPanel({ date, setDate, days, busy, onToggle }) {
   const lastSeven = Array.from({length:7}, (_,i) => shiftDay(dayISO(), i - 6));
   return (
     <section className="tm-panel tm-prayer-panel">
-      <div className="tm-panel-head"><div><h2>Namaz / Prayer</h2><p>Namaz par tap karein. Tick automatic save hoga.</p></div></div>
-      <div className="tm-day-picker"><button type="button" aria-label="Previous day" onClick={() => setDate(shiftDay(date,-1))}><ChevronLeft size={22}/></button><label className="tm-date-label"><span>Date / Tareekh</span><input type="date" value={date} onChange={e => setDate(e.target.value)} aria-label="Prayer date"/></label><button type="button" aria-label="Next day" onClick={() => setDate(shiftDay(date,1))}><ChevronRight size={22}/></button></div>
+      <div className="tm-panel-head"><div><h2>Prayer</h2><p>Tap once to record a prayer. Changes are saved automatically.</p></div></div>
+      <div className="tm-day-picker"><button type="button" aria-label="Previous day" onClick={() => setDate(shiftDay(date,-1))}><ChevronLeft size={22}/></button><label className="tm-date-label"><span>Date</span><input type="date" value={date} onChange={e => setDate(e.target.value)} aria-label="Prayer date"/></label><button type="button" aria-label="Next day" onClick={() => setDate(shiftDay(date,1))}><ChevronRight size={22}/></button></div>
       <div className="tm-prayer-progress"><strong>{completed} / 5</strong><span>prayers recorded for {prettyDate(date)}</span>{date !== dayISO() && <button type="button" className="tm-today" onClick={() => setDate(dayISO())}>Go to Today</button>}</div>
-      <div className="tm-prayer-legend"><span>Prayer</span><span>Jamaat</span><span>Qaza</span></div>
+      <div className="tm-prayer-legend"><span>Prayer</span><span>Group</span><span>Make-up</span></div>
       <div className="tm-prayer-list">{PRAYERS.map(([key,label]) => {
         const group = Boolean(record.group?.[key]);
         const makeup = Boolean(record.makeup?.[key]);
         return <div className="tm-prayer-row" key={key}>
           <strong>{label}</strong>
-          <button type="button" aria-pressed={group} aria-label={`${label} Jamaat ${group ? 'recorded' : 'not recorded'}`} className={`tm-prayer-choice ${group ? 'tm-picked' : ''}`} disabled={busy} onClick={() => onToggle({date,prayer:key,kind:'group',checked:!group})}>{group && <Check size={18}/>}<span>{group ? 'Done' : 'Jamaat'}</span></button>
-          <button type="button" aria-pressed={makeup} aria-label={`${label} Qaza ${makeup ? 'recorded' : 'not recorded'}`} className={`tm-prayer-choice ${makeup ? 'tm-picked' : ''}`} disabled={busy} onClick={() => onToggle({date,prayer:key,kind:'makeup',checked:!makeup})}>{makeup && <Check size={18}/>}<span>{makeup ? 'Done' : 'Qaza'}</span></button>
+          <button type="button" aria-pressed={group} aria-label={`${label} Group ${group ? 'recorded' : 'not recorded'}`} className={`tm-prayer-choice ${group ? 'tm-picked' : ''}`} disabled={busy} onClick={() => onToggle({date,prayer:key,kind:'group',checked:!group})}>{group && <Check size={18}/>}<span>{group ? 'Done' : 'Group'}</span></button>
+          <button type="button" aria-pressed={makeup} aria-label={`${label} Make-up ${makeup ? 'recorded' : 'not recorded'}`} className={`tm-prayer-choice ${makeup ? 'tm-picked' : ''}`} disabled={busy} onClick={() => onToggle({date,prayer:key,kind:'makeup',checked:!makeup})}>{makeup && <Check size={18}/>}<span>{makeup ? 'Done' : 'Make-up'}</span></button>
         </div>;
       })}</div>
-      <p className="tm-helper">Sirf ek option select hoga. Dobara tap karein to tick remove ho jayega. Khali option ka matlab record nahi hua.</p>
+      <p className="tm-helper">Choose Group or Make-up. Tap again to clear. An empty choice only means it is not recorded.</p>
       <details className="tm-details tm-history"><summary>See last 7 days</summary><div className="tm-week-strip">{lastSeven.map(d => {const r=days[d]||{};const n=PRAYERS.filter(([k]) => r.group?.[k]||r.makeup?.[k]).length;return <button key={d} type="button" className={`tm-week-day ${d===date?'tm-selected':''}`} onClick={() => setDate(d)}><span>{new Date(`${d}T12:00:00`).toLocaleDateString('en-US',{weekday:'short'})}</span><strong>{d.slice(8)}</strong><small>{n}/5</small></button>;})}</div></details>
     </section>
   );
@@ -248,7 +250,7 @@ function QuranPanel({ quran, busy, onAdd, onDelete }) {
   const sorted = [...quran].sort((a,b) => b.date.localeCompare(a.date)||b.createdAt.localeCompare(a.createdAt));
   return (
     <section className="tm-panel tm-quran-panel">
-      <div className="tm-panel-head"><div><h2>Quran Reading</h2><p>Para select karein, jitne pages parhe hain likhein, phir Save.</p></div></div>
+      <div className="tm-panel-head"><div><h2>Quran Reading</h2><p>Choose a para, enter pages read, and tap Save.</p></div></div>
       <div className="tm-reading-count"><BookOpen size={24}/><div><strong>{today} pages</strong><span>Today · {total} pages total</span></div></div>
       <form className="tm-quran-form tm-stack" onSubmit={async e => {e.preventDefault();const ok=await onAdd(form);if(ok)setForm(old=>({...old,pagesRead:'1',fromPage:'',toPage:'',note:''}));}}>
         <label className="tm-field"><span>1. Which Para?</span><select value={form.para} onChange={e => change('para',e.target.value)}>{Array.from({length:30},(_,i)=><option key={i+1} value={i+1}>Para {i+1}</option>)}</select></label>
@@ -261,7 +263,7 @@ function QuranPanel({ quran, busy, onAdd, onDelete }) {
         </details>
         <button className="tm-primary tm-wide" type="submit" disabled={busy}><Check size={20}/>{busy ? 'Saving...' : 'Save Reading'}</button>
       </form>
-      <p className="tm-helper">15-line Quran: page numbering can be different in different editions.</p>
+      <p className="tm-helper">Your 15-line Quran may use different page numbers. Enter the printed pages from your copy.</p>
       <details className="tm-details tm-history"><summary>Reading history ({sorted.length})</summary><div className="tm-reading-list">{sorted.length ? sorted.map(item=><div key={item.id} className="tm-reading-item"><div><strong>Para {item.para} · {item.pagesRead} pages</strong><p>{prettyDate(item.date)}{item.fromPage ? ` · Pg ${item.fromPage}${item.toPage?`–${item.toPage}`:''}`:''}{item.note?` · ${item.note}`:''}</p></div><button type="button" className="tm-icon-btn tm-danger" aria-label="Delete reading" disabled={busy} onClick={()=>onDelete(item)}><Trash2 size={19}/></button></div>) : <p>No reading recorded yet.</p>}</div></details>
     </section>
   );
@@ -273,34 +275,81 @@ function WorkPanel({ section, entries, busy, search, setSearch, filter, setFilte
   const filtered = items.filter(x => (filter === 'all' || x.status === filter) && `${x.title} ${x.detail} ${x.meta?.project||''} ${x.meta?.university||''} ${(x.logs||[]).map(l=>l.note).join(' ')}`.toLowerCase().includes(search.toLowerCase()));
   const upcoming = items.filter(x => x.meta?.upcomingDate || x.dueDate).map(x => ({...x,eventDate:x.meta?.upcomingDate||x.dueDate})).filter(x => x.eventDate>=dayISO()).sort((a,b)=>a.eventDate.localeCompare(b.eventDate)).slice(0,5);
   return <section className="tm-panel tm-work-panel">
-    <div className="tm-panel-head"><div><h2>{info.name}</h2><p>{section === 'office' ? 'Apna project kholein aur aaj ka kaam likhein.' : section === 'university' ? 'University applications aur important dates yahan hain.' : 'Personal goals aur roz ki progress yahan likhein.'}</p></div></div>
+    <div className="tm-panel-head"><div><h2>{info.name}</h2><p>{section === 'office' ? 'Open a project and record what you did today.' : section === 'university' ? 'Applications, important dates and updates.' : 'Personal goals and daily progress.'}</p></div></div>
     <button type="button" className="tm-primary tm-wide tm-add-task" onClick={()=>onNew(section)}><Plus size={20}/> Add New Task <LockKeyhole size={16}/></button>
     {section === 'university' && upcoming.length>0 && <div className="tm-upcoming-box"><h3><CalendarDays size={19}/> Upcoming dates</h3>{upcoming.map(x=><div key={x.id} className="tm-upcoming-row"><strong>{x.meta?.university||x.title}</strong><time>{prettyDate(x.eventDate)}</time></div>)}</div>}
     {items.length>3 && <details className="tm-details tm-history"><summary>Search or filter tasks</summary><div className="tm-toolbar"><label className="tm-field"><span>Search</span><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Find a task..."/></label><label className="tm-field"><span>Show</span><select value={filter} onChange={e=>setFilter(e.target.value)}><option value="all">All tasks</option>{Object.entries(STATUS).map(([k,v])=><option key={k} value={k}>{v}</option>)}</select></label></div></details>}
-    <p className="tm-count-label">{items.length} {items.length === 1 ? 'task' : 'tasks'}</p>
-    <div className="tm-task-list">{filtered.length ? filtered.map(item=><TaskCard key={item.id} item={item} expanded={expanded===item.id} onExpand={id=>{setExpanded(expanded===id?null:id);setNote('');}} note={expanded===item.id?note:''} setNote={setNote} busy={busy} onNote={onNote} onEdit={onEdit} onDelete={onDelete} onStatus={onStatus}/>) : <div className="tm-empty"><CheckCircle2 size={32}/><h3>No tasks yet</h3><p>Use the Add New Task button above.</p></div>}</div>
+<p className="tm-count-label">{items.length} {items.length === 1 ? 'task' : 'tasks'}</p>
+    <div className="tm-task-list">{filtered.length ? filtered.map(item=><TaskCard key={item.id} item={item} expanded={expanded===item.id} onExpand={id=>{setExpanded(expanded===id?null:id);setNote('');}} note={expanded===item.id?note:''} setNote={setNote} busy={busy} onNote={onNote} onEdit={onEdit} onDelete={onDelete} onStatus={onStatus}/>) : <div className="tm-empty"><CheckCircle2 size={32}/><h3>No tasks added yet</h3><p>Tasks will appear here once added.</p></div>}</div>
+    <details className="tm-details tm-owner-add"><summary><LockKeyhole size={17}/> Add a new task (private code)</summary><button type="button" className="tm-quiet-btn tm-wide" onClick={() => onNew(section)}><Plus size={18}/> Enter code to add a task</button></details>
   </section>;
 }
 
-function Overview({ entries, days, quran, onSection }) {
+function Overview({ entries, days, quran, onSection, onExplain, summaryBusy, summaryResult }) {
   const today = dayISO();
-  const r = days[today] || {};
-  const prayerCount = PRAYERS.filter(([k])=>r.group?.[k]||r.makeup?.[k]).length;
-  const quranToday = quran.filter(x=>x.date===today).reduce((a,x)=>a+Number(x.pagesRead||0),0);
-  const counts = Object.fromEntries(WORK_SECTIONS.map(x=>[x.key,entries.filter(t=>t.section===x.key).length]));
-  const upcoming = entries.filter(x=>x.section==='university').map(x=>({...x,eventDate:x.meta?.upcomingDate||x.dueDate})).filter(x=>x.eventDate && x.eventDate>=today).sort((a,b)=>a.eventDate.localeCompare(b.eventDate)).slice(0,3);
-  const shortcuts = [
-    {key:'prayer',title:'Namaz / Prayer',sub:'5 waqt ki namaz tick karein',count:`${prayerCount}/5 today`,icon:Clock3},
-    {key:'quran',title:'Quran Reading',sub:'Aaj kitne pages parhe?',count:`${quranToday} pages today`,icon:BookOpen},
-    {key:'office',title:'Office Work',sub:'Aaj project par kya kaam kiya?',count:`${counts.office} tasks`,icon:BriefcaseBusiness},
-    {key:'personal',title:'Personal Work',sub:'Apne personal goals update karein',count:`${counts.personal} tasks`,icon:Heart},
-    {key:'university',title:'University',sub:'Applications aur next dates',count:`${counts.university} items`,icon:GraduationCap},
+  const current = days[today] || {};
+  const prayerCount = PRAYERS.filter(([key]) => current.group?.[key] || current.makeup?.[key]).length;
+  const todayReading = quran.filter(entry => entry.date === today);
+  const pagesToday = todayReading.reduce((total, entry) => total + Number(entry.pagesRead || 0), 0);
+  const latestReading = [...quran].sort((a, b) => String(b.date).localeCompare(String(a.date)) || String(b.createdAt).localeCompare(String(a.createdAt)))[0];
+  const getWork = key => entries.filter(entry => entry.section === key);
+  const work = getWork('office');
+  const personal = getWork('personal');
+  const university = getWork('university');
+  const inProgress = work.filter(entry => entry.status === 'in_progress').length;
+  const due = university
+    .map(entry => ({ ...entry, nextDate: entry.meta?.upcomingDate || entry.dueDate }))
+    .filter(entry => entry.nextDate && entry.nextDate >= today)
+    .sort((a, b) => a.nextDate.localeCompare(b.nextDate))[0];
+  const latestNote = work.flatMap(entry => (entry.logs || []).map(log => ({ ...log, title: entry.title })))
+    .sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)))[0];
+  const sections = [
+    { key: 'office', title: 'Office work', icon: BriefcaseBusiness, description: inProgress ? `${inProgress} task${inProgress === 1 ? '' : 's'} in progress` : `${work.length} saved task${work.length === 1 ? '' : 's'}`, extra: latestNote ? `Last update: ${latestNote.note}` : 'View projects and updates' },
+    { key: 'university', title: 'University', icon: GraduationCap, description: due ? `Next: ${prettyDate(due.nextDate)}` : `${university.length} application${university.length === 1 ? '' : 's'} saved`, extra: due ? (due.meta?.university || due.title) : 'View applications and dates' },
+    { key: 'personal', title: 'Personal work', icon: Heart, description: `${personal.length} saved goal${personal.length === 1 ? '' : 's'}`, extra: 'View your personal progress' },
   ];
-  return <div className="tm-overview">
-    <div className="tm-welcome-intro"><p>{prettyDate(today)}</p><h2>Aaj kya record karna hai?</h2><span>Bas apna section select karein.</span></div>
-    <div className="tm-simple-choices">{shortcuts.map(x=>{const Icon=x.icon;return <button key={x.key} type="button" className="tm-choice" onClick={()=>onSection(x.key)}><span className={`tm-choice-icon tm-choice-${x.key}`}><Icon size={24}/></span><span className="tm-choice-text"><strong>{x.title}</strong><small>{x.sub}</small></span><span className="tm-choice-trailing"><em>{x.count}</em><ChevronRight size={20}/></span></button>;})}</div>
-    {upcoming.length>0 && <div className="tm-home-upcoming"><h3><CalendarDays size={18}/> Upcoming University Dates</h3>{upcoming.map(x=><div className="tm-home-event" key={x.id}><span>{x.meta?.university||x.title}</span><strong>{prettyDate(x.eventDate)}</strong></div>)}<button type="button" onClick={()=>onSection('university')}>Open University <ArrowRight size={18}/></button></div>}
-    <p className="tm-home-hint"><ShieldCheck size={17}/> Your progress saves to your private workspace.</p>
+
+  return <div className="tm-today">
+    <div className="tm-today-intro">
+      <span className="tm-day-label"><span className="tm-day-dot"/> YOUR DAY, MADE SIMPLE</span>
+      <h1>Welcome back <span aria-hidden="true">☀</span></h1>
+      <p>{new Date(`${today}T12:00:00`).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</p>
+    </div>
+
+    <div className="tm-today-heading"><h2>Today at a glance</h2><span>Tap any card to see more</span></div>
+
+    <button type="button" className="tm-home-card tm-home-prayer" onClick={() => onSection('prayer')} aria-label={`Open Prayer. ${prayerCount} of 5 recorded today.`}>
+      <span className="tm-home-card-header"><span className="tm-home-icon tm-home-icon-prayer"><Clock3 size={21}/></span><span className="tm-home-card-title"><strong>Prayer</strong><small>{prayerCount} of 5 recorded today</small></span><ChevronRight size={20} aria-hidden="true"/></span>
+      <span className="tm-home-prayers">{PRAYERS.map(([key, label]) => {
+        const kind = current.group?.[key] ? 'group' : current.makeup?.[key] ? 'makeup' : '';
+        return <span className="tm-home-prayer" key={key}><span className={`tm-home-prayer-ring ${kind ? 'tm-home-prayer-done' : ''}`} aria-label={`${label}: ${kind ? (kind === 'group' ? 'Group prayer' : 'Make-up prayer') : 'not recorded'}`}>{kind ? <Check size={19}/> : <span className="tm-home-prayer-empty"/>}</span><span>{label}</span></span>;
+      })}</span>
+      <span className="tm-home-card-link">View prayer record <ArrowRight size={15}/></span>
+    </button>
+
+    <button type="button" className="tm-home-card tm-home-quran" onClick={() => onSection('quran')}>
+      <span className="tm-home-card-header"><span className="tm-home-icon tm-home-icon-quran"><BookOpen size={21}/></span><span className="tm-home-card-title"><strong>Quran reading</strong><small>{pagesToday ? `${pagesToday} page${pagesToday === 1 ? '' : 's'} recorded today` : 'Your daily reading'}</small></span><ChevronRight size={20} aria-hidden="true"/></span>
+      <span className="tm-quran-hero-count">{latestReading ? `Para ${latestReading.para}` : 'No reading yet'}<span className="tm-quran-mid-dot"> · </span>{latestReading ? `${latestReading.pagesRead} page${Number(latestReading.pagesRead) === 1 ? '' : 's'}` : 'Start today'}</span>
+      <span className="tm-card-subnote">{latestReading ? `Last recorded: ${prettyDate(latestReading.date)}` : 'Tap to record a reading in a few seconds'}</span>
+    </button>
+
+    <div className="tm-today-heading tm-today-heading-second"><h2>Work & life</h2></div>
+    <div className="tm-life-list">{sections.map(info => {
+      const Icon = info.icon;
+      return <button type="button" className={`tm-life-item tm-life-${info.key}`} onClick={() => onSection(info.key)} key={info.key}>
+        <span className="tm-life-icon"><Icon size={22}/></span>
+        <span className="tm-life-copy"><strong>{info.title}</strong><span>{info.description}</span><small>{info.extra}</small></span>
+        <ChevronRight size={20} className="tm-life-arrow" aria-hidden="true"/>
+      </button>;
+    })}</div>
+
+    <div className="tm-explain-card">
+      <div className="tm-explain-top"><span className="tm-explain-icon"><Sparkles size={23}/></span><div><strong>Need a quick update?</strong><p>Let AI explain today's progress in simple English.</p></div></div>
+      <button type="button" className="tm-explain-btn" disabled={summaryBusy} onClick={onExplain}>{summaryBusy ? 'Reading your progress...' : 'Explain my day'} <ArrowRight size={18}/></button>
+      {summaryResult && <div role="status" className={summaryResult.error ? 'tm-error tm-inline-summary' : 'tm-summary-result tm-inline-summary'}>{summaryResult.error || summaryResult.summary}</div>}
+      <small>AI only summarizes the records you have saved.</small>
+    </div>
+    <p className="tm-home-hint"><ShieldCheck size={16}/> Your records are private and saved securely.</p>
   </div>;
 }
 
@@ -435,20 +484,20 @@ export default function TrackMe() {
       <div className="tm-content-area">
         {section !== 'overview' && <button type="button" className="tm-back-home" onClick={()=>go('overview')}><ArrowLeft size={18}/> Back to Home</button>}
         {notice && <div className="tm-notice" role="status"><CheckCircle2 size={18}/><span>{notice}</span><button type="button" onClick={()=>setNotice('')} aria-label="Dismiss message"><X size={19}/></button></div>}
-        {section==='overview' && <Overview entries={entries} days={prayerDays} quran={quranEntries} onSection={go}/>}
+        {section==='overview' && <Overview entries={entries} days={prayerDays} quran={quranEntries} onSection={go} onExplain={() => makeSummary({period:'today',section:'all',language:'en'})} summaryBusy={busy} summaryResult={summaryResult}/>}
         {WORK_SECTIONS.some(x=>x.key===section) && <WorkPanel section={section} entries={entries} busy={busy} search={search} setSearch={setSearch} filter={filter} setFilter={setFilter} expanded={expanded} setExpanded={setExpanded} note={note} setNote={setNote} onNew={newTask} onNote={addNote} onEdit={item=>setEditor({...item})} onDelete={deleteTask} onStatus={updateTask}/>}
         {section==='prayer' && <PrayerPanel date={prayerDate} setDate={setPrayerDate} days={prayerDays} busy={busy} onToggle={togglePrayer}/>}
         {section==='quran' && <QuranPanel quran={quranEntries} busy={busy} onAdd={addQuran} onDelete={deleteQuran}/>}
-        {section==='more' && <section className="tm-more-panel"><h2>More options</h2><p>Apko kya dekhna hai?</p>
+        {section==='more' && <section className="tm-more-panel"><h2>More options</h2><p>Choose where you want to go.</p>
           <button type="button" onClick={()=>go('personal')}><Heart size={24}/><span>Personal Work</span><ChevronRight size={20}/></button>
           <button type="button" onClick={()=>go('university')}><GraduationCap size={24}/><span>University</span><ChevronRight size={20}/></button>
           <button type="button" onClick={showSummary}><Sparkles size={24}/><span>My AI Summary</span><ChevronRight size={20}/></button>
           <button type="button" onClick={()=>newTask('office')}><LockKeyhole size={24}/><span>Add New Task (Code)</span><ChevronRight size={20}/></button>
-          <Link to="/"><ArrowLeft size={24}/><span>Back to Website</span><ChevronRight size={20}/></Link>
+          <Link to="/"><ArrowLeft size={24}/><span>Back to website</span><ChevronRight size={20}/></Link>
         </section>}
       </div>
     </div>
-    <footer className="tm-footer">Track Me · One day at a time</footer>
+    <footer className="tm-footer">One day at a time.</footer>
   </div>
   <nav className="tm-mobile-nav" aria-label="Quick sections">{basicNav.map(x=>{const Icon=x.icon;return <button type="button" key={x.key} aria-current={activeNav===x.key?'page':undefined} className={activeNav===x.key?'tm-current':''} onClick={()=>go(x.key)}><Icon size={22}/><span>{x.label}</span></button>;})}</nav>
   {pinOpen && <PinModal busy={busy} onVerify={verifyPin} onClose={()=>setPinOpen(false)} error={pinError}/>}
