@@ -306,3 +306,154 @@ body:has(.tm-page){background:#f5f6f2}
 .tm-owner-add{margin:19px 0 0!important}
 .tm-owner-add summary{min-height:50px;display:flex;align-items:center;gap:8px;color:#708077!important;font-size:14px!important;font-weight:650!important}
 .tm-owner-add .tm-quiet-btn{margin-top:12px}
+/* =====================================================
+   Track Me V5 — Family update / reading-first experience.
+   Additive styles scoped to .tm-page; portfolio untouched.
+===================================================== */
+body:has(.tmv-family){background:#f5f7f2}
+.tm-page.tmv-family{--tmv-ink:#1e332b;--tmv-muted:#657469;--tmv-green:#1d6a4e;--tmv-line:#e5ebe1;background:#f5f7f2;color:var(--tmv-ink);min-height:100vh;padding-bottom:35px;font-size:16px;line-height:1.5;color-scheme:light}
+.tm-page.tmv-family .tmv-shell{width:min(100% - 36px,650px);margin:0 auto}
+.tmv-header{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:20px 0 22px;border-bottom:1px solid #e0e8df}
+.tmv-brand{display:flex;align-items:center;gap:11px;padding:0;text-align:left;color:#173528;background:none;border:0;min-width:0}
+.tmv-logo{display:grid;place-items:center;width:42px;height:42px;flex-shrink:0;border-radius:15px;background:#216e51;color:white}
+.tmv-brand>span:last-child{display:flex;flex-direction:column;min-width:0;gap:1px}
+.tmv-brand strong{font-size:18px;letter-spacing:-.035em;line-height:1.25;font-weight:850}
+.tmv-brand small{color:#7c897c;font-size:12px;font-weight:550}
+.tmv-logout{min-height:43px;display:flex;align-items:center;justify-content:center;gap:7px;border:1px solid #e4e9e1;border-radius:13px;background:white;padding:9px 12px;color:#4a6154;font-size:13px;font-weight:750;flex-shrink:0}
+.tmv-family-view{padding-top:25px;display:flex;flex-direction:column;gap:16px}
+.tmv-intro{padding:5px 2px 3px}
+.tmv-pill{display:inline-flex;align-items:center;gap:7px;padding:6px 11px;border:1px solid #d7e6d9;border-radius:999px;background:#eaf4ea;font-size:10px;letter-spacing:.13em;font-weight:850;color:#377151}
+.tmv-live-dot{width:7px;height:7px;border-radius:50%;background:#33a16b}
+.tmv-intro h1{font-size:clamp(32px,7.6vw,45px)!important;letter-spacing:-.055em!important;line-height:1.07!important;font-weight:870!important;margin:15px 0 10px!important;color:#16392c}
+.tmv-intro h1 em{font-style:normal;color:#1c7652}
+.tmv-intro p{color:#66786a;font-size:15px;line-height:1.6;margin:0}
+.tmv-day-nav{display:flex;align-items:center;justify-content:space-between;gap:9px;border:1px solid #e0e8dc;border-radius:20px;background:white;padding:11px;box-shadow:0 4px 20px rgba(20,61,41,.03)}
+.tmv-day-nav>button{display:grid;place-items:center;flex-shrink:0;border:0;border-radius:12px;background:#eef5ee;color:#29694e;width:48px;height:48px;min-width:48px;min-height:48px}
+.tmv-day-nav>button:disabled{background:#f5f7f4;color:#bec9bb;opacity:.66}
+.tmv-day-center{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;text-align:center;min-width:0}
+.tmv-day-center span{font-size:10px;letter-spacing:.15em;color:#3d8a65;font-weight:850}
+.tmv-day-center strong{font-size:14px;font-weight:850;color:#294737;line-height:1.3}
+.tmv-group-title{display:flex;justify-content:space-between;align-items:end;gap:7px;margin:8px 2px -3px}
+.tmv-group-title h2{font-size:21px;font-weight:850;margin:0;color:#193f2c;letter-spacing:-.036em}
+.tmv-group-title span{font-size:12px;color:#91a092;text-align:right}
+.tmv-story-card{background:white;border:1px solid #e3eae1;border-radius:22px;padding:19px;box-shadow:0 4px 21px rgba(28,65,41,.035);display:flex;flex-direction:column;gap:13px}
+.tmv-card-heading{display:flex;align-items:center;gap:11px}
+.tmv-card-heading h2{font-size:18px;font-weight:850;margin:0;color:#1d382b;letter-spacing:-.02em}
+.tmv-card-icon{width:41px;height:41px;border-radius:14px;display:grid;place-items:center;background:#e8f4eb;color:#227a55;flex-shrink:0}
+.tmv-quran-card .tmv-card-icon{background:#eef0fc;color:#6a65b3}
+.tmv-story-office .tmv-card-icon{background:#fff3e0;color:#a76f2b}
+.tmv-story-university .tmv-card-icon{background:#e9f0ff;color:#567cb1}
+.tmv-story-personal .tmv-card-icon{background:#fff0f1;color:#bf6474}
+.tmv-prayer-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}
+.tmv-prayer-head strong{font-size:14px;color:#247452}
+.tmv-prayer-head span{font-size:12px;color:#8a9a8b}
+.tmv-prayer-five{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:2px}
+.tmv-prayer-one{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0;text-align:center}
+.tmv-prayer-mark{width:41px;height:41px;border-radius:50%;border:1.5px solid #dfe8de;background:#f6f8f5;display:grid;place-items:center;color:#b5c1b4;font-weight:800}
+.tmv-prayer-mark.tmv-yes{background:#dcf4e3;border-color:#c6e9d0;color:#22744d}
+.tmv-prayer-one strong{font-size:11px;color:#394f3d}
+.tmv-prayer-one small{font-size:10px;color:#98a59b;white-space:nowrap}
+.tmv-reading-number{display:flex;align-items:baseline;gap:11px;background:#f4f5fe;border-radius:15px;padding:12px 17px;color:#414985}
+.tmv-reading-number strong{font-size:38px;line-height:1;font-weight:850}
+.tmv-reading-number span{font-weight:750;font-size:15px}
+.tmv-reading-list{display:flex;flex-direction:column;gap:8px}
+.tmv-reading-line{display:flex;align-items:flex-start;gap:8px;color:#4e6258;font-size:14px}
+.tmv-reading-line svg{color:#6d69a6;flex-shrink:0;margin-top:2px}
+.tmv-update-list{display:flex;flex-direction:column;gap:9px}
+.tmv-daily-note{background:#f5f9f5;border-left:3px solid #69b58a;border-radius:0 12px 12px 0;padding:11px 13px}
+.tmv-daily-note strong{display:block;color:#2e5841;font-size:13px}
+.tmv-daily-note small{display:block;color:#7a9180;font-size:12px;margin-top:2px}
+.tmv-daily-note p{font-size:15px;line-height:1.55;color:#283f34;white-space:pre-wrap;overflow-wrap:anywhere;margin:5px 0 0}
+.tmv-more-count{font-size:13px;margin:0;color:#779280}
+.tmv-empty-note{margin:2px 0 0;color:#718375;font-size:14px;line-height:1.65}
+.tmv-read-more{min-height:47px;display:flex;align-items:center;justify-content:space-between;gap:8px;border:0;border-top:1px solid #edf0eb;background:transparent;text-align:left;margin:4px 0 -7px;padding:11px 0 4px;color:#217350;font-size:14px;font-weight:800}
+.tmv-upcoming{background:#f5f8ff;border-radius:13px;padding:12px}
+.tmv-upcoming>strong{display:block;color:#5173a7;font-size:12px;letter-spacing:.03em;margin-bottom:7px}
+.tmv-upcoming p{display:flex;align-items:center;gap:7px;margin:5px 0;color:#4d627d;font-size:13px}
+.tmv-upcoming svg{flex-shrink:0}
+.tmv-empty-day{display:flex;gap:11px;background:#fff9e8;border:1px solid #f4e8bd;color:#847035;padding:13px 15px;border-radius:16px;font-size:13px;line-height:1.5}
+.tmv-empty-day svg{flex-shrink:0}
+.tmv-ai-card{background:#173d2f;color:#fff;border-radius:24px;padding:24px 21px;display:flex;flex-direction:column;gap:9px;margin-top:9px;box-shadow:0 10px 30px rgba(28,63,43,.1)}
+.tmv-ai-icon{background:#2a5f49;border-radius:13px;display:grid;place-items:center;width:43px;height:43px;color:#d0ffb8;margin-bottom:3px}
+.tmv-ai-card h2{font-size:22px;letter-spacing:-.035em;font-weight:850;margin:0;color:#fff}
+.tmv-ai-card p{font-size:14px;line-height:1.7;color:#d4e4d9;margin:0 0 8px}
+.tmv-ai-main{width:100%;min-height:53px;display:flex;align-items:center;justify-content:center;gap:8px;border-radius:14px;border:0;background:#d8f4bf;color:#21402a;font-size:15px;font-weight:850;padding:10px}
+.tmv-ai-week{border:0;display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:42px;color:#d8f6dc;font-size:13px;font-weight:800;background:transparent}
+.tmv-ai-card>small{font-size:11px;line-height:1.5;color:#b3cbb9;margin-top:5px}
+.tmv-ai-result{white-space:pre-wrap;line-height:1.65;overflow-wrap:anywhere;font-size:14px;background:#fff;color:#264334;padding:16px;border-radius:14px;margin:6px 0}
+.tmv-owner-quick{display:flex;justify-content:center;align-items:center;gap:10px;background:#e7f1e9;color:#186545;border:1px solid #ccddce;padding:14px;border-radius:15px;font-weight:800;font-size:14px;min-height:50px}
+.tmv-end-note{display:flex;align-items:center;justify-content:center;gap:5px;color:#9cad9f;font-size:12px;margin:7px 0 0}
+.tmv-back{display:inline-flex;align-items:center;gap:9px;background:transparent;border:0;margin-top:17px;padding:10px 1px;color:#286d4e;font-size:14px;font-weight:800;min-height:45px}
+.tmv-detail-view{display:flex;flex-direction:column;gap:18px;padding:22px 0 16px}
+.tmv-detail-heading{display:flex;gap:14px;align-items:flex-start}
+.tmv-detail-heading>svg{flex-shrink:0;width:43px;height:43px;padding:10px;background:#e6f4eb;color:#257553;border-radius:13px}
+.tmv-detail-heading h2{font-size:27px;line-height:1.2;letter-spacing:-.04em;margin:0;color:#183e2d}
+.tmv-detail-heading p{font-size:14px;color:#778879;margin:5px 0 0}
+.tmv-reassurance{font-size:13px;line-height:1.65;color:#7a897b;margin:-4px 2px 1px}
+.tmv-subheading{font-size:18px;margin:12px 0 -4px;color:#244735;font-weight:850}
+.tmv-week-list,.tmv-task-list,.tmv-history-items{display:flex;flex-direction:column;gap:11px}
+.tmv-week-list button{display:flex;justify-content:space-between;align-items:center;min-height:59px;padding:13px 15px;border:1px solid #e1e9df;border-radius:15px;background:white;color:#43594a}
+.tmv-week-list button.tmv-active-day{border-color:#8fcba7;background:#eaf6ee}
+.tmv-week-list button strong{font-size:14px}.tmv-week-list button span{display:flex;gap:5px;align-items:center;font-size:13px;color:#6a8473}
+.tmv-task-card,.tmv-reading-history{background:white;border:1px solid #e2e9df;border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:9px}
+.tmv-task-title{display:flex;gap:9px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.tmv-task-title h3{margin:0;color:#213d2d;font-size:17px;line-height:1.35;font-weight:850}
+.tmv-task-status{display:inline-flex;border-radius:999px;padding:5px 10px;background:#f1f3ef;color:#748276;font-size:11px;font-weight:850}
+.tmv-status-done{background:#e5f5e8;color:#28704a}.tmv-status-in_progress{background:#fff3dc;color:#966725}
+.tmv-task-meta{color:#56725f;font-weight:750;font-size:13px;margin:0}
+.tmv-task-description{color:#6b7b6d;font-size:14px;line-height:1.55;margin:0}
+.tmv-task-update{background:#f1f8f2;padding:12px 14px;border-left:3px solid #69b889;border-radius:0 11px 11px 0}
+.tmv-task-update small,.tmv-log-entry small{font-size:12px;color:#59836b;font-weight:750}
+.tmv-task-update p,.tmv-log-entry p{font-size:14px;color:#2f4535;line-height:1.65;margin:4px 0 0;white-space:pre-wrap;overflow-wrap:anywhere}
+.tmv-log-history{border:0!important;border-top:1px solid #e9eee7!important;border-radius:0!important;padding:7px 0 0!important;margin:0!important}
+.tmv-log-entry{padding:9px 0;border-bottom:1px solid #edf1eb}
+.tmv-owner-card-actions{display:flex;align-items:center;gap:8px;border-top:1px solid #e7eee5;padding-top:12px}
+.tmv-owner-card-actions button{background:#f0f5f0;border:0;color:#327353;border-radius:12px;min-width:42px;min-height:45px;display:flex;align-items:center;justify-content:center;gap:8px;padding:9px 13px;font-size:13px;font-weight:800}
+.tmv-owner-card-actions .tmv-write-update{flex:1}
+.tmv-note-editor{background:#f8faf7;border:1px solid #e5ebe3;border-radius:13px;padding:13px;display:flex;flex-direction:column;gap:13px}
+.tmv-note-editor form{display:flex;flex-direction:column;gap:10px}
+.tmv-prayer-edit-list{display:flex;flex-direction:column;gap:9px}
+.tmv-owner-section,.tmv-owner-quran{background:#fff;border:1px solid #e5ebe0;border-radius:18px;padding:17px}
+.tmv-owner-label{font-size:11px;color:#56806a;letter-spacing:.05em;font-weight:850;margin:0 0 12px}
+.tmv-edit-prayer-row{display:grid;grid-template-columns:minmax(60px,1fr) minmax(0,1fr) minmax(0,1fr);align-items:center;gap:9px}
+.tmv-edit-prayer-row strong{font-size:14px;color:#2d4c36}
+.tmv-edit-prayer-row button{display:flex;justify-content:center;align-items:center;gap:3px;border:1px solid #dce9de;background:#f6f8f4;border-radius:12px;color:#708374;min-height:50px;min-width:0;padding:8px;font-size:13px;font-weight:800}
+.tmv-edit-prayer-row button.tmv-selected{background:#d8f1e2;color:#20714f;border-color:#b7dfc5}
+.tmv-owner-quran h3{font-size:19px;margin:0;color:#214e37}
+.tmv-quran-stat{display:flex;align-items:baseline;gap:10px;background:#eaeefc;border-radius:18px;padding:16px;color:#475887}
+.tmv-quran-stat strong{font-size:37px;line-height:1;font-weight:850}
+.tmv-quran-stat span{font-size:14px;font-weight:750}
+.tmv-reading-history{flex-direction:row;align-items:flex-start;gap:12px}
+.tmv-book-symbol{display:grid;place-items:center;flex-shrink:0;width:37px;height:37px;border-radius:12px;background:#e7eafb;color:#5365a2}
+.tmv-reading-history>div{display:flex;flex-direction:column;gap:4px;flex:1;min-width:0}
+.tmv-reading-history strong{font-size:14px;color:#294532}
+.tmv-reading-history small{font-size:12px;color:#7c8b80}
+.tmv-reading-history p{font-size:13px;margin:0;color:#66746a}
+.tmv-reading-history button{display:grid;place-items:center;width:40px;height:42px;border:0;border-radius:12px;background:#fff2f1;color:#b4554a}
+.tmv-add-task{display:inline-flex;align-items:center;justify-content:center;gap:9px;border:0;background:#196947;color:#fff;border-radius:14px;min-height:51px;padding:12px 14px;font-weight:800;font-size:14px}
+.tmv-filter-details{background:white;border-radius:14px;padding:12px}
+.tmv-owner-banner{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 13px;margin:13px 0 -8px;border:1px solid #a5dab8;border-radius:14px;background:#e8f6ea;color:#246b4c;font-size:13px}
+.tmv-owner-banner>span{display:flex;align-items:center;gap:6px;font-weight:800}.tmv-owner-banner button{border:0;border-radius:10px;padding:9px;background:#247452;color:white;font-weight:800;font-size:12px}
+.tmv-notice{display:flex;align-items:center;gap:8px;border-radius:12px;margin-top:15px;padding:12px;border:1px solid #c5e6cd;background:#eaf6e9;color:#2f6b47;font-size:13px}
+.tmv-notice span{flex:1}.tmv-notice button{background:transparent;border:0;color:inherit}
+.tmv-bottom{display:flex;flex-direction:column;align-items:center;gap:3px;padding:25px 0 20px;margin-top:12px;border-top:1px solid #e5ebe2}
+.tmv-owner-link{display:flex;align-items:center;justify-content:center;gap:7px;min-height:45px;padding:10px 17px;background:transparent;border:0;color:#667d6d;text-decoration:underline;text-underline-offset:3px;font-size:13px;font-weight:750}
+.tmv-bottom p{color:#9aab9d;font-size:12px;margin:4px 0}
+@media(max-width:430px){
+  .tm-page.tmv-family .tmv-shell{width:calc(100% - 26px)}
+  .tmv-header{padding:15px 0 17px}
+  .tmv-logo{width:38px;height:38px}
+  .tmv-brand strong{font-size:16px}
+  .tmv-brand small{font-size:11px}
+  .tmv-logout{padding:8px 10px;font-size:12px}
+  .tmv-family-view{gap:13px;padding-top:20px}
+  .tmv-story-card{padding:16px;border-radius:19px}
+  .tmv-day-center strong{font-size:12.5px}
+  .tmv-day-nav{padding:8px}
+  .tmv-day-nav>button{width:43px;min-width:43px;height:47px;min-height:47px}
+  .tmv-prayer-mark{width:37px;height:37px}
+  .tmv-prayer-one strong{font-size:10px}
+  .tmv-prayer-one small{font-size:9px}
+  .tmv-group-title span{font-size:11px}
+}
+@media(prefers-reduced-motion:reduce){.tmv-family *{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
