@@ -1,3 +1,4 @@
+
 import {
   lazy,
   Suspense,
@@ -71,6 +72,17 @@ const FinancialManagement = lazy(() =>
 
 const RestaurantERP = lazy(() =>
   import("./pages/RestaurantERP")
+);
+
+/* =========================================================
+   TRACK ME - PRIVATE WORKSPACE
+
+   New private dashboard route.
+   Lazy-loaded to keep the homepage lightweight.
+========================================================= */
+
+const TrackMe = lazy(() =>
+  import("./pages/TrackMe")
 );
 
 /* =========================================================
@@ -164,6 +176,15 @@ function App() {
             <Route
               path="/projects/restaurant-erp"
               element={<RestaurantERP />}
+            />
+
+            {/* ===========================================
+                TRACK ME - PRIVATE DASHBOARD
+            ============================================ */}
+
+            <Route
+              path="/track-me"
+              element={<TrackMe />}
             />
           </Routes>
         </Suspense>

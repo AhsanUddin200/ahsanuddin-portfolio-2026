@@ -1,0 +1,1628 @@
+
+/* =========================================================
+   TRACK ME - PRIVATE PERSONAL DASHBOARD
+
+   Theme:
+   Background: #080a09
+   Surface: #151916
+   Accent: #c8ff45
+   Text: #f4f5ef
+
+   Includes:
+   - Password Login Screen
+   - Dashboard Header
+   - Statistics Cards
+   - Section Sidebar
+   - Task Management
+   - Progress Timeline
+   - AI Summary Modal
+   - Responsive Design
+
+   All styles are scoped with tm- classes.
+========================================================= */
+
+/* =========================================================
+   MAIN PAGE
+========================================================= */
+
+.tm-page {
+  --tm-border: rgba(231, 244, 220, 0.13);
+  --tm-muted: #9da79c;
+  --tm-panel: #121713;
+  --tm-accent: #c8ff45;
+
+  min-height: 100vh;
+  padding-top: 93px;
+
+  color: #f3f6ec;
+
+  background:
+    radial-gradient(
+      ellipse at 83% 3%,
+      rgba(200, 255, 69, 0.085),
+      transparent 39%
+    ),
+    #080b09;
+}
+
+.tm-page button:disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
+}
+
+.tm-page input,
+.tm-page select,
+.tm-page textarea {
+  color: #f3f6ec;
+}
+
+.tm-page input::placeholder,
+.tm-page textarea::placeholder {
+  color: #757f75;
+}
+
+.tm-page input:focus,
+.tm-page select:focus,
+.tm-page textarea:focus {
+  outline: 1px solid var(--tm-accent);
+  border-color: var(--tm-accent);
+}
+
+.tm-page option {
+  background: #121713;
+}
+
+/* =========================================================
+   COMMON TYPOGRAPHY
+========================================================= */
+
+.tm-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  font-weight: 700;
+
+  color: var(--tm-accent);
+}
+
+/* =========================================================
+   COMMON BUTTONS
+========================================================= */
+
+.tm-primary,
+.tm-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+
+  min-height: 44px;
+  padding: 12px 19px;
+
+  border-radius: 12px;
+
+  font-size: 13px;
+  font-weight: 750;
+  white-space: nowrap;
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.tm-primary {
+  border: 1px solid var(--tm-accent);
+  background: var(--tm-accent);
+  color: #111b0b !important;
+}
+
+.tm-primary:hover:not(:disabled) {
+  background: #ddff84;
+  transform: translateY(-1px);
+}
+
+.tm-secondary {
+  border: 1px solid var(--tm-border);
+  background: #181f19;
+  color: #f3f6ec;
+}
+
+.tm-secondary:hover {
+  border-color: rgba(200, 255, 69, 0.45);
+}
+
+.tm-icon-btn {
+  display: inline-grid;
+  place-items: center;
+
+  height: 33px;
+  min-width: 33px;
+
+  border-radius: 9px;
+
+  color: #b2bcb2;
+  background: transparent;
+
+  border: 1px solid transparent;
+}
+
+.tm-icon-btn:hover {
+  color: var(--tm-accent);
+  border-color: var(--tm-border);
+}
+
+/* =========================================================
+   DASHBOARD TOP BAR
+========================================================= */
+
+.tm-page-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding-top: 25px;
+  margin-bottom: 32px;
+}
+
+.tm-home-link,
+.tm-signout {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  color: #b9c3b5;
+  font-size: 12px;
+
+  background: transparent;
+  border: 0;
+
+  text-decoration: none;
+}
+
+.tm-home-link:hover,
+.tm-signout:hover {
+  color: var(--tm-accent);
+}
+
+/* =========================================================
+   DASHBOARD HERO
+========================================================= */
+
+.tm-hero {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+
+  gap: 26px;
+  margin-bottom: 32px;
+}
+
+.tm-hero h1 {
+  font-size: clamp(50px, 7vw, 86px);
+  margin: 9px 0 3px;
+
+  letter-spacing: -0.07em;
+  line-height: 1.05;
+  font-weight: 800;
+}
+
+.tm-hero h1 em {
+  font-style: normal;
+  color: var(--tm-accent);
+}
+
+.tm-hero p {
+  color: var(--tm-muted);
+
+  font-size: 14px;
+  line-height: 1.75;
+
+  max-width: 510px;
+  margin: 10px 0 0;
+}
+
+.tm-hero-buttons {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+
+  margin-bottom: 7px;
+}
+
+.tm-live-dot {
+  display: inline-block;
+
+  width: 7px;
+  height: 7px;
+
+  border-radius: 50%;
+
+  background: #c8ff45;
+
+  box-shadow:
+    0 0 0 4px rgba(200, 255, 69, 0.13);
+}
+
+/* =========================================================
+   STATISTICS CARDS
+========================================================= */
+
+.tm-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+
+  gap: 13px;
+  margin-bottom: 27px;
+}
+
+.tm-stat {
+  min-width: 0;
+
+  padding: 21px 22px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #171d18,
+      #101411
+    );
+
+  border: 1px solid var(--tm-border);
+  border-radius: 18px;
+}
+
+.tm-stat span {
+  display: block;
+
+  color: #a2ada1;
+  font-size: 12px;
+
+  margin-bottom: 10px;
+}
+
+.tm-stat strong {
+  display: block;
+
+  font-size: 34px;
+  line-height: 1;
+
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+
+.tm-stat small {
+  display: block;
+
+  color: #758074;
+  font-size: 11px;
+
+  margin-top: 12px;
+}
+
+.tm-stat:nth-child(2) strong {
+  color: #e8ed92;
+}
+
+.tm-stat:nth-child(3) strong {
+  color: var(--tm-accent);
+}
+
+/* =========================================================
+   MAIN DASHBOARD GRID
+========================================================= */
+
+.tm-layout {
+  display: grid;
+
+  grid-template-columns:
+    245px minmax(0, 1fr);
+
+  gap: 22px;
+  align-items: start;
+}
+
+/* =========================================================
+   SIDEBAR
+========================================================= */
+
+.tm-sidebar {
+  position: sticky;
+  top: 108px;
+
+  background: #101511;
+
+  border: 1px solid var(--tm-border);
+  border-radius: 18px;
+
+  padding: 21px 13px 16px;
+}
+
+.tm-side-heading {
+  display: block;
+
+  color: #697567;
+
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+
+  letter-spacing: 0.12em;
+
+  margin: 2px 13px 11px;
+}
+
+/* SIDEBAR LINKS */
+
+.tm-side-link {
+  display: flex;
+  align-items: center;
+
+  text-align: left;
+  gap: 12px;
+
+  width: 100%;
+  padding: 12px 13px;
+
+  border: 0;
+  border-radius: 11px;
+
+  background: transparent;
+  color: #afb9ad;
+
+  font-size: 12px;
+  font-weight: 650;
+
+  transition:
+    background 0.18s ease,
+    color 0.18s ease;
+}
+
+.tm-side-link span {
+  flex: 1;
+}
+
+.tm-side-link b {
+  font-size: 10px;
+  font-weight: 600;
+
+  color: #7e8c7b;
+  background: #1e271f;
+
+  padding: 3px 7px;
+  border-radius: 7px;
+}
+
+.tm-side-link:hover {
+  background: #1b241b;
+  color: #ffffff;
+}
+
+.tm-side-link.is-active {
+  background: rgba(200, 255, 69, 0.11);
+  color: var(--tm-accent);
+}
+
+.tm-side-link.is-active b {
+  background: rgba(200, 255, 69, 0.16);
+  color: var(--tm-accent);
+}
+
+.tm-side-group {
+  margin-top: 24px;
+}
+
+/* SIDEBAR PRIVACY FOOTER */
+
+.tm-side-footer {
+  display: flex;
+  align-items: center;
+
+  gap: 9px;
+
+  border-top: 1px solid var(--tm-border);
+
+  padding: 20px 12px 4px;
+  margin-top: 22px;
+
+  color: #758274;
+
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.tm-side-footer svg {
+  flex-shrink: 0;
+  color: var(--tm-accent);
+}
+
+/* =========================================================
+   MAIN CONTENT
+========================================================= */
+
+.tm-content {
+  min-width: 0;
+
+  background: #101411;
+
+  border: 1px solid var(--tm-border);
+  border-radius: 18px;
+
+  padding: 24px;
+}
+
+.tm-content-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.tm-content-header h2 {
+  font-size: 25px;
+  letter-spacing: -0.04em;
+
+  margin: 7px 0 3px;
+}
+
+.tm-content-header p {
+  margin: 0;
+
+  color: #899588;
+  font-size: 12px;
+}
+
+/* ADD TASK BUTTON */
+
+.tm-add-mini {
+  display: inline-flex;
+  align-items: center;
+
+  gap: 8px;
+
+  padding: 10px 12px;
+
+  color: #d0f5a8;
+
+  background: rgba(200, 255, 69, 0.07);
+
+  border: 1px solid rgba(200, 255, 69, 0.25);
+  border-radius: 10px;
+
+  font-size: 12px;
+}
+
+.tm-add-mini:hover {
+  background: rgba(200, 255, 69, 0.13);
+}
+
+/* =========================================================
+   SEARCH + FILTERS
+========================================================= */
+
+.tm-filters {
+  display: flex;
+
+  gap: 10px;
+  margin-bottom: 17px;
+}
+
+.tm-search {
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+  flex: 1;
+
+  min-width: 0;
+
+  padding: 0 12px;
+
+  color: #8d998c;
+
+  background: #161d17;
+
+  border: 1px solid var(--tm-border);
+  border-radius: 10px;
+}
+
+.tm-search input {
+  width: 100%;
+  min-height: 43px;
+
+  background: transparent;
+
+  border: 0 !important;
+  outline: 0 !important;
+
+  font-size: 12px;
+}
+
+.tm-filters select,
+.tm-quick-status {
+  background: #161d17;
+
+  border: 1px solid var(--tm-border);
+  border-radius: 10px;
+
+  padding: 0 11px;
+
+  font-size: 12px;
+}
+
+.tm-filters select {
+  min-width: 142px;
+}
+
+/* =========================================================
+   TASK LIST
+========================================================= */
+
+.tm-task-list {
+  display: flex;
+  flex-direction: column;
+
+  gap: 12px;
+}
+
+/* =========================================================
+   TASK CARD
+========================================================= */
+
+.tm-task-card {
+  background: #161c17;
+
+  border: 1px solid var(--tm-border);
+  border-radius: 14px;
+
+  padding: 20px;
+
+  overflow: hidden;
+
+  transition: border-color 0.2s ease;
+}
+
+.tm-task-card:hover {
+  border-color: rgba(200, 255, 69, 0.25);
+}
+
+.tm-task-top {
+  display: flex;
+  align-items: center;
+
+  gap: 8px;
+  flex-wrap: wrap;
+
+  margin-bottom: 11px;
+}
+
+/* CATEGORY / STATUS BADGES */
+
+.tm-category,
+.tm-status,
+.tm-high-priority {
+  padding: 5px 9px;
+
+  border-radius: 6px;
+
+  font-size: 10px;
+  font-weight: 750;
+}
+
+.tm-category {
+  color: #d3e4da;
+  background: #23342a;
+}
+
+.tm-cat-prayer,
+.tm-cat-quran {
+  color: #d6cdfd;
+  background: #29253b;
+}
+
+.tm-cat-university {
+  color: #add7f1;
+  background: #1e3040;
+}
+
+.tm-cat-personal {
+  color: #ffc2d6;
+  background: #372333;
+}
+
+/* STATUS COLORS */
+
+.tm-status {
+  color: #b5c6af;
+  background: #263025;
+}
+
+.tm-status-in_progress {
+  color: #eac98c;
+  background: #352e1f;
+}
+
+.tm-status-done {
+  color: #bded8d;
+  background: #253723;
+}
+
+/* HIGH PRIORITY */
+
+.tm-high-priority {
+  color: #ffb5a6;
+  background: rgba(245, 107, 94, 0.12);
+}
+
+/* TASK TITLE */
+
+.tm-task-card h3 {
+  font-size: 17px;
+  line-height: 1.35;
+
+  margin: 0 0 8px;
+
+  overflow-wrap: anywhere;
+}
+
+/* TASK DESCRIPTION */
+
+.tm-task-desc {
+  color: #9aa69a;
+
+  font-size: 12px;
+  line-height: 1.75;
+
+  margin: 0 0 10px;
+
+  white-space: pre-wrap;
+}
+
+/* TASK METADATA */
+
+.tm-task-meta {
+  display: flex;
+
+  gap: 17px;
+  flex-wrap: wrap;
+
+  color: #6f806f;
+
+  font-size: 10px;
+  margin-top: 15px;
+}
+
+.tm-task-meta span {
+  display: inline-flex;
+  align-items: center;
+
+  gap: 6px;
+}
+
+/* =========================================================
+   TASK ACTION BUTTONS
+========================================================= */
+
+.tm-task-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+
+  gap: 7px;
+  flex-wrap: wrap;
+
+  padding-top: 16px;
+  margin-top: 16px;
+
+  border-top: 1px solid var(--tm-border);
+}
+
+.tm-quick-status {
+  height: 34px;
+  margin-right: auto;
+
+  max-width: 136px;
+}
+
+.tm-trash:hover {
+  color: #f89f9f;
+}
+
+/* PROGRESS TOGGLE */
+
+.tm-expand {
+  display: flex;
+  align-items: center;
+
+  gap: 7px;
+
+  padding: 7px 0 7px 8px;
+
+  background: transparent;
+  border: 0;
+
+  color: #b0d68c;
+
+  font-size: 12px;
+}
+
+.tm-expand svg {
+  transition: transform 0.2s ease;
+}
+
+.tm-expand-open svg {
+  transform: rotate(180deg);
+}
+
+/* =========================================================
+   PROGRESS PANEL
+========================================================= */
+
+.tm-progress-panel {
+  border-top: 1px solid var(--tm-border);
+
+  margin-top: 15px;
+  padding-top: 17px;
+}
+
+.tm-progress-heading {
+  display: flex;
+  justify-content: space-between;
+
+  gap: 10px;
+
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.tm-progress-heading span {
+  color: #687568;
+  font-size: 11px;
+}
+
+/* =========================================================
+   PROGRESS TIMELINE
+========================================================= */
+
+.tm-timeline {
+  display: flex;
+  flex-direction: column;
+
+  gap: 19px;
+
+  border-left: 1px solid #344334;
+
+  margin: 18px 0 19px 6px;
+}
+
+.tm-timeline-item {
+  position: relative;
+
+  padding-left: 16px;
+}
+
+.tm-timeline-dot {
+  position: absolute;
+
+  left: -5px;
+  top: 6px;
+
+  width: 9px;
+  height: 9px;
+
+  border-radius: 50%;
+
+  background: var(--tm-accent);
+
+  border: 2px solid #182118;
+}
+
+.tm-timeline-item time {
+  display: block;
+
+  color: #859482;
+
+  font-size: 10px;
+
+  margin-bottom: 5px;
+}
+
+.tm-timeline-item p {
+  margin: 0;
+
+  color: #ccd7c9;
+
+  font-size: 12px;
+  line-height: 1.7;
+
+  white-space: pre-wrap;
+}
+
+/* EMPTY NOTES */
+
+.tm-empty-notes {
+  color: #768574;
+
+  font-size: 12px;
+
+  padding: 15px 0;
+}
+
+/* =========================================================
+   ADD PROGRESS UPDATE
+========================================================= */
+
+.tm-note-form {
+  display: flex;
+
+  gap: 9px;
+}
+
+.tm-note-form input {
+  flex: 1;
+  min-width: 0;
+
+  background: #101611;
+
+  border: 1px solid var(--tm-border);
+  border-radius: 10px;
+
+  padding: 11px 12px;
+
+  font-size: 12px;
+}
+
+.tm-note-form button {
+  font-size: 11px;
+  min-height: 41px;
+}
+
+/* =========================================================
+   NOTIFICATION MESSAGE
+========================================================= */
+
+.tm-notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 10px;
+
+  padding: 11px 13px;
+  margin-bottom: 15px;
+
+  border: 1px solid rgba(200, 255, 69, 0.25);
+  border-radius: 10px;
+
+  background: rgba(200, 255, 69, 0.075);
+
+  color: #d7edbf;
+
+  font-size: 12px;
+}
+
+.tm-notice button {
+  background: transparent;
+  border: 0;
+
+  color: inherit;
+}
+
+/* =========================================================
+   EMPTY TASK STATE
+========================================================= */
+
+.tm-empty {
+  text-align: center;
+
+  border: 1px dashed var(--tm-border);
+  border-radius: 14px;
+
+  padding: 55px 22px;
+}
+
+.tm-empty > div {
+  display: inline-grid;
+  place-items: center;
+
+  width: 67px;
+  height: 67px;
+
+  border-radius: 18px;
+
+  color: var(--tm-accent);
+
+  background: rgba(200, 255, 69, 0.06);
+
+  margin-bottom: 17px;
+}
+
+.tm-empty h3 {
+  font-size: 18px;
+
+  margin: 0 0 6px;
+}
+
+.tm-empty p {
+  color: #95a393;
+
+  font-size: 12px;
+  line-height: 1.7;
+
+  max-width: 340px;
+
+  margin: 0 auto 18px;
+}
+
+/* =========================================================
+   DASHBOARD FOOTER
+========================================================= */
+
+.tm-footer {
+  display: flex;
+  justify-content: space-between;
+
+  gap: 18px;
+
+  padding: 30px 0 38px;
+
+  color: #687767;
+
+  font-size: 10px;
+}
+
+/* =========================================================
+   LOADING SCREEN
+========================================================= */
+
+.tm-center {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  gap: 14px;
+
+  color: #93a091;
+}
+
+.tm-spinner {
+  width: 30px;
+  height: 30px;
+
+  border: 2px solid #354135;
+  border-top-color: var(--tm-accent);
+
+  border-radius: 50%;
+
+  animation:
+    tm-spin 0.8s linear infinite;
+}
+
+@keyframes tm-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* =========================================================
+   PASSWORD SCREEN LAYOUT
+========================================================= */
+
+.tm-lock-layout {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+
+  min-height: calc(100vh - 93px);
+
+  padding: 35px 20px;
+
+  position: relative;
+  overflow: hidden;
+}
+
+/* PASSWORD BACKGROUND GLOW */
+
+.tm-lock-glow {
+  pointer-events: none;
+
+  position: absolute;
+
+  width: min(650px, 100vw);
+  height: 480px;
+
+  background:
+    radial-gradient(
+      ellipse,
+      rgba(200, 255, 69, 0.14),
+      transparent 64%
+    );
+}
+
+/* PASSWORD CARD */
+
+.tm-lock-card {
+  position: relative;
+
+  width: min(100%, 455px);
+
+  padding: 37px;
+
+  border-radius: 23px;
+
+  background:
+    linear-gradient(
+      155deg,
+      #192219,
+      #0e130f
+    );
+
+  border: 1px solid rgba(200, 255, 69, 0.21);
+
+  box-shadow:
+    0 24px 80px rgba(0, 0, 0, 0.25);
+
+  text-align: center;
+}
+
+/* LOCK ICON */
+
+.tm-lock-icon {
+  display: grid;
+  place-items: center;
+
+  width: 63px;
+  height: 63px;
+
+  border-radius: 19px;
+
+  margin: 0 auto 21px;
+
+  background: rgba(200, 255, 69, 0.1);
+  border: 1px solid rgba(200, 255, 69, 0.22);
+
+  color: var(--tm-accent);
+}
+
+/* PASSWORD TITLE */
+
+.tm-lock-card h1 {
+  font-size: 31px;
+  letter-spacing: -0.055em;
+  line-height: 1.2;
+
+  margin: 13px 0 12px;
+}
+
+/* PASSWORD DESCRIPTION */
+
+.tm-lock-card > p {
+  color: #a4ada1;
+
+  font-size: 13px;
+  line-height: 1.8;
+
+  margin-bottom: 30px;
+}
+
+/* PASSWORD FORM */
+
+.tm-login-form {
+  text-align: left;
+}
+
+.tm-login-form > label {
+  display: block;
+
+  font-size: 12px;
+  font-weight: 650;
+
+  color: #c7d4c2;
+
+  margin-bottom: 8px;
+}
+
+/* PASSWORD INPUT */
+
+.tm-password-wrap {
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  padding: 0 13px;
+
+  background: #0b100c;
+
+  border: 1px solid var(--tm-border);
+  border-radius: 12px;
+
+  color: #839582;
+}
+
+.tm-password-wrap input {
+  flex: 1;
+  min-width: 0;
+
+  min-height: 49px;
+
+  background: transparent;
+
+  border: 0 !important;
+  outline: 0 !important;
+
+  font-size: 13px;
+}
+
+/* SHOW / HIDE PASSWORD */
+
+.tm-password-wrap button {
+  background: transparent;
+  border: 0;
+
+  color: #98a893;
+
+  padding: 6px;
+}
+
+/* LOGIN BUTTON */
+
+.tm-login-button {
+  width: 100%;
+
+  margin-top: 15px;
+}
+
+/* PASSWORD FOOTER */
+
+.tm-lock-foot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 7px;
+
+  color: #799278;
+
+  font-size: 10px;
+
+  margin-top: 24px;
+}
+
+/* BACK TO PORTFOLIO */
+
+.tm-back {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+
+  gap: 7px;
+
+  margin-top: 24px;
+
+  color: #a8b6a5;
+
+  font-size: 12px;
+
+  text-decoration: none;
+}
+
+.tm-back:hover {
+  color: var(--tm-accent);
+}
+
+/* =========================================================
+   ERROR MESSAGES
+========================================================= */
+
+.tm-error {
+  padding: 11px 12px;
+
+  background: rgba(250, 113, 104, 0.08);
+
+  border: 1px solid rgba(250, 113, 104, 0.3);
+  border-radius: 10px;
+
+  color: #ffaaaa;
+
+  font-size: 12px;
+  line-height: 1.6;
+
+  margin: 12px 0;
+}
+
+/* =========================================================
+   MODAL BACKDROP
+========================================================= */
+
+.tm-modal-backdrop {
+  position: fixed;
+  inset: 0;
+
+  z-index: 1400;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 22px;
+
+  background: rgba(0, 0, 0, 0.77);
+
+  backdrop-filter: blur(10px);
+}
+
+/* =========================================================
+   MODAL CARD
+========================================================= */
+
+.tm-modal {
+  width: min(100%, 565px);
+
+  max-height: calc(100vh - 44px);
+  overflow-y: auto;
+
+  background: #141b15;
+
+  border: 1px solid rgba(200, 255, 69, 0.2);
+  border-radius: 21px;
+
+  padding: 26px;
+
+  box-shadow:
+    0 26px 90px rgba(0, 0, 0, 0.5);
+}
+
+.tm-summary-modal {
+  width: min(100%, 675px);
+}
+
+/* MODAL HEADER */
+
+.tm-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 12px;
+
+  margin-bottom: 19px;
+}
+
+.tm-modal-header h2 {
+  display: flex;
+  align-items: center;
+
+  gap: 11px;
+
+  font-size: 24px;
+
+  margin: 7px 0 0;
+}
+
+.tm-modal-header h2 svg {
+  color: var(--tm-accent);
+}
+
+/* =========================================================
+   TASK FORM
+========================================================= */
+
+.tm-form {
+  display: flex;
+  flex-direction: column;
+
+  gap: 15px;
+}
+
+.tm-form label,
+.tm-summary-controls label {
+  display: flex;
+  flex-direction: column;
+
+  gap: 8px;
+
+  font-size: 12px;
+  font-weight: 650;
+
+  color: #c1cbbf;
+}
+
+.tm-form input,
+.tm-form select,
+.tm-form textarea,
+.tm-summary-controls select {
+  width: 100%;
+  min-height: 43px;
+
+  padding: 11px 12px;
+
+  background: #0c130e;
+
+  border: 1px solid var(--tm-border);
+  border-radius: 10px;
+
+  font-size: 13px;
+
+  resize: vertical;
+}
+
+/* FORM TWO COLUMNS */
+
+.tm-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+
+  gap: 12px;
+}
+
+/* FORM ACTIONS */
+
+.tm-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+
+  gap: 10px;
+
+  padding-top: 10px;
+}
+
+/* =========================================================
+   AI SUMMARY MODAL
+========================================================= */
+
+.tm-modal-subtitle {
+  color: #9cae98;
+
+  font-size: 12px;
+  line-height: 1.7;
+
+  margin-bottom: 23px;
+}
+
+/* AI SUMMARY FILTERS */
+
+.tm-summary-controls {
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+
+  gap: 10px;
+}
+
+/* GENERATE SUMMARY BUTTON */
+
+.tm-generate {
+  width: 100%;
+  margin-top: 18px;
+}
+
+/* AI PRIVACY MESSAGE */
+
+.tm-ai-privacy {
+  display: flex;
+  align-items: flex-start;
+
+  gap: 8px;
+
+  color: #718171;
+
+  font-size: 10px;
+  line-height: 1.6;
+
+  margin: 14px 0 0;
+}
+
+/* =========================================================
+   AI SUMMARY RESULT
+========================================================= */
+
+.tm-summary-output {
+  margin-top: 22px;
+
+  padding: 23px;
+
+  background: #0d140e;
+
+  border: 1px solid rgba(200, 255, 69, 0.18);
+  border-radius: 14px;
+}
+
+.tm-summary-text {
+  color: #d8e4d1;
+
+  font-size: 13px;
+  line-height: 1.95;
+
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* =========================================================
+   RESPONSIVE - TABLET
+========================================================= */
+
+@media (max-width: 1050px) {
+  .tm-layout {
+    grid-template-columns:
+      208px minmax(0, 1fr);
+
+    gap: 14px;
+  }
+
+  .tm-content,
+  .tm-stat {
+    padding: 18px;
+  }
+}
+
+/* =========================================================
+   RESPONSIVE - MOBILE
+========================================================= */
+
+@media (max-width: 780px) {
+  .tm-page {
+    padding-top: 75px;
+  }
+
+  .tm-dashboard {
+    width: calc(100% - 28px);
+  }
+
+  .tm-hero {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .tm-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .tm-layout {
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* MOBILE SIDEBAR */
+
+  .tm-sidebar {
+    width: 100%;
+
+    position: static;
+
+    display: flex;
+    align-items: center;
+
+    gap: 7px;
+
+    overflow-x: auto;
+    overflow-y: hidden;
+
+    padding: 10px;
+  }
+
+  .tm-side-heading,
+  .tm-side-footer {
+    display: none;
+  }
+
+  .tm-side-group {
+    display: contents;
+  }
+
+  .tm-side-link {
+    flex: 0 0 auto;
+
+    width: auto;
+
+    padding: 10px;
+
+    gap: 7px;
+
+    white-space: nowrap;
+  }
+
+  .tm-side-link b {
+    display: none;
+  }
+
+  .tm-content {
+    width: 100%;
+  }
+
+  .tm-footer {
+    flex-wrap: wrap;
+  }
+}
+
+/* =========================================================
+   RESPONSIVE - SMALL MOBILE
+========================================================= */
+
+@media (max-width: 480px) {
+  .tm-stat {
+    padding: 15px;
+  }
+
+  .tm-stat strong {
+    font-size: 29px;
+  }
+
+  .tm-hero h1 {
+    font-size: 54px;
+  }
+
+  .tm-hero-buttons {
+    width: 100%;
+  }
+
+  .tm-hero-buttons button {
+    flex: 1;
+  }
+
+  .tm-task-card {
+    padding: 15px;
+  }
+
+  .tm-filters,
+  .tm-note-form {
+    flex-direction: column;
+  }
+
+  .tm-filters select {
+    min-height: 43px;
+  }
+
+  .tm-note-form button {
+    width: 100%;
+  }
+
+  .tm-modal {
+    padding: 19px;
+  }
+
+  .tm-summary-controls,
+  .tm-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .tm-lock-card {
+    padding: 27px 20px;
+  }
+
+  .tm-content-header h2 {
+    font-size: 22px;
+  }
+}
+
+/* =========================================================
+   ACCESSIBILITY - REDUCED MOTION
+========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .tm-primary,
+  .tm-secondary,
+  .tm-icon-btn,
+  .tm-side-link,
+  .tm-task-card,
+  .tm-expand svg {
+    transition: none;
+  }
+
+  .tm-spinner {
+    animation-duration: 2s;
+  }
+}
+
+/* =========================================================
+   END OF TRACK ME CSS
+========================================================= */

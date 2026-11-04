@@ -1,3 +1,4 @@
+
 import {
   useEffect,
   useState,
@@ -5,6 +6,7 @@ import {
 
 import {
   useLocation,
+  Link,
 } from "react-router-dom";
 
 import {
@@ -17,6 +19,7 @@ import {
   Menu,
   X,
   Search,
+  LockKeyhole,
 } from "lucide-react";
 
 import {
@@ -179,7 +182,29 @@ function Navbar() {
             </kbd>
           </button>
 
-          {/* LET'S TALK */}
+          {/* =====================
+              TRACK ME - PRIVATE
+              NEW ADDITION
+          ====================== */}
+
+          <Link
+            to="/track-me"
+            className="track-me-nav-link"
+            aria-label="Open private Track Me workspace"
+          >
+            <LockKeyhole
+              size={15}
+              strokeWidth={2}
+            />
+
+            <span>
+              Track Me
+            </span>
+          </Link>
+
+          {/* =====================
+              LET'S TALK
+          ====================== */}
 
           <a
             href={`mailto:${personalInfo.email}`}
@@ -300,6 +325,48 @@ function Navbar() {
                   </motion.a>
                 )
               )}
+
+              {/* =====================
+                  TRACK ME - MOBILE
+                  NEW ADDITION
+              ====================== */}
+
+              <motion.div
+                initial={{
+                  opacity: 0,
+                  x: -20,
+                }}
+                animate={{
+                  opacity: 1,
+                  x: 0,
+                }}
+                transition={{
+                  delay: 0.3,
+                }}
+              >
+                <Link
+                  to="/track-me"
+                  className="track-me-mobile-link"
+                  aria-label="Open private Track Me workspace"
+                  onClick={
+                    closeMenu
+                  }
+                >
+                  <span>
+                    <LockKeyhole
+                      size={17}
+                    />
+                  </span>
+
+                  <strong>
+                    Track Me (Private)
+                  </strong>
+
+                  <ArrowUpRight
+                    size={18}
+                  />
+                </Link>
+              </motion.div>
 
               {/* =====================
                   MOBILE QUICK SEARCH
