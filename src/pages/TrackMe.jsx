@@ -325,88 +325,131 @@ function parseChatTopic(raw) {
   return null;
 }
 
+// Short, factual family updates from existing saved records.
+// No backend/database changes. A single-topic reply is at most one compact
+// bilingual update; "Everything" is at most three compact updates.
 function buildFamilyReport({ entries, prayerDays, quranEntries, period, topic }) {
   const days = CHAT_PERIODS.find(x => x.id === period)?.days || 7;
-  const start = shiftDay(dayISO(), -(days - 1));
   const end = dayISO();
-  const within = date => Boolean(date && date >= start && date <= end);
-  const withinTime = time => {
-    if (!time) return false;
-    const date = new Date(time);
-    return !Number.isNaN(date.getTime()) && within(dayISO(date));
+  const start = shiftDay(end, -(days - 1));
+  const inPeriod = value => {
+    if (!value) return false;
+    const d = String(value).length === 10 ? String(value) : dayISO(value);
+    return d >= start && d <= end;
+  };
+  const short = (value, limit = 68) => {
+    const s = String(value ?? '').replace(/\s+/g, ' ').trim();
+    return s.length > limit ? s.slice(0, limit - 1).trimEnd() + '…' : s;
   };
   const rows = [];
-  let hasData = false;
-  const push = (en, ur) => rows.push({ en, ur });
-  const include = section => topic === 'all' || topic === section;
+  const add = (en, ur) => rows.push({ en, ur });
+  const bySection = key => (entries || []).filter(x => x.section === key);
+  const urPrayer = { fajr:'فجر', dhuhr:'ظہر', asr:'عصر', maghrib:'مغرب', isha:'عشاء' };
+  const tracked = Object.entries(prayerDays || {}).filter(([date]) => inPeriod(date));
+  const checked = [];
+  tracked.forEach(([date, d]) => {
+    PRAYERS.forEach(([key, label]) => {
+      if (d?.group?.[key]) checked.push({ date, key, label, kind:'Jamaat' });
+      else if (d?.makeup?.[key]) checked.push({ date, key, label, kind:'Qaza' });
+    });
+  });
+  let prayerEn, prayerUr;
+  if (!checked.length) {
+    prayerEn = 'Prayer: No update recorded.';
+    prayerUr = 'نماز: ابھی کوئی انٹری نہیں۔';
+  } else if (days === 1) {
+    prayerEn = 'Prayer: ' + checked.map(p => `${p.label} Done (${p.kind})`).join(' · ') + '.';
+    prayerUr = 'نماز: ' + checked.map(p => `${urPrayer[p.key]} ادا (${p.kind === 'Jamaat' ? 'جماعت' : 'قضا'})`).join('، ') + '۔';
+  } else {
+    const jamaat = checked.filter(x => x.kind === 'Jamaat').length;
+    const qaza = checked.length - jamaat;
+    prayerEn = `Prayer: ${jamaat} Jamaat, ${qaza} Qaza recorded.`;
+    prayerUr = `نماز: ${jamaat} جماعت، ${qaza} قضا درج ہیں۔`;
+  }
 
-  if (include('prayer')) {
-    const selected = Object.entries(prayerDays || {}).filter(([date]) => within(date));
-    let group = 0, makeup = 0, activeDays = 0;
-    for (const [, day] of selected) {
-      let marked = 0;
-      for (const [key] of PRAYERS) {
-        if (day?.group?.[key]) { group++; marked++; }
-        else if (day?.makeup?.[key]) { makeup++; marked++; }
-      }
-      if (marked) activeDays++;
+  const readings = (quranEntries || []).filter(x => inPeriod(x.date));
+  const pages = readings.reduce((n, x) => n + Math.max(0, Number(x.pagesRead) || 0), 0);
+  const paras = [...new Set(readings.map(x => Number(x.para)).filter(Number.isFinite))].sort((a,b)=>a-b);
+  const paraName = paras.length ? `Para ${paras.slice(0, 3).join(', ')}${paras.length > 3 ? '…' : ''}` : '';
+  const paraUr = paras.length ? `پارہ ${paras.slice(0, 3).join('، ')}${paras.length > 3 ? '…' : ''}` : '';
+  const quranEn = readings.length ? `Quran: ${paraName} · ${pages} page${pages === 1 ? '' : 's'}.` : 'Quran: No update recorded.';
+  const quranUr = readings.length ? `قرآن: ${paraUr}، ${pages} صفحات۔` : 'قرآن: ابھی کوئی انٹری نہیں۔';
+
+  // Pick an actual progress note first, then a recently changed task. Do not
+  // describe older items as activities completed today.
+  const workUpdate = (section, labelEn, labelUr) => {
+    const matching = bySection(section);
+    const recent = matching.flatMap(task => (task.logs || [])
+      .filter(log => inPeriod(log.createdAt))
+      .map(log => ({ task, text: log.note, at: log.createdAt }))
+    ).sort((a,b) => String(b.at).localeCompare(String(a.at)));
+    if (recent.length) {
+      const first = recent[0];
+      const title = short(section === 'office' ? (first.task.meta?.project || first.task.title) : first.task.title, 34);
+      const note = short(first.text, 68);
+      return { en:`${labelEn}: ${title} — ${note}.`, ur:`${labelUr}: ${title} — ${note}۔`, recorded:true };
     }
-    hasData ||= group + makeup > 0;
-    push(`Prayer: ${group} Jamaat and ${makeup} Qaza entries on ${activeDays} day${activeDays === 1 ? '' : 's'}.`,
-      `نماز: ${activeDays} دنوں میں ${group} جماعت اور ${makeup} قضا کی انٹریاں محفوظ ہیں۔`);
-    if (period === 'today' && activeDays) {
-      const p = prayerDays?.[end] || {};
-      const en = [], ur = [];
-      const urNames = { fajr: 'فجر', dhuhr: 'ظہر', asr: 'عصر', maghrib: 'مغرب', isha: 'عشاء' };
-      for (const [key, label] of PRAYERS) {
-        if (p?.group?.[key]) { en.push(`${label}: Jamaat`); ur.push(`${urNames[key]}: جماعت`); }
-        else if (p?.makeup?.[key]) { en.push(`${label}: Qaza`); ur.push(`${urNames[key]}: قضا`); }
-      }
-      if (en.length) push(en.join(' · '), ur.join(' · '));
+    const changed = matching.filter(x => inPeriod(x.updatedAt) || inPeriod(x.createdAt))
+      .sort((a,b)=>String(b.updatedAt||'').localeCompare(String(a.updatedAt||'')))[0];
+    if (changed) {
+      const title = short(section === 'office' ? (changed.meta?.project || changed.title) : changed.title, 46);
+      const st = { planned:['Planned','منصوبہ'], in_progress:['In progress','جاری'], done:['Done','مکمل'] }[changed.status] || ['Recorded','درج'];
+      return { en:`${labelEn}: ${title} — ${st[0]}.`, ur:`${labelUr}: ${title} — ${st[1]}۔`, recorded:true };
     }
-    push('Unmarked prayers mean no record, not necessarily a missed prayer.',
-      'جس نماز کی انٹری نہیں، اس کا مطلب نماز چھوٹنا نہیں؛ صرف ریکارڈ موجود نہیں۔');
-  }
-  if (include('quran')) {
-    const readings = (quranEntries || []).filter(x => within(x.date));
-    const pages = readings.reduce((sum, x) => sum + (Number(x.pagesRead) || 0), 0);
-    const paras = [...new Set(readings.map(x => x.para))].sort((a, b) => a - b);
-    hasData ||= readings.length > 0;
-    push(`Quran: ${pages} page${pages === 1 ? '' : 's'} recorded in ${readings.length} reading session${readings.length === 1 ? '' : 's'}.`,
-      `قرآن: ${readings.length} نشستوں میں ${pages} صفحات کی تلاوت درج ہے۔`);
-    if (paras.length) push(`Para: ${paras.join(', ')}.`, `پارہ: ${paras.join('، ')}۔`);
-  }
-  const categoryNames = {
-    office: ['Office work', 'دفتر کا کام'],
-    university: ['University', 'یونیورسٹی'],
-    personal: ['Personal', 'ذاتی کام'],
+    return { en:`${labelEn}: No new update.`, ur:`${labelUr}: نئی اپڈیٹ نہیں۔`, recorded:false };
   };
-  for (const section of ['office', 'university', 'personal']) {
-    if (!include(section)) continue;
-    const matching = (entries || []).filter(x => x.section === section);
-    const notes = matching.flatMap(x => (x.logs || []).filter(log => withinTime(log.createdAt))
-      .map(log => ({ task: x.title, note: log.note, at: log.createdAt })));
-    const active = matching.filter(x => withinTime(x.updatedAt) || withinTime(x.createdAt) || notes.some(n => n.task === x.title));
-    const done = active.filter(x => x.status === 'done').length;
-    const [enName, urName] = categoryNames[section];
-    hasData ||= notes.length > 0 || active.length > 0;
-    push(`${enName}: ${notes.length} daily update${notes.length === 1 ? '' : 's'}; ${done} recorded task${done === 1 ? '' : 's'} currently marked completed.`,
-      `${urName}: ${notes.length} روزانہ اپڈیٹس ہیں، ${done} کام مکمل نشان زد ہیں۔`);
-    const latest = notes.sort((a,b) => String(b.at).localeCompare(String(a.at))).slice(0, 2);
-    for (const item of latest) push(`${item.task}: ${String(item.note || '').slice(0, 220)}`,
-      `محفوظ شدہ نوٹ (${item.task}): ${String(item.note || '').slice(0, 220)}`);
-    if (section === 'university') {
-      const upcoming = matching.filter(x => x.meta?.upcomingDate && x.meta.upcomingDate >= end)
-        .sort((a,b)=>String(a.meta.upcomingDate).localeCompare(String(b.meta.upcomingDate))).slice(0, 2);
-      for (const x of upcoming) push(`Upcoming: ${x.meta?.university || x.title} — ${prettyDate(x.meta.upcomingDate)}.`,
-        `آنے والی تاریخ: ${x.meta?.university || x.title} — ${prettyDate(x.meta.upcomingDate)}۔`);
-      hasData ||= upcoming.length > 0;
-    }
+  const office = workUpdate('office','Office','دفتر');
+  const personal = workUpdate('personal','Personal','ذاتی کام');
+
+  const universities = bySection('university');
+  const activeUniversity = [...universities].sort((a,b) => {
+    const score = x => {
+      const recent = inPeriod(x.updatedAt) || inPeriod(x.createdAt) || (x.logs || []).some(l=>inPeriod(l.createdAt));
+      const upcoming = x.meta?.upcomingDate && x.meta.upcomingDate >= end;
+      return (recent ? 4 : 0) + (upcoming ? 2 : 0) + (x.meta?.applicationStatus && x.meta.applicationStatus !== 'planning' ? 1 : 0);
+    };
+    return score(b)-score(a) || String(b.updatedAt||'').localeCompare(String(a.updatedAt||''));
+  })[0];
+  let university;
+  if (activeUniversity) {
+    const m = activeUniversity.meta || {};
+    const name = short(m.university || activeUniversity.title, 42);
+    // Country is optional and is only shown when explicitly present in saved data.
+    // This version does NOT add a country field or modify Redis/API schemas.
+    const tagged = /(?:^|[\n,;])\s*country\s*[:：-]\s*([^\n,;]+)/i.exec(String(activeUniversity.detail || ''));
+    const country = short(m.country || (tagged && tagged[1]) || '', 23);
+    const place = country ? `${name}, ${country}` : name;
+    const status = {
+      planning:['To apply','درخواست دینی ہے'], applied:['Applied','درخواست دے دی'],
+      upcoming:['Upcoming','آنے والی تاریخ'], interview:['Interview','انٹرویو'],
+      waiting:['Waiting','جواب کا انتظار'], offer:['Offer received','آفر ملی'],
+      accepted:['Accepted','داخلہ منظور'], rejected:['Not selected','منتخب نہیں ہوئے'],
+    }[m.applicationStatus] || ['Recorded','درج'];
+    const next = m.upcomingDate && m.upcomingDate >= end ? ` · ${prettyDate(m.upcomingDate)}` : '';
+    university = { en:`University: ${place} — ${status[0]}${next}.`, ur:`یونیورسٹی: ${place} — ${status[1]}${next}۔` };
+  } else {
+    university = { en:'University: No application recorded.', ur:'یونیورسٹی: کوئی درخواست درج نہیں۔' };
   }
-  if (!hasData) return [{
-    en: 'No saved updates were found for this selection. It does not mean nothing happened.',
-    ur: 'اس انتخاب کے لیے کوئی محفوظ شدہ اپڈیٹ نہیں ملی۔ اس کا مطلب یہ نہیں کہ کوئی کام نہیں ہوا۔',
-  }];
+
+  if (topic === 'prayer') add(prayerEn, prayerUr);
+  else if (topic === 'quran') add(quranEn, quranUr);
+  else if (topic === 'office') add(office.en, office.ur);
+  else if (topic === 'university') add(university.en, university.ur);
+  else if (topic === 'personal') add(personal.en, personal.ur);
+  else {
+    // Everything: up to three paired lines. Skip empty categories instead
+    // of reporting five different zero counts to a family member.
+    if (checked.length || readings.length) add(
+      [checked.length ? prayerEn : '', readings.length ? quranEn : ''].filter(Boolean).join(' '),
+      [checked.length ? prayerUr : '', readings.length ? quranUr : ''].filter(Boolean).join(' ')
+    );
+    if (office.recorded || activeUniversity) add(
+      [office.recorded ? office.en : '', activeUniversity ? university.en : ''].filter(Boolean).join(' '),
+      [office.recorded ? office.ur : '', activeUniversity ? university.ur : ''].filter(Boolean).join(' ')
+    );
+    if (personal.recorded) add(personal.en, personal.ur);
+    if (!rows.length) add('No updates recorded for this period.', 'اس مدت کی کوئی اپڈیٹ درج نہیں۔');
+  }
   return rows;
 }
 
@@ -419,6 +462,7 @@ function SummaryChat({ entries, prayerDays, quranEntries, onClose, onSessionErro
   const [busy, setBusy] = useState(false);
   const [aiInsight, setAiInsight] = useState('');
   const [aiError, setAiError] = useState('');
+  const [aiRequested, setAiRequested] = useState(false);
   const scrollRef = useRef(null);
   const reportRef = useRef(null);
 
@@ -441,37 +485,44 @@ function SummaryChat({ entries, prayerDays, quranEntries, onClose, onSessionErro
 
   function beginAgain() {
     setStep('period'); setPeriod(null); setTopic(null); setText(''); setBusy(false);
-    setAiInsight(''); setAiError(''); setMessages([BOT_INTRO]);
+    setAiInsight(''); setAiError(''); setAiRequested(false); setMessages([BOT_INTRO]);
   }
   async function showReport(selectedPeriod, selectedTopic, seedMessages) {
     setTopic(selectedTopic);
     setStep('done');
-    setAiInsight(''); setAiError('');
+    setAiInsight(''); setAiError(''); setAiRequested(false);
     const p = CHAT_PERIODS.find(x => x.id === selectedPeriod);
     const s = CHAT_TOPICS.find(x => x.id === selectedTopic);
     const lines = buildFamilyReport({ entries, prayerDays, quranEntries, period: selectedPeriod, topic: selectedTopic });
     setMessages([...seedMessages, {
       role: 'bot',
-      en: `${p.en} · ${s.en} — here is what Ahsan recorded.`,
-      ur: `${p.ur} · ${s.ur} — احسن کے محفوظ کردہ ریکارڈ کی سمری:`,
+      en: `${p.en} · ${s.en} — quick update.`,
+      ur: `${p.ur} · ${s.ur} — مختصر اپڈیٹ:`,
       lines,
     }]);
-    if (selectedPeriod === 'month') {
-      // No backend change: existing API supports only 'today', 'week', 'all'.
-      setAiError('The 30-day view uses recorded entries, not an AI-generated monthly report. / پچھلے ۳۰ دن کا خلاصہ محفوظ شدہ ریکارڈ پر مبنی ہے، AI کی ماہانہ رپورٹ نہیں۔');
+  }
+  // Optional short Groq insight is fetched only if the family asks to see it.
+  // The main English/Urdu summary above always uses the existing saved records.
+  async function requestAiInsight() {
+    if (busy || aiRequested || step !== 'done') return;
+    setAiRequested(true);
+    if (period === 'month') {
+      setAiError('30-day summary uses saved records. / ۳۰ دن کی سمری محفوظ ریکارڈ سے بنتی ہے۔');
       return;
     }
     setBusy(true);
     try {
-      const data = await api({ action: 'summary', period: selectedPeriod, section: selectedTopic, language: 'en' });
-      setAiInsight(String(data.summary || ''));
-    } catch (err) {
+      const data = await api({ action:'summary', period, section: topic, language:'en' });
+      // Keep two brief actionable lines, stripping headings and markdown noise.
+      const summary = String(data.summary || '').replace(/\*\*/g, '').replace(/^#{1,4}\s*/gm, '');
+      const parts = summary.split(/\n+/).map(s=>s.trim()).filter(s=>s && !/^(overall progress|completed work|currently in progress|pending tasks|recommended next focus|highlights|prayer and quran|next focus|1\.|2\.|3\.|4\.|5\.)\s*:?$/i.test(s));
+      setAiInsight(parts.slice(0, 2).join(' · ').slice(0, 250) || 'No extra note available.');
+    } catch(err) {
       if (err.status === 401) onSessionError(err);
-      setAiError('AI insight is unavailable. The saved-record summary above is still available. / اضافی AI وضاحت دستیاب نہیں، لیکن محفوظ شدہ ریکارڈ کی سمری اوپر موجود ہے۔');
-    } finally {
-      setBusy(false);
-    }
+      setAiError('Extra AI note unavailable. / اضافی AI نوٹ دستیاب نہیں۔');
+    } finally { setBusy(false); }
   }
+
   function submit(raw) {
     const value = String(raw || '').trim().slice(0, 250);
     if (!value || busy || step === 'done') return;
@@ -522,9 +573,15 @@ function SummaryChat({ entries, prayerDays, quranEntries, onClose, onSessionErro
               <span>{option.en}</span><span className="tmv-chat-choice-urdu" lang="ur" dir="rtl">{option.ur}</span>
             </button>)}
           </div>}
-          {busy && <div className="tmv-chat-message tmv-chat-bot"><div className="tmv-chat-bubble tmv-chat-processing"><span className="tmv-chat-loading-dot"/> <span>Checking AI insight…</span><span className="tmv-chat-urdu" lang="ur" dir="rtl">اضافی AI تفصیل تیار ہو رہی ہے…</span></div></div>}
-          {step === 'done' && aiInsight && <details className="tmv-chat-ai-details"><summary>View additional AI insight <span lang="ur" dir="rtl">مزید AI تفصیل دیکھیں</span><ChevronRight size={17}/></summary><p className="tmv-ai-insight">{aiInsight}</p><small>This extra AI insight is in English. / یہ اضافی AI وضاحت انگریزی میں ہے۔</small></details>}
-          {step === 'done' && aiError && <div className="tmv-chat-hint"><span>{aiError.split(' / ')[0]}</span><span lang="ur" dir="rtl">{aiError.split(' / ')[1]}</span></div>}
+          {step === 'done' && <div className="tmv-chat-optional">
+            <button type="button" disabled={busy || aiRequested} onClick={requestAiInsight}>
+              {busy ? 'Preparing short note…' : aiRequested ? 'Extra AI note' : 'Optional short AI note'}
+              <span lang="ur" dir="rtl">{busy ? 'مختصر نوٹ تیار ہو رہا ہے…' : 'اختیاری مختصر AI نوٹ'}</span>
+            </button>
+            {aiInsight && <p className="tmv-ai-insight">{aiInsight}</p>}
+            {aiError && <p className="tmv-ai-error">{aiError}</p>}
+            {aiInsight && <small>AI note is in English. / AI نوٹ انگریزی میں ہے۔</small>}
+          </div>}
           {step === 'done' && <button type="button" className="tmv-chat-again" onClick={beginAgain}>Start another summary <span lang="ur" dir="rtl">دوبارہ سمری لیں</span><ArrowRight size={17}/></button>}
         </div>
         <div className="tmv-chat-controls">

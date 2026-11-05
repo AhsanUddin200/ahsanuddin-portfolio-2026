@@ -989,3 +989,56 @@ body:has(.tm-page) {background:#f5f7f6}
     color:#244a39;
   }
 }
+
+
+/* ============================================================
+   Track Me V12 — MOBILE welcome portrait + concise chat ONLY.
+   Earlier visual system, tasks, cards, owner mode, API untouched.
+   ============================================================ */
+.tm-page .tmv-chat-report {margin-top:10px;padding-top:8px}
+.tm-page .tmv-chat-report-line {padding:9px 0}
+.tm-page .tmv-chat-report-line>p:first-child {font-weight:600;color:#234334;font-size:13px;line-height:1.55}
+.tm-page .tmv-chat-report-line>p:last-child {font-size:13px;line-height:1.7;margin-top:4px;color:#506b58}
+.tm-page .tmv-chat-optional {padding:10px 11px;border:1px solid #e3eae4;border-radius:10px;background:#f9fbf9;margin-top:5px}
+.tm-page .tmv-chat-optional button {display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;width:100%;padding:7px 0;border:0;background:transparent;color:#25654a;font-weight:650;font-size:12px;text-align:left;cursor:pointer}
+.tm-page .tmv-chat-optional button:disabled {opacity:.65;cursor:default}
+.tm-page .tmv-chat-optional button [lang="ur"] {font-size:12px;color:#537766;font-weight:400}
+.tm-page .tmv-chat-optional .tmv-ai-insight,.tm-page .tmv-chat-optional .tmv-ai-error {font-size:12px;line-height:1.6;color:#3d5848;margin:6px 0 0;white-space:pre-wrap;overflow-wrap:anywhere}
+.tm-page .tmv-chat-optional small {display:block;color:#839588;font-size:10px;margin-top:6px}
+@media(max-width:600px) {
+  /* Real photograph is a visible top portrait, not a zoomed-in shoulder
+     hidden behind the message. The text sits on a solid readable surface. */
+  .tm-page .tm-welcome-screen {justify-content:flex-start;padding:14px 12px 28px;overflow:visible;min-height:100dvh}
+  .tm-page .tmv-welcome-panel {width:100%;max-width:470px;border-radius:17px;overflow:hidden;background:#fff;box-shadow:0 14px 38px rgba(15,40,31,.08)}
+  .tm-page .tmv-welcome-portrait {
+    inset:66px 0 auto 0;
+    width:100%;height:225px;
+    opacity:1;
+    background-image:url('/ahsan-family-photo.png');
+    background-repeat:no-repeat;
+    background-size:cover;
+    background-position:center top;
+    -webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 66%,transparent 100%);
+    mask-image:linear-gradient(to bottom,#000 0%,#000 66%,transparent 100%);
+  }
+  .tm-page .tmv-welcome-panel::before {
+    background:linear-gradient(to bottom,rgba(255,255,255,.95) 0,rgba(255,255,255,.85) 65px,rgba(255,255,255,.05) 72px,rgba(255,255,255,.06) 183px,rgba(255,255,255,.86) 282px,#fff 337px,#fff 100%);
+    z-index:0;
+  }
+  .tm-page .tmv-welcome-header {padding:13px 16px;min-height:66px;border-bottom:1px solid #e5ece6;background:#fff;backdrop-filter:none}
+  .tm-page .tmv-welcome-body {padding:223px 20px 26px;max-width:100%;background:transparent}
+  .tm-page .tmv-welcome-body h1 {font-size:clamp(27px,7vw,33px);line-height:1.14;margin:12px 0 21px;letter-spacing:-.045em;max-width:100%}
+  .tm-page .tmv-welcome-kicker {font-size:9px;letter-spacing:.13em}
+  .tm-page .tmv-relation-message.tm-typing {font-size:15px;line-height:1.65;margin:12px 0 17px;padding:4px 0 4px 14px;min-height:0;max-width:100%;overflow-wrap:anywhere;text-shadow:none}
+  .tm-page .tmv-relation-message .tmv-partner-followup {margin-top:8px;text-shadow:none}
+  .tm-page .tmv-welcome-body>p {font-size:12px;line-height:1.7;margin:16px 0 20px;color:#456657;text-shadow:none}
+  .tm-page .tmv-welcome-body .tm-primary {min-width:0;min-height:49px;font-size:13px}
+  .tm-page .tmv-welcome-footer {padding:11px 9px 13px;font-size:8px;line-height:1.5;letter-spacing:.035em;background:#fff;border-top:1px solid #edf1ee;text-align:center;gap:5px}
+  .tm-page .tmv-chat-report-line>p:first-child {font-size:12px}
+  .tm-page .tmv-chat-report-line>p:last-child {font-size:13px}
+}
+@media(max-width:360px) {
+  .tm-page .tmv-welcome-portrait {height:205px}
+  .tm-page .tmv-welcome-body {padding:205px 16px 23px}
+  .tm-page .tmv-welcome-header {padding:12px}
+}
