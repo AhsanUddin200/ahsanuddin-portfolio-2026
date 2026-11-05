@@ -3,7 +3,7 @@
    Frontend-only visual layer. Existing /api/track and data unchanged.
    Mobile first, system-ui, accessible touch controls, compact chat.
 ============================================================ */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;450;500;550;600;650;700;750&family=Noto+Naskh+Arabic:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Inter:wght@400;450;500;550;600;650;700;750&family=Noto+Naskh+Arabic:wght@400;500;600&display=swap');
 
 body:has(.tm-page) .navbar,
 body:has(.tm-page) .floating-actions {display:none!important}
@@ -548,3 +548,167 @@ body:has(.tm-page) {background:#f5f7f6}
 @media(prefers-reduced-motion:reduce) {
  .tm-page *, .tm-page *::before,.tm-page *::after {animation:none!important;transition:none!important;scroll-behavior:auto!important}
 }
+
+/* ============================================================
+   Track Me V8 — Photo, personal name, and relationship greeting.
+   All existing task, summary-chat, and owner-control styles remain.
+============================================================ */
+.tm-page .tmv-handwritten-name {
+  font-family:'Caveat','Segoe Print',cursive!important;
+  font-weight:700;
+  font-size:1.17em;
+  line-height:.85;
+  letter-spacing:0!important;
+  white-space:nowrap;
+}
+.tm-page .tmv-profile-photo {
+  display:block;
+  flex:none;
+  width:38px;
+  height:38px;
+  border-radius:11px;
+  object-fit:cover;
+  object-position:center 22%;
+  background:#174a38;
+  border:1px solid rgba(24,76,54,.13);
+  box-shadow:0 3px 12px rgba(19,45,34,.10);
+}
+.tm-page .tmv-auth-brand .tmv-handwritten-name,
+.tm-page .tmv-welcome-header .tmv-handwritten-name {
+  font-size:1.55em;
+}
+.tm-page .tmv-auth-brand {
+  letter-spacing:.08em;
+  gap:11px;
+}
+.tm-page .tmv-auth-brand .tmv-profile-photo {
+  width:42px;height:42px;border-color:rgba(255,255,255,.25);
+}
+.tm-page .tmv-auth-mobile-brand .tmv-profile-photo {
+  width:42px;height:42px;
+}
+.tm-page .tmv-welcome-header .tmv-profile-photo {
+  width:36px;height:36px;
+}
+.tm-page .tmv-brand .tmv-profile-photo {
+  width:41px;height:41px;border-radius:12px;
+}
+.tm-page .tmv-brand strong .tmv-handwritten-name {
+  font-size:1.65em;
+}
+/* Original color scheme and forms are retained. Only the real-photo layer
+   replaces the decorative gradient on the sign-in artwork panel. */
+.tm-page .tmv-auth-aside {
+  background-image:
+    linear-gradient(92deg,rgba(8,35,28,.82) 0%,rgba(8,35,28,.62) 48%,rgba(8,35,28,.42) 100%),
+    url('/ahsan-family-photo.png');
+  background-size:cover;
+  background-position:center 23%;
+  background-repeat:no-repeat;
+}
+.tm-page .tmv-auth-aside::before {
+  opacity:.12;
+}
+.tm-page .tmv-auth-brief h2 {
+  text-shadow:0 2px 16px rgba(0,0,0,.35);
+}
+.tm-page .tmv-auth-brief p,
+.tm-page .tmv-auth-aside-footer,
+.tm-page .tmv-auth-label {
+  color:#e2ede6;
+  text-shadow:0 2px 9px rgba(0,0,0,.30);
+}
+/* Requested spacing below the login button. */
+.tm-page .tmv-signin-note {
+  margin-top:24px;
+  display:flex;
+  align-items:center;
+  gap:9px;
+  line-height:1.55;
+}
+.tm-page .tmv-signin-note svg {flex-shrink:0}
+/* Welcome image is a real, unchanged photo with a readable overlay. */
+.tm-page .tmv-welcome-panel {isolation:isolate;background:#fff}
+.tm-page .tmv-welcome-portrait {
+  position:absolute;
+  inset:0 0 0 auto;
+  width:57%;
+  z-index:0;
+  pointer-events:none;
+  background-image:
+    linear-gradient(90deg,#fff 0%,rgba(255,255,255,.93) 24%,rgba(255,255,255,.64) 57%,rgba(255,255,255,.24) 100%),
+    url('/ahsan-family-photo.png');
+  background-size:cover;
+  background-position:center 27%;
+  background-repeat:no-repeat;
+}
+.tm-page .tmv-welcome-header,
+.tm-page .tmv-welcome-footer {background:rgba(255,255,255,.76);position:relative;z-index:1}
+.tm-page .tmv-welcome-body {position:relative;z-index:1;max-width:620px}
+.tm-page .tmv-welcome-body h1 {font-size:clamp(28px,3.7vw,37px)}
+.tm-page .tmv-welcome-body>p {max-width:465px}
+.tm-page .tmv-relation-prompt {padding:0;margin:22px 0 13px;}
+.tm-page .tmv-relation-question {
+  font-size:14px;
+  line-height:1.7;
+  font-weight:600;
+  color:#243e34;
+  margin-bottom:12px;
+}
+.tm-page .tmv-relation-actions {display:flex;gap:9px;align-items:center}
+.tm-page .tmv-relation-option {
+  min-width:88px;
+  min-height:44px;
+  border-radius:9px;
+  padding:9px 20px;
+  color:#315b45;
+  border:1px solid #cadcd0;
+  background:rgba(255,255,255,.94);
+  font-size:13px;
+  font-weight:600;
+  transition:background .16s,border-color .16s;
+}
+.tm-page .tmv-relation-option:hover,
+.tm-page .tmv-relation-option.is-selected {
+  border-color:#236c54;
+  background:#e9f3ed;
+  color:#134a35;
+}
+.tm-page .tmv-relation-option.is-selected {box-shadow:inset 0 0 0 1px #236c54}
+.tm-page .tmv-relation-message.tm-typing {
+  white-space:pre-line;
+  padding:8px 0 8px 16px;
+  margin:5px 0 12px;
+  font-size:clamp(14px,1.9vw,17px);
+  min-height:46px;
+  font-weight:500;
+  line-height:1.7;
+  max-width:450px;
+}
+@media(max-width:760px) {
+  .tm-page .tmv-auth-aside {
+    background-image:
+      linear-gradient(90deg,rgba(8,35,28,.82),rgba(8,35,28,.36)),
+      url('/ahsan-family-photo.png');
+    background-position:center 21%;
+  }
+}
+@media(max-width:600px) {
+  .tm-page .tmv-welcome-portrait {
+    width:100%;
+    opacity:.2;
+    background-image:
+      linear-gradient(90deg,rgba(255,255,255,.75),rgba(255,255,255,.26)),
+      url('/ahsan-family-photo.png');
+    background-position:center 26%;
+  }
+  .tm-page .tmv-welcome-body {padding:37px 27px 33px}
+  .tm-page .tmv-relation-prompt {margin-top:18px}
+  .tm-page .tmv-relation-message.tm-typing {font-size:15px;min-height:42px}
+}
+@media(prefers-reduced-motion:reduce) {
+  .tm-page .tmv-relation-option {transition:none}
+}
+
+.tm-page .tmv-partner-followup {display:block;margin-top:7px;color:#20543e;animation:tmvFollowup .3s ease both}
+@keyframes tmvFollowup {from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:translateY(0)}}

@@ -8,6 +8,19 @@ import {
 } from 'lucide-react';
 import './TrackMe.css';
 
+// Real family photo supplied by the owner (stored in /public).
+const PROFILE_PHOTO = '/ahsan-family-photo.png';
+
+// Reuse the same photograph for all three private screens.
+function AhsanAvatar({ className = '' }) {
+  return <img className={`tmv-profile-photo ${className}`} src={PROFILE_PHOTO} alt="Ahsan" loading="eager" decoding="async" />;
+}
+
+function AhsanName() {
+  return <span className="tmv-handwritten-name">Ahsan</span>;
+}
+
+
 const PRAYERS = [
   ['fajr', 'Fajr'], ['dhuhr', 'Dhuhr'], ['asr', 'Asr'],
   ['maghrib', 'Maghrib'], ['isha', 'Isha'],
@@ -69,7 +82,7 @@ function LoginScreen({ password, setPassword, onSubmit, busy, error }) {
     <div className="tm-access-screen tmv-signin">
       <div className="tmv-auth-frame">
         <div className="tmv-auth-aside" aria-hidden="true">
-          <div className="tmv-auth-brand"><span className="tmv-auth-monogram">A</span><span>AHSAN / DAILY UPDATES</span></div>
+          <div className="tmv-auth-brand"><AhsanAvatar className="tmv-avatar-auth"/><span><AhsanName/> / DAILY UPDATES</span></div>
           <div className="tmv-auth-brief">
             <span className="tmv-auth-label">A PRIVATE FAMILY JOURNAL</span>
             <h2>Closer to the moments that matter.</h2>
@@ -78,10 +91,10 @@ function LoginScreen({ password, setPassword, onSubmit, busy, error }) {
           <div className="tmv-auth-aside-footer"><span className="tmv-pulse-dot"/> SECURE FAMILY ACCESS</div>
         </div>
         <div className="tm-access-card tmv-auth-form-panel">
-          <div className="tmv-auth-mobile-brand"><span className="tmv-auth-monogram">A</span><strong>Ahsan's Updates</strong></div>
+          <div className="tmv-auth-mobile-brand"><AhsanAvatar className="tmv-avatar-mobile"/><strong><AhsanName/>’s Updates</strong></div>
           <p className="tmv-login-eyebrow">FAMILY SIGN IN</p>
           <h1>Welcome back.</h1>
-          <p className="tm-access-copy">Enter the family password to view Ahsan's latest updates.</p>
+          <p className="tm-access-copy">Enter the family password to view <AhsanName/>’s latest updates.</p>
           <form onSubmit={onSubmit} className="tm-stack">
             <label className="tm-field"><span>Family password</span>
               <div className="tm-input-icon"><LockKeyhole size={18} strokeWidth={1.9}/><input required type={show ? 'text' : 'password'} autoComplete="current-password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Enter password" maxLength={200}/>
@@ -100,28 +113,81 @@ function LoginScreen({ password, setPassword, onSubmit, busy, error }) {
 }
 
 function CautionWelcome({ onContinue }) {
-  const message = "You're following his journey as a son and as a man.\nStay informed. Stay connected.";
+  // A two-choice, front-end-only family welcome. The existing login and
+  // owner's code are unchanged; this is NOT an authentication check.
+  const [relationChoice, setRelationChoice] = useState(null);
+  const [showPartnerFollowup, setShowPartnerFollowup] = useState(false);
   const [typed, setTyped] = useState('');
+
+  const message = relationChoice === 'parents'
+    ? 'You are tracking your son.'
+    : relationChoice === 'partner'
+      ? "You are Ahsan's favorite woman and life partner happa❤️"
+      : '';
+
+  // For No: show the personal message first; reveal the next line after 3 sec.
   useEffect(() => {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { setTyped(message); return; }
+    if (relationChoice !== 'partner') {
+      setShowPartnerFollowup(false);
+      return;
+    }
+    setShowPartnerFollowup(false);
+    const timer = window.setTimeout(() => setShowPartnerFollowup(true), 3000);
+    return () => window.clearTimeout(timer);
+  }, [relationChoice]);
+
+  // Preserve the existing typing effect for the selected relationship.
+  useEffect(() => {
+    setTyped('');
+    if (!message) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setTyped(message);
+      return;
+    }
     let index = 0;
-    const timer = setInterval(() => {
+    const timer = window.setInterval(() => {
       index += 1;
       setTyped(message.slice(0, index));
-      if (index >= message.length) clearInterval(timer);
-    }, 27);
-    return () => clearInterval(timer);
-  }, []);
+      if (index >= message.length) window.clearInterval(timer);
+    }, 24);
+    return () => window.clearInterval(timer);
+  }, [message]);
+
   return (
     <div className="tm-welcome-screen" role="dialog" aria-modal="true" aria-label="Welcome to Ahsan's daily updates">
       <section className="tm-welcome-card tmv-welcome-panel">
-        <div className="tmv-welcome-header"><span className="tmv-auth-monogram">A</span><span>AHSAN'S UPDATES</span><ShieldCheck size={20}/></div>
+        <div className="tmv-welcome-portrait" aria-hidden="true" />
+        <div className="tmv-welcome-header">
+          <AhsanAvatar className="tmv-avatar-welcome"/>
+          <span><AhsanName/>’S UPDATES</span>
+          <ShieldCheck size={20}/>
+        </div>
         <div className="tmv-welcome-body">
           <span className="tmv-welcome-kicker">A PERSONAL REMINDER</span>
           <h1>Every day tells a story.</h1>
-          <div className="tm-typing" aria-label={message}>{typed}<span aria-hidden="true" className="tm-caret">▌</span></div>
-          <p>A private look into the moments, effort and progress Ahsan shares with you.</p>
-          <button className="tm-primary tm-wide" type="button" onClick={onContinue}>Continue to updates <ArrowRight size={18}/></button>
+          <div className="tmv-relation-prompt">
+            <p className="tmv-relation-question">Are you <AhsanName/>’s parents?</p>
+            <div className="tmv-relation-actions" role="group" aria-label="Are you Ahsan's parents?">
+              <button type="button" aria-pressed={relationChoice === 'parents'}
+                className={`tmv-relation-option ${relationChoice === 'parents' ? 'is-selected' : ''}`}
+                onClick={() => setRelationChoice('parents')}>Yes</button>
+              <button type="button" aria-pressed={relationChoice === 'partner'}
+                className={`tmv-relation-option ${relationChoice === 'partner' ? 'is-selected' : ''}`}
+                onClick={() => setRelationChoice('partner')}>No</button>
+            </div>
+          </div>
+          {relationChoice && (
+            <div className="tm-typing tmv-relation-message" role="status" aria-live="polite">
+              {typed}<span aria-hidden="true" className="tm-caret">▌</span>
+              {relationChoice === 'partner' && showPartnerFollowup && (
+                <span className="tmv-partner-followup">You are tracking your man.</span>
+              )}
+            </div>
+          )}
+          <p>A private look into the moments, effort and progress <AhsanName/> shares with you.</p>
+          <button className="tm-primary tm-wide" type="button" onClick={onContinue}>
+            Continue to updates <ArrowRight size={18}/>
+          </button>
         </div>
         <div className="tmv-welcome-footer">PRIVATE FAMILY JOURNAL <span>·</span> MADE TO KEEP YOU CONNECTED</div>
       </section>
@@ -503,7 +569,7 @@ function FamilyToday({ entries, days, quran, viewDate, setViewDate, onOpen, onOp
   const recorded = PRAYERS.filter(([key])=>prayer.group?.[key]||prayer.makeup?.[key]).length;
   const hasAny = noteCount || pages || recorded;
   return <div className="tmv-family-view">
-    <div className="tmv-intro"><span className="tmv-intro-kicker">THE DAILY JOURNAL</span><h1>Ahsan’s daily updates.</h1><p>His day, his progress, and everything he has shared with you.</p></div>
+    <div className="tmv-intro"><span className="tmv-intro-kicker">THE DAILY JOURNAL</span><h1><AhsanName/>’s daily updates.</h1><p>His day, his progress, and everything he has shared with you.</p></div>
     <DayNavigator value={viewDate} setValue={setViewDate}/>
     <section className="tmv-summary-entry" aria-label="Ask for a summary">
       <div className="tmv-summary-entry-text"><span className="tmv-summary-symbol"><MessageSquareText size={20} strokeWidth={1.9}/></span><div><h2>Understand his day in seconds.</h2><p lang="ur" dir="rtl">احسن کی روزانہ کی تفصیلات آسانی سے جانیں۔</p></div></div>
@@ -523,7 +589,7 @@ function FamilyToday({ entries, days, quran, viewDate, setViewDate, onOpen, onOp
         : <p className="tmv-empty-note">No reading update has been posted for this day yet.</p>}
       <button type="button" className="tmv-read-more" onClick={() => onOpen('quran')}>See reading history <ArrowRight size={17}/></button>
     </section>
-    <div className="tmv-group-title"><h2>Work & Plans</h2><span>In Ahsan’s own words</span></div>
+    <div className="tmv-group-title"><h2>Work & Plans</h2><span>In <AhsanName/>’s own words</span></div>
     <DailyEntries entries={entries} date={viewDate} section="office" onOpen={onOpen}/>
     <DailyEntries entries={entries} date={viewDate} section="university" onOpen={onOpen}/>
     <DailyEntries entries={entries} date={viewDate} section="personal" onOpen={onOpen}/>
@@ -554,7 +620,7 @@ function TaskCard({ item, ownerMode, expanded, onExpand, note, setNote, busy, on
 function PrayerPanel({ ownerMode, date, setDate, days, busy, onToggle }) {
   const record = days[date] || {group:{},makeup:{}};
   const marked=PRAYERS.filter(([key])=>record.group?.[key]||record.makeup?.[key]).length;
-  return <section className="tmv-detail-view"><div className="tmv-detail-heading"><Clock3 size={25}/><div><h2>Prayer Record</h2><p>Daily prayers, as recorded by Ahsan.</p></div></div>
+  return <section className="tmv-detail-view"><div className="tmv-detail-heading"><Clock3 size={25}/><div><h2>Prayer Record</h2><p>Daily prayers, as recorded by <AhsanName/>.</p></div></div>
     <DayNavigator value={date} setValue={setDate}/>
     {ownerMode ? <div className="tmv-owner-section"><p className="tmv-owner-label">OWNER EDITING · Changes save immediately</p><div className="tmv-prayer-edit-list">{PRAYERS.map(([key,label])=>{
        const group=Boolean(record.group?.[key]), makeup=Boolean(record.makeup?.[key]);
@@ -571,7 +637,7 @@ function QuranPanel({ ownerMode, quran, busy, onAdd, onDelete }) {
   const update=(key,value)=>setForm(old=>({...old,[key]:value}));
   const total=quran.reduce((s,x)=>s+Number(x.pagesRead||0),0);
   const sorted=[...quran].sort((a,b)=>String(b.date).localeCompare(String(a.date))||String(b.createdAt).localeCompare(String(a.createdAt)));
-  return <section className="tmv-detail-view"><div className="tmv-detail-heading"><BookOpen size={25}/><div><h2>Quran Reading</h2><p>Progress in the 15-line Quran, saved by Ahsan.</p></div></div>
+  return <section className="tmv-detail-view"><div className="tmv-detail-heading"><BookOpen size={25}/><div><h2>Quran Reading</h2><p>Progress in the 15-line Quran, saved by <AhsanName/>.</p></div></div>
     <div className="tmv-quran-stat"><strong>{total}</strong><span>pages recorded in total</span></div>
     {ownerMode && <form className="tmv-owner-quran tm-stack" onSubmit={async e=>{e.preventDefault();const ok=await onAdd(form);if(ok)setForm(old=>({...old,pagesRead:'1',fromPage:'',toPage:'',note:''}));}}>
       <h3>Add a reading</h3><label className="tm-field"><span>Para</span><select value={form.para} onChange={e=>update('para',e.target.value)}>{Array.from({length:30},(_,i)=><option key={i+1} value={i+1}>Para {i+1}</option>)}</select></label>
@@ -651,7 +717,7 @@ export default function TrackMe() {
   if(!authenticated)return <main className="tm-page"><LoginScreen password={password} setPassword={setPassword} onSubmit={signIn} busy={busy} error={loginError}/></main>;
   if(welcome)return <main className="tm-page"><CautionWelcome onContinue={()=>setWelcome(false)}/></main>;
   return <main className="tm-page tmv-family"><div className="tm-shell tmv-shell">
-    <header className="tmv-header"><button type="button" className="tmv-brand" onClick={()=>go('overview')} aria-label="Go to Ahsan's daily updates"><span className="tmv-logo" aria-hidden="true">A</span><span><strong>Ahsan’s Updates</strong><small>Family journal</small></span></button><button type="button" className="tmv-logout" onClick={signOut}><LogOut size={18}/><span>Log out</span></button></header>
+    <header className="tmv-header"><button type="button" className="tmv-brand" onClick={()=>go('overview')} aria-label="Go to Ahsan's daily updates"><AhsanAvatar className="tmv-avatar-header"/><span><strong><AhsanName/>’s Updates</strong><small>Family journal</small></span></button><button type="button" className="tmv-logout" onClick={signOut}><LogOut size={18}/><span>Log out</span></button></header>
     {section!=='overview'&&<button type="button" className="tmv-back" onClick={()=>go('overview')}><ArrowLeft size={20}/> Back to daily updates</button>}
     {notice&&<div className="tmv-notice" role="status"><CheckCircle2 size={19}/><span>{notice}</span><button type="button" onClick={()=>setNotice('')} aria-label="Dismiss"><X size={17}/></button></div>}
     {ownerMode&&<div className="tmv-owner-banner"><span><LockKeyhole size={16}/> Owner editing is ON</span><button type="button" onClick={lockOwner}>Finish editing</button></div>}
@@ -659,7 +725,7 @@ export default function TrackMe() {
     {['office','personal','university'].includes(section)&&<WorkPanel section={section} ownerMode={ownerMode} entries={entries} busy={busy} search={search} setSearch={setSearch} filter={filter} setFilter={setFilter} expanded={expanded} setExpanded={setExpanded} note={note} setNote={setNote} onNew={newTask} onNote={addNote} onEdit={item=>setEditor({...item})} onDelete={deleteTask} onStatus={updateTask}/>}
     {section==='prayer'&&<PrayerPanel ownerMode={ownerMode} date={prayerDate} setDate={setPrayerDate} days={prayerDays} busy={busy} onToggle={togglePrayer}/>}
     {section==='quran'&&<QuranPanel ownerMode={ownerMode} quran={quranEntries} busy={busy} onAdd={addQuran} onDelete={deleteQuran}/>}
-    <div className="tmv-bottom"><button type="button" className="tmv-owner-link" onClick={ownerMode?lockOwner:openOwner}><LockKeyhole size={16}/>{ownerMode?'Finish owner updates':'Owner updates (private code)'}</button><p>Only for Ahsan’s family.</p></div>
+    <div className="tmv-bottom"><button type="button" className="tmv-owner-link" onClick={ownerMode?lockOwner:openOwner}><LockKeyhole size={16}/>{ownerMode?'Finish owner updates':'Owner updates (private code)'}</button><p>Only for <AhsanName/>’s family.</p></div>
   </div>
   {pinOpen&&<PinModal busy={busy} onVerify={verifyPin} onClose={()=>setPinOpen(false)} error={pinError}/>}
   {editor&&<TaskEditor key={editor.id||`new-${editor.section}`} initial={editor} saving={busy} onClose={()=>setEditor(null)} onSave={saveTask}/>}
