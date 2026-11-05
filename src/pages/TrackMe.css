@@ -1,587 +1,550 @@
-/* Track Me · Simple Mobile UI v3
-   Isolated from portfolio pages. No backend changes. */
-body:has(.tm-page) .navbar,body:has(.tm-page) .floating-actions{display:none!important}
-body:has(.tm-page){background:#f6f8f5}
-.tm-page{
-  --tm-green:#176f4c;--tm-dark:#172c26;--tm-muted:#5e6e65;--tm-line:#e3eae3;
-  --tm-soft:#f5f8f5;--tm-white:#fff;--tm-blue:#e9f3ff;
-  font-family:system-ui,-apple-system,"Segoe UI",sans-serif!important;
-  min-height:100vh;background:#f6f8f5;color:#172c26;padding:0 0 25px;
-  font-size:16px;line-height:1.5;color-scheme:light;
-}
-.tm-page *{box-sizing:border-box}
-.tm-page button,.tm-page input,.tm-page textarea,.tm-page select{font:inherit}
-.tm-page button{cursor:pointer}
-.tm-page button:disabled{opacity:.55;cursor:not-allowed}
-.tm-page button:focus-visible,.tm-page input:focus-visible,.tm-page select:focus-visible,
-.tm-page textarea:focus-visible,.tm-page summary:focus-visible,.tm-page a:focus-visible{
- outline:3px solid #288767;outline-offset:3px
-}
-.tm-page input,.tm-page select,.tm-page textarea{color:var(--tm-dark);background:#fff}
-.tm-page input::placeholder,.tm-page textarea::placeholder{color:#8b978e}
-.tm-page .tm-shell{max-width:1100px;width:min(100% - 36px,1100px);margin:0 auto}
-.tm-page h1,.tm-page h2,.tm-page h3,.tm-page p{letter-spacing:normal}
-.tm-page h1,.tm-page h2,.tm-page h3{color:var(--tm-dark);font-family:inherit;font-weight:750}
-.tm-page a{color:inherit;text-decoration:none}
-.tm-page .tm-eyebrow{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--tm-green)}
-.tm-page .tm-muted,.tm-page .tm-helper{color:var(--tm-muted);font-size:14px;line-height:1.55}
-.tm-page .tm-helper{margin:18px 0}
-.tm-primary,.tm-quiet-btn,.tm-text-button,.tm-update-button{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:52px;border-radius:14px;padding:12px 16px;font-weight:700;font-size:16px;transition:background .15s ease}
-.tm-primary{color:#fff!important;border:1px solid var(--tm-green);background:var(--tm-green)}
-.tm-primary:hover:not(:disabled){background:#0c583a}
-.tm-wide{width:100%}
-.tm-quiet-btn{background:#eef5ef;border:1px solid var(--tm-line);color:var(--tm-dark)}
-.tm-text-button{background:transparent;color:var(--tm-muted);border:0;width:100%}
-.tm-close,.tm-icon-btn{background:#f5f7f5;color:#3f5548;border:0;border-radius:11px;min-width:44px;min-height:44px;display:grid;place-items:center;padding:8px}
-.tm-page .tm-danger,.tm-page .tm-delete{color:#a13e3e}
-.tm-page .tm-delete{display:inline-flex;align-items:center;justify-content:center;min-height:44px;border:0;background:transparent;padding:6px 10px;font-size:14px}
-.tm-topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 0 19px;margin-bottom:12px;border-bottom:1px solid var(--tm-line)}
-.tm-brand{display:inline-flex;align-items:center;gap:11px;font-size:22px;color:var(--tm-dark);background:transparent;border:0;padding:0}
-.tm-brand-mark{width:37px;height:37px;background:var(--tm-green);color:#fff;display:grid;place-items:center;border-radius:12px}
-.tm-topbar-lock{background:#fff;color:#435a4c;min-height:44px;border:1px solid var(--tm-line);border-radius:12px;display:flex;align-items:center;gap:8px;padding:0 13px;font-weight:650;font-size:14px}
-.tm-body{display:grid;grid-template-columns:240px minmax(0,1fr);align-items:start;gap:25px;padding:16px 0}
-.tm-sidebar{display:flex;flex-direction:column;gap:5px;background:#fff;border:1px solid var(--tm-line);padding:15px;border-radius:21px;position:sticky;top:24px}
-.tm-nav-label{font-size:12px;font-weight:800;color:#738479;letter-spacing:.04em;padding:6px 12px 12px;margin:0}
-.tm-nav-item{display:flex;align-items:center;gap:12px;width:100%;min-height:51px;border:0;border-radius:12px;padding:10px 13px;font-weight:650;color:#405549;background:transparent;text-align:left;font-size:15px}
-.tm-nav-item span{flex:1}.tm-nav-item small{font-size:12px;font-weight:600;color:var(--tm-muted)}
-.tm-nav-item.tm-active{background:#e6f4ea;color:var(--tm-green)}
-.tm-nav-secondary{border-top:1px solid #eef2ed;margin-top:8px;border-radius:0}
-.tm-content-area{min-width:0}.tm-back-home{display:inline-flex;align-items:center;gap:7px;min-height:44px;color:var(--tm-green);background:transparent;border:0;padding:4px 2px;font-weight:750;margin:0 0 8px}
-.tm-welcome-intro{margin:0 0 20px}.tm-welcome-intro>p{color:var(--tm-muted);font-size:14px;margin:0 0 7px}.tm-welcome-intro h2{font-size:clamp(25px,3vw,32px);line-height:1.18;margin:0 0 9px}.tm-welcome-intro>span{color:var(--tm-muted);font-size:16px}
-.tm-simple-choices{display:flex;flex-direction:column;gap:12px}
-.tm-choice{display:flex;align-items:center;text-align:left;gap:15px;min-height:88px;background:#fff;border:1px solid var(--tm-line);border-radius:19px;padding:14px 17px;color:var(--tm-dark);width:100%;box-shadow:0 2px 12px rgba(10,54,34,.025)}
-.tm-choice:active{background:#f1f8f2}
-.tm-choice-icon{display:grid;place-items:center;width:55px;height:55px;border-radius:16px;flex:0 0 55px;color:#176f4c;background:#e8f5e9}
-.tm-choice-quran{background:#eef2ff;color:#4963a5}.tm-choice-office{background:#fff2de;color:#8a5f1f}.tm-choice-personal{background:#fcedf1;color:#aa526d}.tm-choice-university{background:#e8f2ff;color:#416ba5}
-.tm-choice-text{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1}.tm-choice-text strong{font-size:17px;font-weight:750}.tm-choice-text small{font-size:13px;color:var(--tm-muted);line-height:1.35}
-.tm-choice-trailing{display:flex;align-items:center;gap:5px;color:#82968b}.tm-choice-trailing em{font-size:12px;font-style:normal;color:#527261;font-weight:650;text-align:right;max-width:84px}
-.tm-home-upcoming{margin-top:25px;padding:20px;background:#fff;border:1px solid var(--tm-line);border-radius:18px}
-.tm-home-upcoming h3{font-size:17px;display:flex;align-items:center;gap:8px;margin:0 0 10px}.tm-home-event{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid var(--tm-line);font-size:14px}.tm-home-event strong{font-size:13px;white-space:nowrap}
-.tm-home-upcoming button{margin-top:13px;border:0;background:transparent;color:var(--tm-green);min-height:44px;font-weight:700;display:flex;align-items:center;gap:8px}
-.tm-home-hint{color:#6d8075;display:flex;align-items:center;gap:8px;margin:23px 0;font-size:13px}
-.tm-panel{background:#fff;border:1px solid var(--tm-line);border-radius:21px;padding:24px}
-.tm-panel-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:22px}
-.tm-panel-head h2{margin:0 0 9px;font-size:clamp(23px,3vw,29px);line-height:1.2}
-.tm-panel-head p{font-size:15px;line-height:1.55;color:var(--tm-muted);margin:0}
-.tm-day-picker{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:18px}
-.tm-day-picker>button{background:#f1f6f1;color:#2a5540;border:1px solid var(--tm-line);width:48px;height:51px;flex-shrink:0;border-radius:13px;display:grid;place-items:center}
-.tm-date-label{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:3px;flex:1;font-size:12px;color:var(--tm-muted);font-weight:650}
-.tm-date-label input{background:#fff;border:1px solid #dbe5dd;border-radius:11px;max-width:100%;width:190px;padding:10px;font-size:15px;height:48px;text-align:center}
-.tm-prayer-progress{display:flex;align-items:center;gap:12px;background:#f1f8f3;border:1px solid #deeee3;border-radius:15px;padding:15px 16px;margin-bottom:19px;flex-wrap:wrap}
-.tm-prayer-progress strong{font-size:23px;color:var(--tm-green)}.tm-prayer-progress span{font-size:14px;color:#4a6858;flex:1}.tm-today{border:0;background:#def0e4;color:var(--tm-green);padding:10px 12px;min-height:44px;border-radius:10px;font-size:13px;font-weight:700}
-.tm-prayer-legend,.tm-prayer-row{display:grid;grid-template-columns:minmax(80px,1.15fr) minmax(78px,1fr) minmax(78px,1fr);gap:10px;align-items:center}
-.tm-prayer-legend{color:var(--tm-muted);font-size:13px;font-weight:700;text-align:center;margin:0 0 8px;padding:0 8px}.tm-prayer-legend span:first-child{text-align:left}
-.tm-prayer-row{padding:11px 5px;border-top:1px solid var(--tm-line)}.tm-prayer-row strong{font-size:17px}
-.tm-prayer-choice{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-width:0;width:100%;height:52px;background:#f5f7f6;border:1.5px solid #dde6df;border-radius:13px;color:#52675a;font-size:14px;font-weight:700}
-.tm-prayer-choice.tm-picked{background:#e0f4e7;border-color:var(--tm-green);color:#0e6e41}.tm-prayer-choice:active{transform:scale(.98)}
-.tm-details{margin-top:16px;border:1px solid var(--tm-line);border-radius:13px;background:#fbfcfb;padding:0 14px;color:var(--tm-dark)}
-.tm-details summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;min-height:51px;font-size:15px;font-weight:700;color:var(--tm-dark)}
-.tm-details summary::after{content:'+';font-size:24px;font-weight:400;color:var(--tm-green);margin-left:14px}
-.tm-details[open] summary::after{content:'−'}
-.tm-details[open] summary{border-bottom:1px solid var(--tm-line);margin-bottom:15px}
-.tm-details .tm-field{margin:0 0 14px}
-.tm-week-strip{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;margin:0 0 14px}
-.tm-week-day{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:2px;padding:6px 0;min-height:72px;border:1px solid var(--tm-line);border-radius:10px;background:#fff;color:#40594a}
-.tm-week-day span,.tm-week-day small{font-size:11px}.tm-week-day strong{font-size:17px}.tm-week-day.tm-selected{border-color:var(--tm-green);background:#e9f7ee;color:var(--tm-green)}
-.tm-reading-count{display:flex;align-items:center;gap:14px;padding:17px;background:#eef5ff;border-radius:15px;color:#305d94;margin-bottom:20px}
-.tm-reading-count>div{display:flex;flex-direction:column}.tm-reading-count strong{font-size:23px;color:#27588e}.tm-reading-count span{font-size:13px}
-.tm-stack{display:flex;flex-direction:column;gap:16px}
-.tm-field{display:flex;flex-direction:column;gap:7px;min-width:0;color:#243d2f;font-size:15px;font-weight:700}
-.tm-field>span{display:block}
-.tm-field input,.tm-field select,.tm-field textarea{width:100%;min-height:51px;border:1px solid #cfdcd2;border-radius:12px;outline:none;padding:12px 14px;font-size:16px;font-weight:450;line-height:1.45;background:#fff}
-.tm-field textarea{min-height:88px;resize:vertical}
-.tm-field input:focus,.tm-field select:focus,.tm-field textarea:focus{border-color:#28946b;box-shadow:0 0 0 3px rgba(40,148,107,.13)}
-.tm-quran-form{max-width:650px}.tm-quran-panel .tm-history{margin-top:20px}
-.tm-reading-list{display:flex;flex-direction:column;gap:9px;margin-bottom:15px}.tm-reading-item{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid var(--tm-line);gap:8px}.tm-reading-item>div{min-width:0}.tm-reading-item strong{font-size:14px}.tm-reading-item p{font-size:13px;line-height:1.4;color:var(--tm-muted);margin:4px 0 0;overflow-wrap:anywhere}
-.tm-add-task{margin-bottom:18px}.tm-count-label{font-size:14px;color:var(--tm-muted);font-weight:700;margin:11px 0}
-.tm-task-list{display:flex;flex-direction:column;gap:13px}
-.tm-task-card{border:1px solid var(--tm-line);border-radius:17px;background:#fff;padding:17px}
-.tm-task-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
-.tm-task-top h3{font-size:18px;line-height:1.4;margin:0 0 6px;flex:1;min-width:0;overflow-wrap:anywhere}
-.tm-state{border-radius:20px;background:#f3f4f4;color:#53645a;font-weight:650;padding:5px 9px;white-space:nowrap;font-size:12px}.tm-state-in_progress{background:#e9f2ff;color:#315d8b}.tm-state-done{background:#e4f5e8;color:#166a43}
-.tm-task-project{font-size:13px;color:#427453;font-weight:700;margin:0 0 8px}.tm-task-detail{font-size:14px;color:var(--tm-muted);margin:7px 0 12px;line-height:1.55;display:flex;align-items:center;gap:4px}
-.tm-update-button{margin-top:15px;width:100%;border:1px solid #c3e1cc;background:#edf7f0;color:var(--tm-green);justify-content:space-between;font-size:15px;text-align:left;padding:12px 15px}
-.tm-update-button svg:last-child{margin-left:auto;transition:transform .2s}.tm-rotate{transform:rotate(90deg)}
-.tm-note-panel{padding-top:18px}.tm-note-panel .tm-stack{gap:12px}.tm-task-settings{border-top:1px solid var(--tm-line);margin-top:18px;padding-top:15px;display:flex;align-items:end;gap:12px;flex-wrap:wrap}.tm-task-settings .tm-field{flex:1 1 155px}.tm-task-settings .tm-quiet-btn{font-size:14px;min-height:51px}
-.tm-note-row{padding:9px 0;border-bottom:1px solid var(--tm-line)}.tm-note-row time{font-size:12px;font-weight:700;color:var(--tm-muted)}.tm-note-row p{margin:4px 0;white-space:pre-wrap;overflow-wrap:anywhere;font-size:14px}
-.tm-upcoming-box{padding:17px 18px;border:1px solid #d4e5d7;border-radius:15px;background:#f3f9f5;margin-bottom:18px}.tm-upcoming-box h3{display:flex;align-items:center;gap:8px;margin:0 0 10px;font-size:17px}
-.tm-upcoming-row{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:10px 0;border-top:1px solid #dce8dc}.tm-upcoming-row strong{font-size:14px}.tm-upcoming-row time{font-size:13px;font-weight:750;white-space:nowrap}
-.tm-toolbar{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px}.tm-toolbar .tm-field{flex:1 1 170px}
-.tm-empty{text-align:center;color:var(--tm-muted);background:#f9fbf9;padding:24px 15px;border-radius:15px}.tm-empty svg{color:#88ae90}.tm-empty h3{font-size:17px;margin:8px 0 4px}.tm-empty p{font-size:14px;margin:0}
-.tm-notice{display:flex;align-items:center;gap:10px;background:#e6f5ec;color:#176b45;border:1px solid #c5e4d0;padding:10px 12px;border-radius:12px;font-size:14px;margin:0 0 18px;overflow-wrap:anywhere}.tm-notice span{flex:1}.tm-notice button{border:0;background:transparent;min-width:42px;min-height:42px;display:grid;place-items:center;color:#266743}
-.tm-more-panel{background:#fff;border:1px solid var(--tm-line);border-radius:18px;padding:23px}.tm-more-panel h2{font-size:25px;margin:0 0 4px}.tm-more-panel p{color:var(--tm-muted);font-size:15px;margin:0 0 16px}
-.tm-more-panel button,.tm-more-panel>a{display:flex;width:100%;align-items:center;gap:14px;text-align:left;min-height:70px;background:transparent;border:0;border-top:1px solid var(--tm-line);color:var(--tm-dark);font-size:16px;font-weight:700;padding:13px 0}.tm-more-panel button svg:first-child,.tm-more-panel>a svg:first-child{color:var(--tm-green)}.tm-more-panel button span,.tm-more-panel>a span{flex:1}
-.tm-footer{color:#83958a;font-size:12px;text-align:center;padding:18px}.tm-mobile-nav{display:none}
-/* PIN, task form, AI summary */
-.tm-modal-backdrop{position:fixed;inset:0;background:rgba(11,28,17,.48);z-index:5000;display:flex;justify-content:center;align-items:center;padding:18px}
-.tm-modal{position:relative;max-height:min(90dvh,900px);overflow-y:auto;overscroll-behavior:contain;width:min(100%,560px);background:#fff;border-radius:23px;padding:26px;box-shadow:0 18px 70px rgba(0,0,0,.16);color:var(--tm-dark)}
-.tm-modal>h2,.tm-modal-heading h2{font-size:24px;line-height:1.22;margin:0 0 16px;display:flex;align-items:center;gap:9px}
-.tm-modal-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:15px;margin-bottom:16px}.tm-modal-heading h2{margin:5px 0 0}
-.tm-pin-modal>.tm-close{position:absolute;right:14px;top:14px}.tm-pin-modal .tm-muted{margin:0 0 19px}.tm-modal .tm-muted{font-size:15px}
-.tm-lock-icon{width:57px;height:57px;color:var(--tm-green);background:#e6f5eb;border-radius:17px;display:grid;place-items:center;margin:0 0 18px}
-.tm-input-icon{display:flex;align-items:center;border:1px solid #cfdcd2;border-radius:12px;background:#fff;overflow:hidden;padding-left:12px;min-height:52px;gap:8px}.tm-input-icon>svg{color:var(--tm-green);flex:none}.tm-input-icon input{border:0;box-shadow:none;flex:1;width:1%;min-width:0;padding:12px 2px}.tm-input-icon button{background:transparent;border:0;min-height:48px;min-width:49px;color:#647a69;display:grid;place-items:center}
-.tm-modal .tm-error,.tm-error{background:#fff0f0;color:#a13939;border:1px solid #f2d1d1;border-radius:12px;padding:13px 14px;font-size:14px}
-.tm-summary-result{white-space:pre-wrap;overflow-wrap:anywhere;background:#f2f8f4;border:1px solid #d9eade;border-radius:13px;padding:16px;color:var(--tm-dark);font-size:14px;line-height:1.7;max-height:50vh;overflow:auto}
-.tm-footnote{display:flex;align-items:center;gap:7px;justify-content:center;color:#708174;font-size:12px;font-weight:500;margin:0;line-height:1.5}
-/* Password page & welcome */
-.tm-access-screen,.tm-welcome-screen{min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:25px 16px}
-.tm-access-card,.tm-welcome-card{width:min(100%,430px);background:#fff;padding:35px 27px;border:1px solid var(--tm-line);border-radius:25px;box-shadow:0 10px 35px rgba(24,58,36,.05)}
-.tm-access-card .tm-lock-icon{margin:0 auto 16px}.tm-access-card h1{text-align:center;font-size:34px;margin:0 0 8px;color:var(--tm-dark)}.tm-access-copy{text-align:center;font-size:15px;color:var(--tm-muted);line-height:1.6;margin:0 0 24px}
-.tm-access-card .tm-stack{gap:18px}.tm-access-card .tm-footnote{margin-top:17px}
-.tm-return{display:inline-flex;align-items:center;gap:7px;min-height:48px;color:var(--tm-green)!important;font-weight:700;font-size:14px}
-.tm-welcome-card{text-align:center}.tm-warning-icon{color:#9a6211;background:#fff6e4;width:60px;height:60px;display:grid;place-items:center;margin:0 auto 17px;border-radius:18px}
-.tm-welcome-card h2{font-size:27px;margin:10px 0 15px}.tm-typing{white-space:pre-line;min-height:105px;border:1px solid #f3e4c7;background:#fffbf0;border-radius:14px;color:#593d1a;font-size:17px;font-weight:750;padding:17px 12px;line-height:1.7}
-.tm-caret{display:inline;color:#b97d25}.tm-welcome-card>p:not(.tm-eyebrow){font-size:15px;color:var(--tm-muted);margin:15px 0 20px}
-.tm-loading{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:15px;min-height:100dvh;color:var(--tm-green)}.tm-spinner{border-radius:50%;width:33px;height:33px;border:4px solid #d6e9dc;border-top-color:var(--tm-green);animation:tm-spin .8s linear infinite}@keyframes tm-spin{to{transform:rotate(360deg)}}
-@media(max-width:850px){
- .tm-page{padding-bottom:calc(92px + env(safe-area-inset-bottom))}
- .tm-page .tm-shell{width:min(100% - 28px,680px)}
- .tm-sidebar{display:none}.tm-body{display:block;padding:8px 0 15px}
- .tm-topbar{margin-bottom:15px;padding:14px 0}
- .tm-mobile-nav{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));position:fixed;bottom:0;left:0;right:0;z-index:2500;background:#fff;border-top:1px solid #dae7dd;padding:8px max(8px,env(safe-area-inset-left)) calc(8px + env(safe-area-inset-bottom));box-shadow:0 -3px 15px rgba(18,62,29,.055)}
- .tm-mobile-nav button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:transparent;border:0;border-radius:12px;color:#77877b;min-height:56px;font-weight:700;font-size:11px;padding:6px 2px;white-space:nowrap}
- .tm-mobile-nav button.tm-current{background:#e7f6eb;color:var(--tm-green)}
- .tm-footer{display:none}
- .tm-panel{padding:20px 17px;border-radius:17px}
-}
-@media(max-width:390px){
- .tm-page .tm-shell{width:calc(100% - 22px)}
- .tm-choice{gap:10px;padding:12px;min-height:86px}
- .tm-choice-icon{width:49px;height:49px;flex-basis:49px}
- .tm-choice-text strong{font-size:15px}.tm-choice-text small{font-size:12px}
- .tm-choice-trailing em{display:none}
- .tm-prayer-legend,.tm-prayer-row{grid-template-columns:minmax(65px,1fr) minmax(75px,1fr) minmax(75px,1fr);gap:6px}
- .tm-prayer-choice{font-size:12px}.tm-prayer-choice svg{width:15px}
- .tm-panel{padding:17px 12px}.tm-prayer-row strong{font-size:15px}
- .tm-week-strip{gap:2px}.tm-week-day{min-height:67px}.tm-week-day strong{font-size:14px}
- .tm-task-card{padding:14px}.tm-modal{padding:22px 17px}
- .tm-brand{font-size:20px}.tm-home-event{flex-wrap:wrap}
-}
-@media(prefers-reduced-motion:reduce){.tm-page *{animation-duration:.001ms!important;transition-duration:.001ms!important;scroll-behavior:auto!important}}
-
 /* ============================================================
-   Track Me v4 — English, human-friendly, mobile-first experience
-   Focus: one readable Today screen, clear actions, calm cards.
-   Existing forms, privacy, Redis actions and history stay intact.
-   ============================================================ */
-body:has(.tm-page){background:#f5f6f2}
-.tm-page{
-  --tm-green:#1b7355;--tm-dark:#20362e;--tm-muted:#65746c;--tm-line:#e5eae3;
-  background:#f5f6f2!important;color:var(--tm-dark);min-height:100dvh;
-  padding-bottom:calc(110px + env(safe-area-inset-bottom));
+   Track Me V7 | Professional family journal
+   Frontend-only visual layer. Existing /api/track and data unchanged.
+   Mobile first, system-ui, accessible touch controls, compact chat.
+============================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;450;500;550;600;650;700;750&family=Noto+Naskh+Arabic:wght@400;500;600&display=swap');
+
+body:has(.tm-page) .navbar,
+body:has(.tm-page) .floating-actions {display:none!important}
+body:has(.tm-page) {background:#f5f7f6}
+
+.tm-page {
+  --tm-ink:#172a27;
+  --tm-sub:#65756f;
+  --tm-accent:#246c55;
+  --tm-dark:#123b31;
+  --tm-line:#e3eae6;
+  --tm-canvas:#f5f7f6;
+  --tm-white:#fff;
+  position:relative;
+  isolation:isolate;
+  color:var(--tm-ink);
+  background:var(--tm-canvas);
+  min-height:100dvh;
+  padding:0 0 38px;
+  font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif!important;
+  font-size:14px;
+  font-weight:400;
+  line-height:1.55;
+  color-scheme:light;
   -webkit-font-smoothing:antialiased;
 }
-.tm-page .tm-shell{width:min(calc(100% - 32px),660px);max-width:660px;margin:0 auto}
-.tm-page .tm-body{display:block;padding:0 0 24px}
-.tm-page .tm-sidebar{display:none!important}
-.tm-page .tm-content-area{width:100%;max-width:100%}
-.tm-page .tm-footer{display:none}
-.tm-page .tm-topbar{margin:0 0 22px;padding:19px 2px;border-color:transparent}
-.tm-brand{gap:10px!important;font-size:19px!important;letter-spacing:-.035em}
-.tm-brand-mark{width:36px;height:36px;border-radius:12px;background:#1a7453}
-.tm-topbar-lock{background:transparent;border:0;color:#63766a;font-size:13px;font-weight:650;padding:0 4px}
-.tm-topbar-lock:hover{color:#17694e}
-.tm-page .tm-mobile-nav{
-  display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr));
-  position:fixed;left:50%;bottom:0;right:auto;transform:translateX(-50%);
-  width:min(100%,660px);z-index:2500;background:rgba(255,255,255,.97);
-  border:1px solid #e3e9e0;border-bottom:0;box-shadow:0 -8px 30px rgba(35,65,44,.07);
-  border-radius:20px 20px 0 0;
-  padding:9px 10px calc(10px + env(safe-area-inset-bottom));
-  backdrop-filter:blur(12px)
+.tm-page *, .tm-page *::before,.tm-page *::after {box-sizing:border-box}
+.tm-page button,.tm-page input,.tm-page textarea,.tm-page select {font:inherit;letter-spacing:normal}
+.tm-page button {cursor:pointer}
+.tm-page button:disabled {opacity:.55;cursor:not-allowed}
+.tm-page input,.tm-page textarea,.tm-page select {background:#fff;color:var(--tm-ink)}
+.tm-page input::placeholder,.tm-page textarea::placeholder {color:#99a6a0}
+.tm-page select option {color:var(--tm-ink)}
+.tm-page button:focus-visible,.tm-page input:focus-visible,.tm-page textarea:focus-visible,
+.tm-page select:focus-visible,.tm-page a:focus-visible,.tm-page summary:focus-visible {
+  outline:2px solid #3b8a70;outline-offset:3px;
 }
-.tm-page .tm-mobile-nav button{
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
-  min-height:53px;min-width:0;padding:5px 0;border:0;border-radius:12px;
-  font-size:11px;font-weight:750;color:#758479;background:transparent;
-  white-space:nowrap
+.tm-page h1,.tm-page h2,.tm-page h3,.tm-page h4 {
+  color:var(--tm-ink);font-family:inherit!important;font-weight:650;
+  letter-spacing:-.035em;line-height:1.27;margin:0;
 }
-.tm-page .tm-mobile-nav button svg{width:22px;height:22px}
-.tm-page .tm-mobile-nav button.tm-current{background:#eaf4ed;color:#176c50}
-.tm-page .tm-back-home{min-height:44px;font-size:14px;margin:1px 0 13px}
-.tm-today{display:flex;flex-direction:column;gap:15px;padding:0 1px 12px}
-.tm-today-intro{padding:10px 2px 10px}
-.tm-today-intro .tm-day-label{
-  display:flex;align-items:center;gap:8px;color:#668373;font-size:10px;
-  font-weight:850;letter-spacing:.115em
+.tm-page p {margin:0;letter-spacing:normal}
+.tm-page a {color:inherit;text-decoration:none}
+.tm-page :is([lang="ur"], [dir="rtl"]) {
+  font-family:'Noto Naskh Arabic','Noto Sans Arabic',Tahoma,'Segoe UI',sans-serif;
+  font-weight:400;letter-spacing:0;
 }
-.tm-day-dot{width:8px;height:8px;border-radius:50%;background:#63b88c;box-shadow:0 0 0 4px #e3f2e7}
-.tm-today-intro h1{
-  font-size:clamp(29px,7vw,40px);letter-spacing:-.048em!important;line-height:1.15;
-  margin:13px 0 6px;color:#192f26;font-weight:850
+.tm-page svg {flex-shrink:0;stroke-width:1.8}
+.tm-shell {width:min(100% - 40px,840px);margin:0 auto}
+.tm-muted {color:var(--tm-sub);font-size:13px;line-height:1.65}
+.tm-eyebrow {font-size:11px;letter-spacing:.12em;font-weight:700;color:var(--tm-accent)}
+.tm-wide {width:100%}
+.tm-stack {display:flex;flex-direction:column;gap:16px}
+.tm-page :is(.tm-primary,.tm-text-button,.tm-quiet-btn,.tmv-add-task,.tmv-owner-quick) {
+  min-height:48px;border-radius:10px;padding:11px 17px;
+  display:inline-flex;align-items:center;justify-content:center;gap:10px;
+  font-size:14px;font-weight:600;border:1px solid transparent;
+  transition:background .16s ease,border-color .16s ease,transform .16s ease;
 }
-.tm-today-intro h1 span{font-size:.73em;color:#e6a94d;vertical-align:3px;margin-left:3px}
-.tm-today-intro p{margin:0;color:#738477;font-size:15px;font-weight:500}
-.tm-today-heading{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:3px 2px 0}
-.tm-today-heading h2{margin:0;font-size:19px;font-weight:800;letter-spacing:-.028em!important}
-.tm-today-heading>span{font-size:12px;color:#879388}
-.tm-today-heading-second{margin-top:10px}
-.tm-home-card{
-  width:100%;border:1px solid #e2e8df;border-radius:22px;background:#fff;
-  box-shadow:0 4px 22px rgba(21,58,33,.035);padding:19px 20px;
-  text-align:left;color:#20362e;display:flex;flex-direction:column;gap:13px;
-  transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease;
+.tm-primary {background:#20654f;color:#fff!important}
+.tm-primary:hover:not(:disabled) {background:#164f3d}
+.tm-text-button {background:transparent;color:var(--tm-sub);border-color:transparent!important}
+.tm-text-button:hover {color:var(--tm-ink)}
+.tm-quiet-btn {background:#eef3f0;color:var(--tm-ink);border-color:#e0e8e3}
+.tm-page .tm-close,.tm-page .tm-icon-btn {
+  min-width:44px;min-height:44px;background:#f2f5f3;border:1px solid transparent;
+  color:#62766b;border-radius:10px;display:grid;place-items:center;padding:9px;
 }
-.tm-home-card:active,.tm-life-item:active{transform:scale(.992)}
-.tm-home-card:hover,.tm-life-item:hover{border-color:#bfdbcb;box-shadow:0 7px 24px rgba(21,58,33,.07)}
-.tm-home-card-header{display:flex;align-items:center;gap:12px;width:100%}
-.tm-home-card-header>svg:last-child{margin-left:auto;color:#9baaa0;flex-shrink:0}
-.tm-home-icon{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;flex-shrink:0}
-.tm-home-icon-prayer{background:#eaf5ee;color:#18724f}
-.tm-home-icon-quran{background:#edf0ff;color:#5066a3}
-.tm-home-card-title{display:flex;flex-direction:column;gap:2px;min-width:0}
-.tm-home-card-title strong{font-size:17px;line-height:1.3;font-weight:800}
-.tm-home-card-title small{color:#748476;font-size:13px;font-weight:500}
-.tm-home-prayer{background:#fff}
-.tm-home-prayers{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:3px;margin:4px 0 0;width:100%}
-.tm-home-prayer{display:flex;flex-direction:column;align-items:center;gap:7px;color:#637368;font-size:11px;font-weight:700;min-width:0}
-.tm-home-prayer-ring{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;border:1.5px solid #e0e6df;background:#f6f8f5;color:#92a398}
-.tm-home-prayer-ring.tm-home-prayer-done{background:#e0f4e7;color:#18734c;border-color:#cae8d4}
-.tm-home-prayer-empty{width:7px;height:7px;border-radius:50%;background:#d1dcd3}
-.tm-home-card-link{display:inline-flex;align-items:center;gap:5px;color:#1b7355;font-size:13px;font-weight:750;margin-top:4px}
-.tm-quran-hero-count{font-size:22px;font-weight:850;line-height:1.2;letter-spacing:-.025em;color:#233a34}
-.tm-quran-mid-dot{color:#abb8af}
-.tm-card-subnote{font-size:13px;color:#7b887f;margin-top:-5px}
-.tm-life-list{border-radius:21px;background:#fff;border:1px solid #e3e8df;overflow:hidden;box-shadow:0 4px 18px rgba(21,58,33,.022)}
-.tm-life-item{display:flex;align-items:center;gap:13px;width:100%;min-height:91px;padding:15px 17px;background:#fff;border:0;border-bottom:1px solid #eef1ec;text-align:left;color:#20362e}
-.tm-life-item:last-child{border-bottom:0}
-.tm-life-icon{display:grid;place-items:center;flex-shrink:0;width:46px;height:46px;border-radius:15px;background:#fff1dc;color:#94672c}
-.tm-life-university .tm-life-icon{background:#eaf2ff;color:#547bb0}
-.tm-life-personal .tm-life-icon{background:#fff0f1;color:#b65a6f}
-.tm-life-copy{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}
-.tm-life-copy strong{font-size:16px;line-height:1.25;font-weight:800}
-.tm-life-copy>span{font-size:13px;color:#64796a}
-.tm-life-copy small{font-size:12px;color:#8a998c;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
-.tm-life-arrow{color:#a4b2a5;flex-shrink:0}
-.tm-explain-card{border:1px solid #d8e7dd;border-radius:21px;background:linear-gradient(140deg,#eff7f0,#f5faf4);padding:21px 19px;display:flex;flex-direction:column;gap:14px;margin-top:8px}
-.tm-explain-top{display:flex;align-items:flex-start;gap:12px}
-.tm-explain-icon{display:grid;place-items:center;width:43px;height:43px;border-radius:14px;flex-shrink:0;background:#dbeee0;color:#196b4e}
-.tm-explain-top strong{font-size:17px;font-weight:800}
-.tm-explain-top p{font-size:14px;line-height:1.5;color:#607868;margin:4px 0 0}
-.tm-explain-btn{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;min-height:54px;background:#19724f;border:1px solid #19724f;border-radius:15px;color:#fff;font-size:15px;font-weight:800;padding:10px}
-.tm-explain-btn:disabled{opacity:.58}
-.tm-explain-card>small{font-size:12px;color:#81978a;text-align:center}
-.tm-inline-summary{margin-top:4px;max-height:none;line-height:1.6;font-size:15px}
-.tm-page .tm-home-hint{font-size:12px;justify-content:center;margin:13px 0 1px;color:#88968c}
-/* Detail screens: natural one-column steps, no dashboard framing. */
-.tm-page .tm-panel{border:1px solid #e2e8df;border-radius:22px;padding:22px 20px;box-shadow:0 4px 20px rgba(22,56,40,.03)}
-.tm-page .tm-panel-head h2{font-size:clamp(23px,5vw,29px);letter-spacing:-.04em!important}
-.tm-page .tm-panel-head p{font-size:14px;line-height:1.5}
-.tm-page .tm-primary{background:#1b7355;border-color:#1b7355;font-size:15px;font-weight:750}
-.tm-page .tm-update-button{justify-content:space-between;border-radius:14px}
-.tm-page .tm-prayer-row{min-height:69px}
-.tm-page .tm-prayer-choice{min-height:49px;border-radius:13px}
-.tm-page .tm-prayer-choice.tm-picked{background:#e0f5e9;color:#176d4c}
-.tm-page .tm-reading-count{border-radius:16px}
-.tm-page .tm-task-card{box-shadow:none;border-radius:16px;padding:17px}
-.tm-page .tm-task-list{gap:11px}
-.tm-page .tm-task-top{gap:8px;flex-wrap:wrap}
-.tm-page .tm-task-top h3{font-size:17px}
-.tm-page .tm-more-panel{border-radius:20px;box-shadow:0 3px 19px rgba(22,56,40,.025)}
-.tm-page .tm-modal{border-radius:22px}
-@media(max-width:450px){
-  .tm-page .tm-shell{width:calc(100% - 24px)}
-  .tm-page .tm-topbar{margin-bottom:14px}
-  .tm-today{gap:13px}
-  .tm-today-intro{padding:4px 2px 7px}
-  .tm-today-heading>span{font-size:11px}
-  .tm-home-card{padding:17px 15px;border-radius:19px}
-  .tm-home-prayer-ring{width:37px;height:37px}
-  .tm-life-item{padding:13px;gap:11px;min-height:83px}
-  .tm-life-icon{width:42px;height:42px}
-  .tm-life-copy strong{font-size:15px}
-  .tm-life-copy>span{font-size:12px}
-  .tm-page .tm-panel{padding:18px 14px}
-  .tm-page .tm-mobile-nav{border-radius:17px 17px 0 0}
-}
-@media(min-width:851px){
-  .tm-page{padding-bottom:105px}
-  .tm-page .tm-shell{max-width:660px;width:min(calc(100% - 48px),660px)}
-  .tm-page .tm-body{display:block}
-}
-/* Reading-first task cards: progress is visible before any tap. */
-.tm-task-latest{padding:14px 15px;margin:13px 0 3px;border-left:3px solid #64af88;background:#f3f9f4;border-radius:0 12px 12px 0}
-.tm-task-latest>span{color:#5f856e;font-size:12px;font-weight:750}
-.tm-task-latest p{margin:5px 0 0;font-size:14px;line-height:1.55;color:#263d2e;white-space:pre-wrap;overflow-wrap:anywhere}
-.tm-owner-add{margin:19px 0 0!important}
-.tm-owner-add summary{min-height:50px;display:flex;align-items:center;gap:8px;color:#708077!important;font-size:14px!important;font-weight:650!important}
-.tm-owner-add .tm-quiet-btn{margin-top:12px}
-/* =====================================================
-   Track Me V5 — Family update / reading-first experience.
-   Additive styles scoped to .tm-page; portfolio untouched.
-===================================================== */
-body:has(.tmv-family){background:#f5f7f2}
-.tm-page.tmv-family{--tmv-ink:#1e332b;--tmv-muted:#657469;--tmv-green:#1d6a4e;--tmv-line:#e5ebe1;background:#f5f7f2;color:var(--tmv-ink);min-height:100vh;padding-bottom:35px;font-size:16px;line-height:1.5;color-scheme:light}
-.tm-page.tmv-family .tmv-shell{width:min(100% - 36px,650px);margin:0 auto}
-.tmv-header{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:20px 0 22px;border-bottom:1px solid #e0e8df}
-.tmv-brand{display:flex;align-items:center;gap:11px;padding:0;text-align:left;color:#173528;background:none;border:0;min-width:0}
-.tmv-logo{display:grid;place-items:center;width:42px;height:42px;flex-shrink:0;border-radius:15px;background:#216e51;color:white}
-.tmv-brand>span:last-child{display:flex;flex-direction:column;min-width:0;gap:1px}
-.tmv-brand strong{font-size:18px;letter-spacing:-.035em;line-height:1.25;font-weight:850}
-.tmv-brand small{color:#7c897c;font-size:12px;font-weight:550}
-.tmv-logout{min-height:43px;display:flex;align-items:center;justify-content:center;gap:7px;border:1px solid #e4e9e1;border-radius:13px;background:white;padding:9px 12px;color:#4a6154;font-size:13px;font-weight:750;flex-shrink:0}
-.tmv-family-view{padding-top:25px;display:flex;flex-direction:column;gap:16px}
-.tmv-intro{padding:5px 2px 3px}
-.tmv-pill{display:inline-flex;align-items:center;gap:7px;padding:6px 11px;border:1px solid #d7e6d9;border-radius:999px;background:#eaf4ea;font-size:10px;letter-spacing:.13em;font-weight:850;color:#377151}
-.tmv-live-dot{width:7px;height:7px;border-radius:50%;background:#33a16b}
-.tmv-intro h1{font-size:clamp(32px,7.6vw,45px)!important;letter-spacing:-.055em!important;line-height:1.07!important;font-weight:870!important;margin:15px 0 10px!important;color:#16392c}
-.tmv-intro h1 em{font-style:normal;color:#1c7652}
-.tmv-intro p{color:#66786a;font-size:15px;line-height:1.6;margin:0}
-.tmv-day-nav{display:flex;align-items:center;justify-content:space-between;gap:9px;border:1px solid #e0e8dc;border-radius:20px;background:white;padding:11px;box-shadow:0 4px 20px rgba(20,61,41,.03)}
-.tmv-day-nav>button{display:grid;place-items:center;flex-shrink:0;border:0;border-radius:12px;background:#eef5ee;color:#29694e;width:48px;height:48px;min-width:48px;min-height:48px}
-.tmv-day-nav>button:disabled{background:#f5f7f4;color:#bec9bb;opacity:.66}
-.tmv-day-center{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;text-align:center;min-width:0}
-.tmv-day-center span{font-size:10px;letter-spacing:.15em;color:#3d8a65;font-weight:850}
-.tmv-day-center strong{font-size:14px;font-weight:850;color:#294737;line-height:1.3}
-.tmv-group-title{display:flex;justify-content:space-between;align-items:end;gap:7px;margin:8px 2px -3px}
-.tmv-group-title h2{font-size:21px;font-weight:850;margin:0;color:#193f2c;letter-spacing:-.036em}
-.tmv-group-title span{font-size:12px;color:#91a092;text-align:right}
-.tmv-story-card{background:white;border:1px solid #e3eae1;border-radius:22px;padding:19px;box-shadow:0 4px 21px rgba(28,65,41,.035);display:flex;flex-direction:column;gap:13px}
-.tmv-card-heading{display:flex;align-items:center;gap:11px}
-.tmv-card-heading h2{font-size:18px;font-weight:850;margin:0;color:#1d382b;letter-spacing:-.02em}
-.tmv-card-icon{width:41px;height:41px;border-radius:14px;display:grid;place-items:center;background:#e8f4eb;color:#227a55;flex-shrink:0}
-.tmv-quran-card .tmv-card-icon{background:#eef0fc;color:#6a65b3}
-.tmv-story-office .tmv-card-icon{background:#fff3e0;color:#a76f2b}
-.tmv-story-university .tmv-card-icon{background:#e9f0ff;color:#567cb1}
-.tmv-story-personal .tmv-card-icon{background:#fff0f1;color:#bf6474}
-.tmv-prayer-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}
-.tmv-prayer-head strong{font-size:14px;color:#247452}
-.tmv-prayer-head span{font-size:12px;color:#8a9a8b}
-.tmv-prayer-five{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:2px}
-.tmv-prayer-one{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0;text-align:center}
-.tmv-prayer-mark{width:41px;height:41px;border-radius:50%;border:1.5px solid #dfe8de;background:#f6f8f5;display:grid;place-items:center;color:#b5c1b4;font-weight:800}
-.tmv-prayer-mark.tmv-yes{background:#dcf4e3;border-color:#c6e9d0;color:#22744d}
-.tmv-prayer-one strong{font-size:11px;color:#394f3d}
-.tmv-prayer-one small{font-size:10px;color:#98a59b;white-space:nowrap}
-.tmv-reading-number{display:flex;align-items:baseline;gap:11px;background:#f4f5fe;border-radius:15px;padding:12px 17px;color:#414985}
-.tmv-reading-number strong{font-size:38px;line-height:1;font-weight:850}
-.tmv-reading-number span{font-weight:750;font-size:15px}
-.tmv-reading-list{display:flex;flex-direction:column;gap:8px}
-.tmv-reading-line{display:flex;align-items:flex-start;gap:8px;color:#4e6258;font-size:14px}
-.tmv-reading-line svg{color:#6d69a6;flex-shrink:0;margin-top:2px}
-.tmv-update-list{display:flex;flex-direction:column;gap:9px}
-.tmv-daily-note{background:#f5f9f5;border-left:3px solid #69b58a;border-radius:0 12px 12px 0;padding:11px 13px}
-.tmv-daily-note strong{display:block;color:#2e5841;font-size:13px}
-.tmv-daily-note small{display:block;color:#7a9180;font-size:12px;margin-top:2px}
-.tmv-daily-note p{font-size:15px;line-height:1.55;color:#283f34;white-space:pre-wrap;overflow-wrap:anywhere;margin:5px 0 0}
-.tmv-more-count{font-size:13px;margin:0;color:#779280}
-.tmv-empty-note{margin:2px 0 0;color:#718375;font-size:14px;line-height:1.65}
-.tmv-read-more{min-height:47px;display:flex;align-items:center;justify-content:space-between;gap:8px;border:0;border-top:1px solid #edf0eb;background:transparent;text-align:left;margin:4px 0 -7px;padding:11px 0 4px;color:#217350;font-size:14px;font-weight:800}
-.tmv-upcoming{background:#f5f8ff;border-radius:13px;padding:12px}
-.tmv-upcoming>strong{display:block;color:#5173a7;font-size:12px;letter-spacing:.03em;margin-bottom:7px}
-.tmv-upcoming p{display:flex;align-items:center;gap:7px;margin:5px 0;color:#4d627d;font-size:13px}
-.tmv-upcoming svg{flex-shrink:0}
-.tmv-empty-day{display:flex;gap:11px;background:#fff9e8;border:1px solid #f4e8bd;color:#847035;padding:13px 15px;border-radius:16px;font-size:13px;line-height:1.5}
-.tmv-empty-day svg{flex-shrink:0}
-.tmv-ai-card{background:#173d2f;color:#fff;border-radius:24px;padding:24px 21px;display:flex;flex-direction:column;gap:9px;margin-top:9px;box-shadow:0 10px 30px rgba(28,63,43,.1)}
-.tmv-ai-icon{background:#2a5f49;border-radius:13px;display:grid;place-items:center;width:43px;height:43px;color:#d0ffb8;margin-bottom:3px}
-.tmv-ai-card h2{font-size:22px;letter-spacing:-.035em;font-weight:850;margin:0;color:#fff}
-.tmv-ai-card p{font-size:14px;line-height:1.7;color:#d4e4d9;margin:0 0 8px}
-.tmv-ai-main{width:100%;min-height:53px;display:flex;align-items:center;justify-content:center;gap:8px;border-radius:14px;border:0;background:#d8f4bf;color:#21402a;font-size:15px;font-weight:850;padding:10px}
-.tmv-ai-week{border:0;display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:42px;color:#d8f6dc;font-size:13px;font-weight:800;background:transparent}
-.tmv-ai-card>small{font-size:11px;line-height:1.5;color:#b3cbb9;margin-top:5px}
-.tmv-ai-result{white-space:pre-wrap;line-height:1.65;overflow-wrap:anywhere;font-size:14px;background:#fff;color:#264334;padding:16px;border-radius:14px;margin:6px 0}
-.tmv-owner-quick{display:flex;justify-content:center;align-items:center;gap:10px;background:#e7f1e9;color:#186545;border:1px solid #ccddce;padding:14px;border-radius:15px;font-weight:800;font-size:14px;min-height:50px}
-.tmv-end-note{display:flex;align-items:center;justify-content:center;gap:5px;color:#9cad9f;font-size:12px;margin:7px 0 0}
-.tmv-back{display:inline-flex;align-items:center;gap:9px;background:transparent;border:0;margin-top:17px;padding:10px 1px;color:#286d4e;font-size:14px;font-weight:800;min-height:45px}
-.tmv-detail-view{display:flex;flex-direction:column;gap:18px;padding:22px 0 16px}
-.tmv-detail-heading{display:flex;gap:14px;align-items:flex-start}
-.tmv-detail-heading>svg{flex-shrink:0;width:43px;height:43px;padding:10px;background:#e6f4eb;color:#257553;border-radius:13px}
-.tmv-detail-heading h2{font-size:27px;line-height:1.2;letter-spacing:-.04em;margin:0;color:#183e2d}
-.tmv-detail-heading p{font-size:14px;color:#778879;margin:5px 0 0}
-.tmv-reassurance{font-size:13px;line-height:1.65;color:#7a897b;margin:-4px 2px 1px}
-.tmv-subheading{font-size:18px;margin:12px 0 -4px;color:#244735;font-weight:850}
-.tmv-week-list,.tmv-task-list,.tmv-history-items{display:flex;flex-direction:column;gap:11px}
-.tmv-week-list button{display:flex;justify-content:space-between;align-items:center;min-height:59px;padding:13px 15px;border:1px solid #e1e9df;border-radius:15px;background:white;color:#43594a}
-.tmv-week-list button.tmv-active-day{border-color:#8fcba7;background:#eaf6ee}
-.tmv-week-list button strong{font-size:14px}.tmv-week-list button span{display:flex;gap:5px;align-items:center;font-size:13px;color:#6a8473}
-.tmv-task-card,.tmv-reading-history{background:white;border:1px solid #e2e9df;border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:9px}
-.tmv-task-title{display:flex;gap:9px;align-items:center;justify-content:space-between;flex-wrap:wrap}
-.tmv-task-title h3{margin:0;color:#213d2d;font-size:17px;line-height:1.35;font-weight:850}
-.tmv-task-status{display:inline-flex;border-radius:999px;padding:5px 10px;background:#f1f3ef;color:#748276;font-size:11px;font-weight:850}
-.tmv-status-done{background:#e5f5e8;color:#28704a}.tmv-status-in_progress{background:#fff3dc;color:#966725}
-.tmv-task-meta{color:#56725f;font-weight:750;font-size:13px;margin:0}
-.tmv-task-description{color:#6b7b6d;font-size:14px;line-height:1.55;margin:0}
-.tmv-task-update{background:#f1f8f2;padding:12px 14px;border-left:3px solid #69b889;border-radius:0 11px 11px 0}
-.tmv-task-update small,.tmv-log-entry small{font-size:12px;color:#59836b;font-weight:750}
-.tmv-task-update p,.tmv-log-entry p{font-size:14px;color:#2f4535;line-height:1.65;margin:4px 0 0;white-space:pre-wrap;overflow-wrap:anywhere}
-.tmv-log-history{border:0!important;border-top:1px solid #e9eee7!important;border-radius:0!important;padding:7px 0 0!important;margin:0!important}
-.tmv-log-entry{padding:9px 0;border-bottom:1px solid #edf1eb}
-.tmv-owner-card-actions{display:flex;align-items:center;gap:8px;border-top:1px solid #e7eee5;padding-top:12px}
-.tmv-owner-card-actions button{background:#f0f5f0;border:0;color:#327353;border-radius:12px;min-width:42px;min-height:45px;display:flex;align-items:center;justify-content:center;gap:8px;padding:9px 13px;font-size:13px;font-weight:800}
-.tmv-owner-card-actions .tmv-write-update{flex:1}
-.tmv-note-editor{background:#f8faf7;border:1px solid #e5ebe3;border-radius:13px;padding:13px;display:flex;flex-direction:column;gap:13px}
-.tmv-note-editor form{display:flex;flex-direction:column;gap:10px}
-.tmv-prayer-edit-list{display:flex;flex-direction:column;gap:9px}
-.tmv-owner-section,.tmv-owner-quran{background:#fff;border:1px solid #e5ebe0;border-radius:18px;padding:17px}
-.tmv-owner-label{font-size:11px;color:#56806a;letter-spacing:.05em;font-weight:850;margin:0 0 12px}
-.tmv-edit-prayer-row{display:grid;grid-template-columns:minmax(60px,1fr) minmax(0,1fr) minmax(0,1fr);align-items:center;gap:9px}
-.tmv-edit-prayer-row strong{font-size:14px;color:#2d4c36}
-.tmv-edit-prayer-row button{display:flex;justify-content:center;align-items:center;gap:3px;border:1px solid #dce9de;background:#f6f8f4;border-radius:12px;color:#708374;min-height:50px;min-width:0;padding:8px;font-size:13px;font-weight:800}
-.tmv-edit-prayer-row button.tmv-selected{background:#d8f1e2;color:#20714f;border-color:#b7dfc5}
-.tmv-owner-quran h3{font-size:19px;margin:0;color:#214e37}
-.tmv-quran-stat{display:flex;align-items:baseline;gap:10px;background:#eaeefc;border-radius:18px;padding:16px;color:#475887}
-.tmv-quran-stat strong{font-size:37px;line-height:1;font-weight:850}
-.tmv-quran-stat span{font-size:14px;font-weight:750}
-.tmv-reading-history{flex-direction:row;align-items:flex-start;gap:12px}
-.tmv-book-symbol{display:grid;place-items:center;flex-shrink:0;width:37px;height:37px;border-radius:12px;background:#e7eafb;color:#5365a2}
-.tmv-reading-history>div{display:flex;flex-direction:column;gap:4px;flex:1;min-width:0}
-.tmv-reading-history strong{font-size:14px;color:#294532}
-.tmv-reading-history small{font-size:12px;color:#7c8b80}
-.tmv-reading-history p{font-size:13px;margin:0;color:#66746a}
-.tmv-reading-history button{display:grid;place-items:center;width:40px;height:42px;border:0;border-radius:12px;background:#fff2f1;color:#b4554a}
-.tmv-add-task{display:inline-flex;align-items:center;justify-content:center;gap:9px;border:0;background:#196947;color:#fff;border-radius:14px;min-height:51px;padding:12px 14px;font-weight:800;font-size:14px}
-.tmv-filter-details{background:white;border-radius:14px;padding:12px}
-.tmv-owner-banner{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 13px;margin:13px 0 -8px;border:1px solid #a5dab8;border-radius:14px;background:#e8f6ea;color:#246b4c;font-size:13px}
-.tmv-owner-banner>span{display:flex;align-items:center;gap:6px;font-weight:800}.tmv-owner-banner button{border:0;border-radius:10px;padding:9px;background:#247452;color:white;font-weight:800;font-size:12px}
-.tmv-notice{display:flex;align-items:center;gap:8px;border-radius:12px;margin-top:15px;padding:12px;border:1px solid #c5e6cd;background:#eaf6e9;color:#2f6b47;font-size:13px}
-.tmv-notice span{flex:1}.tmv-notice button{background:transparent;border:0;color:inherit}
-.tmv-bottom{display:flex;flex-direction:column;align-items:center;gap:3px;padding:25px 0 20px;margin-top:12px;border-top:1px solid #e5ebe2}
-.tmv-owner-link{display:flex;align-items:center;justify-content:center;gap:7px;min-height:45px;padding:10px 17px;background:transparent;border:0;color:#667d6d;text-decoration:underline;text-underline-offset:3px;font-size:13px;font-weight:750}
-.tmv-bottom p{color:#9aab9d;font-size:12px;margin:4px 0}
-@media(max-width:430px){
-  .tm-page.tmv-family .tmv-shell{width:calc(100% - 26px)}
-  .tmv-header{padding:15px 0 17px}
-  .tmv-logo{width:38px;height:38px}
-  .tmv-brand strong{font-size:16px}
-  .tmv-brand small{font-size:11px}
-  .tmv-logout{padding:8px 10px;font-size:12px}
-  .tmv-family-view{gap:13px;padding-top:20px}
-  .tmv-story-card{padding:16px;border-radius:19px}
-  .tmv-day-center strong{font-size:12.5px}
-  .tmv-day-nav{padding:8px}
-  .tmv-day-nav>button{width:43px;min-width:43px;height:47px;min-height:47px}
-  .tmv-prayer-mark{width:37px;height:37px}
-  .tmv-prayer-one strong{font-size:10px}
-  .tmv-prayer-one small{font-size:9px}
-  .tmv-group-title span{font-size:11px}
-}
-@media(prefers-reduced-motion:reduce){.tmv-family *{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+.tm-close:hover,.tm-icon-btn:hover {background:#eaf0ed}
+.tm-page .tm-danger,.tm-page .tm-delete {color:#9f4c49}
 
-/* ============================================================
-   V6 · Family-first editorial design and bilingual summary chat
-   No shared portfolio styles or backend routes are changed.
-============================================================ */
-.tm-page{
-  --tm-green:#195943;--tm-dark:#223329;--tm-muted:#64736a;--tm-line:#dfe6df;
-  font-family:Inter,"Segoe UI",system-ui,-apple-system,sans-serif!important;
-  background:#f8faf7!important;color:var(--tm-dark);font-size:16px;letter-spacing:normal;
+/* ------- Sign in: professional editorial split layout ------- */
+.tm-access-screen,.tm-welcome-screen {
+  min-height:100dvh;display:flex;flex-direction:column;justify-content:center;align-items:center;
+  position:relative;overflow:hidden;
+  background:
+    radial-gradient(ellipse 52% 68% at 3% 100%,rgba(40,113,88,.095),transparent 80%),
+    radial-gradient(ellipse 48% 38% at 100% 0%,rgba(110,157,127,.07),transparent 80%),
+    #f5f7f6;
+  padding:36px 18px;
 }
-.tm-page h1,.tm-page h2,.tm-page h3,.tm-page strong{font-family:inherit;letter-spacing:-.025em;font-weight:700}
-.tm-page button,.tm-page input,.tm-page select,.tm-page textarea{font-family:inherit}
-.tm-page .tm-primary{background:#195943;border-color:#195943;border-radius:12px;font-weight:650;min-height:54px;letter-spacing:0}
-.tm-page .tm-primary:hover:not(:disabled){background:#104734}
-.tm-page.tmv-family{background:#f8faf7!important}
-.tm-page.tmv-family .tmv-shell{max-width:710px;width:min(100% - 38px,710px)}
-.tmv-header{padding:17px 0 15px;border-bottom:1px solid #e4e9e3}
-.tmv-logo{background:#195943;border-radius:12px;width:37px;height:37px}
-.tmv-brand strong{font-size:17px;font-weight:720;letter-spacing:-.025em}
-.tmv-brand small{font-size:12px;color:#6c7b70}
-.tmv-logout{border-color:#e4e9e3;background:#fff;color:#506256;border-radius:11px;min-height:43px;font-weight:600}
-.tmv-family-view{padding-top:26px;gap:15px}
-.tmv-intro{padding:0 2px 2px}
-.tmv-intro-kicker{display:block;font-size:11px;font-weight:680;letter-spacing:.08em;color:#557766;margin:0 0 7px}
-.tmv-intro h1{font-size:clamp(27px,5.8vw,37px)!important;line-height:1.15!important;letter-spacing:-.04em!important;font-weight:735!important;margin:0 0 7px!important;color:#20372b}
-.tmv-intro p{font-size:15px;line-height:1.45;color:#66776d}
-.tmv-day-nav{border-radius:15px;box-shadow:none;padding:8px;background:#fff}
-.tmv-day-nav>button{border-radius:10px;background:#f0f5f0;width:44px;min-width:44px;height:44px;min-height:44px}
-.tmv-day-center span{font-size:10px;font-weight:700;letter-spacing:.065em}
-.tmv-day-center strong{font-size:14px;font-weight:650}
-.tmv-group-title h2{font-size:19px;font-weight:700;letter-spacing:-.02em}
-.tmv-story-card{border-radius:17px;box-shadow:none;padding:19px;gap:13px}
-.tmv-card-heading h2{font-size:17px;font-weight:700;letter-spacing:-.015em}
-.tmv-card-icon{border-radius:12px;width:38px;height:38px}
-.tmv-read-more{font-weight:650}
-.tmv-task-title h3,.tmv-detail-heading h2{font-weight:700}
-.tmv-summary-entry{background:#163d30;border:1px solid #163d30;border-radius:17px;padding:20px;display:flex;flex-direction:column;gap:15px;color:#fff}
-.tmv-summary-entry-text{display:flex;gap:12px;align-items:center}
-.tmv-summary-symbol{display:grid;place-items:center;flex:0 0 42px;width:42px;height:42px;border:1px solid #47735c;border-radius:12px;background:#24513e;color:#d8f4dc}
-.tmv-summary-entry h2{color:#fff;font-size:19px;margin:0 0 3px;line-height:1.3;font-weight:700}
-.tmv-summary-entry p{color:#d7e7dc;font-size:14px;margin:0;line-height:1.55;text-align:left}
-.tmv-summary-entry button{width:100%;display:flex;align-items:center;justify-content:center;position:relative;flex-direction:column;gap:3px;min-height:66px;border:0;border-radius:11px;background:#f4faf4;color:#194b35;padding:11px 35px 11px 15px;font-weight:700;font-size:16px}
-.tmv-summary-entry button span:nth-child(2){font-size:13px;font-weight:500}
-.tmv-summary-entry button>svg{position:absolute;right:15px;top:calc(50% - 10px)}
-.tmv-summary-entry button:hover{background:#e3f2e8}
-/* Clean, adult login: no oversized lock, playful type or gradients. */
-.tm-page .tmv-signin{min-height:100dvh;gap:15px;padding:32px 18px;justify-content:center;background:#f8faf7}
-.tm-page .tmv-signin .tm-access-card{max-width:440px;width:100%;padding:36px 33px 27px;background:#fff;border:1px solid #e2e8e2;border-radius:18px;box-shadow:0 14px 50px rgba(15,44,25,.035)}
-.tmv-signin-wordmark{display:flex;align-items:center;gap:11px;color:#244536;font-weight:730;font-size:12px;letter-spacing:.06em;margin-bottom:39px}
-.tmv-signin-mark{display:grid;place-items:center;background:#195943;color:#fff;width:37px;height:37px;border-radius:10px;font-size:18px;font-weight:700;letter-spacing:0}
-.tmv-wordmark-light{font-weight:450}.tmv-wordmark-dot{color:#83a18c}
-.tmv-login-eyebrow{font-size:11px;color:#608171;font-weight:700;letter-spacing:.07em;margin:0 0 9px}
-.tm-page .tmv-signin h1{text-align:left;font-size:clamp(27px,6vw,36px);line-height:1.17;margin:0 0 12px;color:#193b2e;font-weight:735;letter-spacing:-.04em}
-.tm-page .tmv-signin .tm-access-copy{text-align:left;font-size:15px;line-height:1.55;color:#687b6f;margin:0 0 30px}
-.tm-page .tmv-signin .tm-field>span{font-size:13px;color:#2f4939;font-weight:650}
-.tm-page .tmv-signin .tm-input-icon{border-color:#dce6de;border-radius:11px;min-height:55px}
-.tm-page .tmv-signin .tm-input-icon:focus-within{border-color:#548d69}
-.tm-page .tmv-signin .tm-input-icon input{font-size:16px;min-height:50px}
-.tm-page .tmv-signin .tm-primary{margin-top:2px;font-size:15px}
-.tmv-signin-note{display:flex;justify-content:center;align-items:center;gap:7px;font-size:12px;color:#819084;margin:23px 0 0}
-.tm-page .tmv-signin .tm-return{color:#687f70!important;font-size:13px;font-weight:550}
-/* Welcome screen is kept, but without cartoon styling */
-.tm-page .tm-welcome-card{border-radius:18px;box-shadow:none}
-.tm-page .tm-warning-icon{background:#f6f3eb;color:#8a6a3a;border-radius:12px;width:44px;height:44px}
-.tm-page .tm-welcome-card h2{font-weight:700;font-size:26px}
-.tm-page .tm-typing{background:#fbfaf5;border:1px solid #eee8db;color:#66543d;font-weight:575;font-size:16px;border-radius:11px}
-/* Chat: desktop modal, mobile fullscreen and keyboard-safe footer */
-.tmv-chat-backdrop{background:rgba(18,37,27,.55);padding:18px;align-items:center;justify-content:center}
-.tmv-chat{width:min(100%,565px);height:min(730px,calc(100dvh - 36px));max-height:calc(100dvh - 36px);background:#f8faf8;color:#213c2c;display:flex;flex-direction:column;overflow:hidden;border:1px solid #e2e8e1;border-radius:20px;box-shadow:0 16px 70px rgba(12,37,21,.22)}
-.tmv-chat-head{display:flex;align-items:center;gap:11px;padding:16px 18px;border-bottom:1px solid #e2e9e3;background:#fff;flex:0 0 auto}
-.tmv-chat-avatar{width:41px;height:41px;flex:0 0 41px;border-radius:12px;display:grid;place-items:center;background:#e7f3e8;color:#246747}
-.tmv-chat-head>div:nth-child(2){display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
-.tmv-chat-head strong{font-size:15px;font-weight:700;line-height:1.3}
-.tmv-chat-head>div:nth-child(2)>span{font-size:12px;text-align:left;color:#697a6e;align-self:flex-start}
-.tmv-chat-close{width:43px;height:43px;min-width:43px;border:0;border-radius:10px;background:#f1f5f0;color:#3f5946;display:grid;place-items:center}
-.tmv-chat-scroll{padding:22px 17px 25px;flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:14px}
-.tmv-chat-bubble{max-width:92%;padding:14px 15px;border-radius:16px;border:1px solid #e5ebe4;box-shadow:0 1px 6px rgba(0,0,0,.012)}
-.tmv-chat-bot{align-self:flex-start;background:#fff;border-top-left-radius:5px}
-.tmv-chat-user{align-self:flex-end;border-color:#d5e9d9;background:#e6f3e8;color:#16452d;border-top-right-radius:5px}
-.tmv-chat-bubble p{font-size:14px;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere;margin:0 0 6px}
-.tmv-chat-bubble p:last-child{margin-bottom:0}
-.tmv-chat-bubble .tmv-chat-urdu{font-family:"Noto Naskh Arabic","Noto Sans Arabic","Segoe UI",Tahoma,sans-serif;font-size:15px;line-height:1.9;color:#4f6657;text-align:right;direction:rtl}
-.tmv-chat-user p{font-size:15px;font-weight:575}
-.tmv-chat-report{border-top:1px solid #e5ebe4;margin-top:11px;padding-top:4px}
-.tmv-chat-report-line{padding:12px 0;border-bottom:1px solid #eef2ed}
-.tmv-chat-report-line:last-child{border-bottom:0}
-.tmv-chat-report-line p:first-child{font-weight:575}
-.tmv-ai-insight{color:#405449;line-height:1.7!important;white-space:pre-wrap!important}
-.tmv-chat-system{border-color:#e8e9df;background:#fcfbf3}
-.tmv-chat-controls{flex:0 0 auto;border-top:1px solid #e2e9e2;background:#fff;padding:13px 16px 10px}
-.tmv-chat-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;max-height:202px;overflow:auto;padding-bottom:8px}
-.tmv-chat-options button{display:flex;align-items:center;justify-content:flex-start;gap:10px;min-width:0;min-height:57px;padding:8px 11px;background:#fbfcfb;border:1px solid #dfe8df;border-radius:11px;color:#234735;text-align:left}
-.tmv-chat-options button:hover{border-color:#6aa27a;background:#eff8f1}
-.tmv-chat-options button>b{width:26px;height:26px;flex:0 0 26px;display:grid;place-items:center;border:1px solid #d8e6db;border-radius:8px;background:#eef5ef;font-size:12px;color:#447058}
-.tmv-chat-options button>span{min-width:0;display:flex;flex-direction:column;gap:1px}
-.tmv-chat-options button strong{font-size:13px;line-height:1.3;font-weight:650}
-.tmv-chat-options button small{align-self:flex-start;text-align:left;font-size:12px;color:#667b6c;font-weight:450;line-height:1.5}
-.tmv-chat-inputbar{display:flex;align-items:center;gap:8px;margin-top:8px}
-.tmv-chat-inputbar input{flex:1;min-width:0;height:49px;border:1px solid #dbe5dc;border-radius:11px;padding:10px 13px;background:#fff;font-size:14px;color:#1d402f}
-.tmv-chat-inputbar input:focus{outline:2px solid #8dbfa0;outline-offset:1px}
-.tmv-chat-inputbar button{flex:0 0 49px;display:grid;place-items:center;min-height:49px;border:0;border-radius:11px;background:#195943;color:#fff}
-.tmv-chat-inputbar button:disabled{background:#c8d6cc}
-.tmv-chat-privacy{margin:8px 1px 0;color:#7d8e7f;font-size:10px;line-height:1.45}
-.tmv-chat-privacy span{display:block;text-align:left;font-family:"Noto Naskh Arabic","Segoe UI",Tahoma,sans-serif;font-size:11px}
-.tmv-chat-again{width:100%;min-height:52px;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;column-gap:9px;row-gap:3px;padding:10px;background:#195943;color:#fff;border:0;border-radius:11px;font-size:14px;font-weight:700}
-.tmv-chat-again span{font-size:13px;font-weight:450}
-@media(max-width:600px){
-  .tm-page .tmv-signin .tm-access-card{padding:31px 23px 24px;border-radius:17px}
-  .tmv-signin-wordmark{margin-bottom:32px}
-  .tm-page.tmv-family .tmv-shell{width:calc(100% - 30px)}
-  .tmv-chat-backdrop{padding:0;align-items:stretch}
-  .tmv-chat{width:100%;height:100dvh;max-height:100dvh;border-radius:0;border:0;box-shadow:none}
-  .tmv-chat-head{padding:12px 14px}
-  .tmv-chat-scroll{padding:15px 13px 24px}
-  .tmv-chat-controls{padding:11px 12px calc(9px + env(safe-area-inset-bottom))}
-  .tmv-chat-options{max-height:230px;gap:7px}
-  .tmv-chat-options button{min-height:59px;padding:8px}
-  .tmv-summary-entry{padding:18px 16px;border-radius:15px}
-  .tmv-summary-entry h2{font-size:18px}
-  .tmv-summary-entry button{min-height:67px}
+.tm-access-screen::before,.tm-welcome-screen::before {
+  content:"";position:absolute;pointer-events:none;inset:0;opacity:.35;
+  background-image:linear-gradient(to right,rgba(23,67,49,.035) 1px,transparent 1px),linear-gradient(to bottom,rgba(23,67,49,.035) 1px,transparent 1px);
+  background-size:72px 72px;
+  mask-image:linear-gradient(90deg,transparent,black 15%,black 85%,transparent);
 }
-@media(max-width:360px){
-  .tmv-chat-options button strong{font-size:12px}
-  .tmv-chat-options button small{font-size:11px}
-  .tmv-chat-bubble{max-width:96%}
-  .tmv-summary-entry h2{font-size:17px}
+.tmv-auth-frame {width:min(100%,950px);min-height:510px;display:grid;grid-template-columns:1fr 1fr;
+  background:#fff;border:1px solid #dde6df;border-radius:20px;overflow:hidden;
+  box-shadow:0 26px 75px rgba(20,45,30,.075);position:relative;z-index:1;
 }
-@media(prefers-reduced-motion:reduce){.tmv-chat *{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
+.tmv-auth-aside {
+  display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;
+  position:relative;color:#e7f4eb;padding:35px 38px;
+  background:linear-gradient(145deg,#113c33 0%,#113329 62%,#0d2924 100%);
+}
+.tmv-auth-aside::before {
+  content:"";width:410px;height:410px;position:absolute;right:-205px;bottom:-170px;
+  border:1px solid rgba(233,245,235,.18);border-radius:50%;pointer-events:none;
+  box-shadow:0 0 0 60px rgba(233,245,235,.032),0 0 0 123px rgba(233,245,235,.027);
+}
+.tmv-auth-aside::after {
+  content:"";position:absolute;top:22%;right:10%;width:150px;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(222,238,228,.23),transparent);transform:rotate(-38deg);
+}
+.tmv-auth-brand,.tmv-welcome-header {
+  display:flex;align-items:center;gap:12px;font-size:11px;letter-spacing:.15em;font-weight:600;
+  position:relative;z-index:1;
+}
+.tmv-auth-monogram {width:38px;height:38px;border:1px solid rgba(245,255,247,.26);display:grid;place-items:center;
+  border-radius:9px;font-size:18px;letter-spacing:-.04em;font-weight:650;color:#f6fff7;
+  background:rgba(255,255,255,.075);
+}
+.tmv-auth-brief {position:relative;z-index:1;max-width:325px;margin:48px 0 22px}
+.tmv-auth-label,.tmv-auth-aside-footer {font-size:10px;letter-spacing:.13em;font-weight:650;color:#aacbbb}
+.tmv-auth-brief h2 {font-size:clamp(28px,3.8vw,39px)!important;line-height:1.17!important;letter-spacing:-.055em!important;
+  font-weight:550!important;color:#f7fff9!important;margin:17px 0 15px!important;
+}
+.tmv-auth-brief p {color:#b9d3c3;line-height:1.8;font-size:14px;max-width:285px}
+.tmv-auth-aside-footer {display:flex;align-items:center;gap:9px;position:relative;z-index:1}
+.tmv-pulse-dot {width:7px;height:7px;border-radius:50%;background:#9adbb7;box-shadow:0 0 0 4px rgba(154,219,183,.12)}
+.tmv-auth-form-panel {min-width:0;padding:70px 54px 48px;background:#fff;display:flex;flex-direction:column;justify-content:center}
+.tmv-auth-mobile-brand {display:none}
+.tmv-login-eyebrow {font-size:10px;letter-spacing:.17em;color:#658172;font-weight:700;margin-bottom:13px!important}
+.tm-page .tmv-auth-form-panel h1 {font-size:clamp(29px,3vw,35px);line-height:1.2;letter-spacing:-.055em;font-weight:650;margin-bottom:12px}
+.tm-page .tmv-auth-form-panel .tm-access-copy {font-size:14px;color:#6c7c73;line-height:1.75;margin-bottom:30px;max-width:355px}
+.tm-page .tm-field {display:flex;flex-direction:column;gap:7px;min-width:0}
+.tm-page .tm-field>span {font-size:13px;font-weight:600;color:#324a3e}
+.tm-page .tm-field>input,.tm-page .tm-field>select,.tm-page .tm-field>textarea {
+  min-height:49px;width:100%;border:1px solid #d9e3dd;border-radius:10px;padding:11px 13px;
+  font-size:14px;line-height:1.4;outline:0;appearance:auto;
+}
+.tm-page .tm-field textarea {resize:vertical;min-height:80px}
+.tm-page .tm-field>input:focus,.tm-page .tm-field>select:focus,.tm-page .tm-field>textarea:focus,
+.tm-page .tm-input-icon:focus-within {border-color:#538a70;box-shadow:0 0 0 3px rgba(36,108,85,.09)}
+.tm-input-icon {display:flex;align-items:center;gap:11px;min-height:51px;width:100%;padding:0 8px 0 14px;
+  border:1px solid #d9e3dd;border-radius:10px;background:#fff;color:#7b8d83;
+}
+.tm-input-icon input {min-width:0;flex:1;min-height:48px;background:transparent;border:none!important;outline:none!important;
+  box-shadow:none!important;font-size:14px;padding:10px 0;color:#1a3126;
+}
+.tm-input-icon button {width:42px;height:42px;display:grid;place-items:center;background:transparent;
+  border:0;color:#71877a;border-radius:8px;
+}
+.tm-input-icon button:hover {background:#f2f6f3;color:#1a523e}
+.tm-page .tmv-auth-form-panel .tm-primary {margin-top:2px}
+.tmv-signin-note {display:flex;align-items:center;gap:8px;color:#788b7d;font-size:11px;font-weight:450;margin:23px 0 0}
+.tm-return {position:relative;z-index:1;display:inline-flex;gap:9px;align-items:center;margin-top:25px;
+  font-size:12px;color:#74877c!important;font-weight:500;min-height:44px}
+.tm-return:hover {color:#246c55!important}
+.tm-error {padding:11px 13px;background:#fff4f2;border:1px solid #f1d5d0;color:#9c4d3e;font-size:13px;border-radius:9px}
+
+/* ------- Welcome: restrained editorial composition ------- */
+.tm-welcome-card.tmv-welcome-panel {width:min(100%,720px);padding:0;overflow:hidden;background:#fff;border:1px solid #dae6de;
+  border-radius:19px;box-shadow:0 30px 82px rgba(16,41,27,.075);position:relative;z-index:1;
+}
+.tmv-welcome-header {padding:23px 34px;border-bottom:1px solid #ebefeb;color:#37624d;font-size:10px;gap:12px}
+.tmv-welcome-header .tmv-auth-monogram {background:#154735;border-color:#154735;width:35px;height:35px;color:#fff;font-size:16px}
+.tmv-welcome-header>svg {margin-left:auto;color:#87a395}
+.tmv-welcome-body {padding:56px 65px 58px}
+.tmv-welcome-kicker {font-size:10px;letter-spacing:.17em;color:#487960;font-weight:700}
+.tm-page .tmv-welcome-body h1 {font-size:clamp(32px,5vw,46px);line-height:1.16;letter-spacing:-.06em;font-weight:600;margin:17px 0 25px}
+.tm-page .tm-typing {background:transparent;border:0;border-left:2px solid #287a5d;padding:6px 0 6px 20px;
+  color:#314b3c;font-family:inherit;font-size:clamp(17px,2.3vw,20px);font-weight:450;line-height:1.8;
+  white-space:pre-line;min-height:88px;letter-spacing:-.015em;
+}
+.tm-caret {color:#2c8063;font-size:16px;animation:tmBlink 1s steps(1) infinite}
+@keyframes tmBlink {50%{opacity:0}}
+.tmv-welcome-body>p {font-size:14px;color:#76897b;line-height:1.8;margin:22px 0 27px}
+.tmv-welcome-body .tm-primary {width:auto;min-width:230px}
+.tmv-welcome-footer {padding:16px 34px;background:#f8faf8;border-top:1px solid #ebefeb;
+  display:flex;align-items:center;justify-content:center;gap:10px;font-size:9px;letter-spacing:.15em;color:#8b9b90;font-weight:600}
+
+/* ------- App: information-first, family-friendly, not dashboard ------- */
+.tmv-family {background:
+  radial-gradient(ellipse 440px 290px at calc(50% + 450px) 0%,rgba(24,95,64,.055),transparent 78%),
+  #f7f9f7;
+}
+.tm-page .tmv-shell {width:min(100% - 42px,840px);margin:0 auto}
+.tmv-header {height:80px;display:flex;align-items:center;justify-content:space-between;gap:14px;
+  border-bottom:1px solid #e0e8e1;
+}
+.tmv-brand {border:0;background:transparent;padding:0;display:flex;align-items:center;gap:12px;text-align:left;color:var(--tm-ink)}
+.tmv-logo {width:38px;height:38px;border-radius:10px;background:#184b3a;color:#fff;
+  display:grid;place-items:center;font-size:18px;font-weight:600;letter-spacing:-.055em;
+}
+.tmv-brand>span:last-child {display:flex;flex-direction:column;gap:1px}
+.tmv-brand strong {font-size:15px;font-weight:650;letter-spacing:-.02em}
+.tmv-brand small {font-size:11px;color:#84948a;font-weight:450}
+.tmv-logout {border:1px solid #dfe7e0;background:#fff;display:flex;align-items:center;gap:8px;
+  height:43px;min-width:43px;border-radius:9px;color:#52695a;padding:0 13px;font-size:12px;font-weight:500;
+}
+.tmv-logout:hover {background:#f0f5f1;border-color:#cddcd0}
+.tmv-family-view {padding:35px 0 28px;display:flex;flex-direction:column;gap:13px}
+.tmv-intro {padding:0 2px 9px}
+.tmv-intro-kicker {display:block;color:#49725d;font-size:10px;font-weight:700;letter-spacing:.16em;margin:0 0 9px}
+.tm-page .tmv-intro h1 {font-size:clamp(27px,4vw,35px);font-weight:650;letter-spacing:-.05em;margin:0 0 6px}
+.tmv-intro p {color:#75867b;font-size:13px;line-height:1.6}
+.tmv-day-nav {width:100%;min-height:64px;display:flex;align-items:center;justify-content:space-between;gap:12px;
+  background:#fff;border:1px solid #e4eae5;border-radius:12px;padding:7px 10px;
+}
+.tmv-day-nav>button {flex:0 0 42px;width:42px;height:42px;display:grid;place-items:center;
+  border:0;background:#f4f7f5;color:#416750;border-radius:9px;
+}
+.tmv-day-nav>button:hover {background:#eaf1ec}
+.tmv-day-center {display:flex;flex-direction:column;align-items:center;gap:1px;text-align:center;min-width:0}
+.tmv-day-center>span {font-size:9px;font-weight:750;letter-spacing:.16em;color:#5d8e70}
+.tmv-day-center>strong {font-size:13px;line-height:1.4;font-weight:600}
+.tmv-summary-entry {padding:20px 22px;background:linear-gradient(112deg,#163d31,#194c3d);color:#fff;
+  border:1px solid #2b5b47;border-radius:13px;display:flex;align-items:center;justify-content:space-between;gap:16px;
+  position:relative;overflow:hidden;
+}
+.tmv-summary-entry::after {content:"";position:absolute;pointer-events:none;right:-70px;top:-124px;width:225px;height:225px;
+  border-radius:50%;border:1px solid rgba(255,255,255,.11);box-shadow:0 0 0 35px rgba(255,255,255,.018);
+}
+.tmv-summary-entry-text {display:flex;gap:13px;align-items:center;position:relative;z-index:1;flex:1;min-width:0}
+.tmv-summary-symbol {display:grid;place-items:center;flex:0 0 40px;width:40px;height:40px;
+  border:1px solid rgba(204,234,217,.25);border-radius:10px;background:rgba(255,255,255,.09);color:#e2f9e9;
+}
+.tmv-summary-entry h2 {color:#fff;font-size:15px;font-weight:600;letter-spacing:-.02em;margin:0 0 3px}
+.tmv-summary-entry p {color:#c6dfce;font-size:13px;line-height:1.5;text-align:left}
+.tmv-summary-entry button {display:flex;align-items:center;justify-content:center;gap:9px;min-height:45px;
+  position:relative;z-index:1;border:1px solid rgba(255,255,255,.24);border-radius:9px;
+  background:#fff;color:#1c5940;padding:9px 13px;white-space:nowrap;font-size:12px;font-weight:650;
+}
+.tmv-summary-entry button:hover {background:#eef7f0}
+.tmv-summary-entry button span:nth-child(2) {display:none}
+.tmv-empty-day {display:flex;align-items:flex-start;gap:10px;padding:11px 13px;border-radius:9px;
+  border:1px solid #e4ebe5;background:#fff;font-size:12px;color:#7b8b7e;line-height:1.55;
+}
+.tmv-empty-day svg {color:#729a82;margin-top:1px}
+.tmv-group-title {display:flex;justify-content:space-between;align-items:baseline;gap:10px;
+  padding:17px 1px 2px;margin:0;
+}
+.tm-page .tmv-group-title h2 {font-size:16px;font-weight:650;letter-spacing:-.03em}
+.tmv-group-title>span {font-size:10px;color:#95a39a}
+.tmv-story-card {padding:17px 20px 0;background:#fff;border:1px solid #e4ebe5;border-radius:12px;
+  box-shadow:0 1px 2px rgba(13,45,25,.015);display:flex;flex-direction:column;gap:13px;min-width:0;
+}
+.tmv-card-heading {display:flex;align-items:center;gap:10px}
+.tmv-card-icon {width:34px;height:34px;display:grid;place-items:center;color:#2a6f52;
+  border:1px solid #e0eae2;border-radius:9px;background:#f7faf7;
+}
+.tmv-card-icon svg {width:18px;height:18px;stroke-width:1.7}
+.tmv-card-heading h2 {font-size:14px;font-weight:650;letter-spacing:-.01em}
+.tmv-empty-note {font-size:12px;line-height:1.65;color:#8b9a8f;padding:4px 0 5px}
+.tmv-read-more {display:flex;align-items:center;justify-content:space-between;width:100%;min-height:45px;
+  border:0;border-top:1px solid #edf1ed;background:transparent;color:#2b6a4e;
+  padding:11px 0;margin-top:1px;font-size:12px;font-weight:600;text-align:left;
+}
+.tmv-read-more:hover {color:#0e4432}
+.tmv-prayer-readout {display:flex;flex-direction:column;gap:15px}
+.tmv-prayer-head {display:flex;align-items:center;justify-content:space-between;gap:12px}
+.tmv-prayer-head strong {color:#2a7452;font-weight:600;font-size:12px}
+.tmv-prayer-head span {font-size:11px;color:#8a9b8e}
+.tmv-prayer-five {display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}
+.tmv-prayer-one {display:flex;align-items:center;flex-direction:column;gap:3px;min-width:0;text-align:center}
+.tmv-prayer-mark {width:30px;height:30px;border-radius:50%;border:1px solid #e2eae4;background:#f7faf7;
+  color:#9aaa9d;display:grid;place-items:center;font-size:14px;
+}
+.tmv-prayer-mark.tmv-yes {color:#236d4c;background:#e4f3e8;border-color:#d6e9dc}
+.tmv-prayer-one strong {font-size:11px;font-weight:650;margin-top:4px}
+.tmv-prayer-one small {font-size:10px;color:#899a8d;line-height:1.4;max-width:64px}
+.tmv-reading-number {display:flex;align-items:baseline;gap:8px}
+.tmv-reading-number strong {font-size:27px;font-weight:650;letter-spacing:-.06em;color:#194e38}
+.tmv-reading-number span {font-size:12px;color:#6e8172}
+.tmv-reading-list {display:flex;flex-direction:column;gap:7px}
+.tmv-reading-line {display:flex;gap:8px;align-items:flex-start;font-size:12px;color:#586b60}
+.tmv-reading-line svg {width:15px;height:15px;margin-top:1px}
+.tmv-update-list {display:flex;flex-direction:column;gap:10px}
+.tmv-daily-note {border-left:2px solid #c9dfcf;padding:1px 0 1px 12px}
+.tmv-daily-note strong {display:block;font-size:12px;font-weight:600;color:#234735}
+.tmv-daily-note small {display:block;color:#809184;font-size:11px}
+.tmv-daily-note p {color:#4c6052;font-size:12.5px;line-height:1.6;margin-top:4px}
+.tmv-more-count {color:#668572;font-size:11px}
+.tmv-upcoming {padding:9px 12px;background:#f7faf8;border:1px solid #e5ede6;border-radius:8px}
+.tmv-upcoming strong {font-size:11px;color:#426751}
+.tmv-upcoming p {display:flex;gap:7px;align-items:center;font-size:11px;color:#65786c;margin-top:4px}
+.tmv-end-note {display:flex;align-items:center;justify-content:center;gap:7px;margin:16px auto 0;
+  font-size:11px;color:#9eaba0}
+.tmv-end-note svg {display:none}
+.tmv-back {border:0;background:transparent;display:inline-flex;gap:8px;align-items:center;color:#436c54;
+  padding:17px 0;min-height:46px;font-size:12px;font-weight:600;
+}
+.tmv-bottom {border-top:1px solid #e5ece5;padding:24px 0 18px;margin-top:12px;display:flex;
+  align-items:center;justify-content:space-between;gap:12px}
+.tmv-bottom>p {font-size:10px;color:#9faea2}
+.tmv-owner-link {border:0;background:transparent;color:#72917b;font-size:11px;display:flex;
+  align-items:center;gap:7px;min-height:46px;padding:0 4px;
+}
+.tmv-owner-link:hover {color:#195e41}
+.tmv-owner-banner {display:flex;align-items:center;justify-content:space-between;gap:10px;
+  background:#e9f3ec;border:1px solid #d9e9df;border-radius:10px;padding:9px 13px;font-size:11px;color:#285b42;
+}
+.tmv-owner-banner span {display:inline-flex;align-items:center;gap:7px;font-weight:650}
+.tmv-owner-banner button {background:transparent;border:0;text-decoration:underline;color:#265d43;min-height:37px}
+.tmv-owner-quick {background:#e8f4eb!important;color:#215f43!important;border-color:#cfe5d5!important}
+.tmv-notice {background:#eff9f0;border:1px solid #d6ead8;color:#2d6241;padding:10px 12px;border-radius:9px;
+  display:flex;align-items:center;gap:8px;font-size:12px;
+}
+.tmv-notice span {flex:1}
+.tmv-notice button {border:0;background:transparent;color:#5f8670;min-width:34px;min-height:34px}
+
+/* ------- Detail pages / owner editing ------- */
+.tmv-detail-view {padding:24px 0 34px;display:flex;flex-direction:column;gap:16px}
+.tmv-detail-heading {display:flex;align-items:center;gap:13px;padding-bottom:10px}
+.tmv-detail-heading>svg {color:#276e50;flex:0 0 auto;width:23px;height:23px}
+.tmv-detail-heading h2 {font-size:22px;font-weight:650;letter-spacing:-.04em}
+.tmv-detail-heading p {color:#7a8e7e;font-size:12px;margin-top:3px}
+.tmv-subheading {font-size:14px;font-weight:650;margin-top:14px}
+.tmv-reassurance {color:#778b7d;font-size:12px;line-height:1.7}
+.tmv-owner-section,.tmv-owner-quran {border:1px solid #dfebe2;background:#fff;padding:18px;border-radius:12px}
+.tmv-owner-label {font-size:10px;color:#3e7952;font-weight:700;letter-spacing:.1em}
+.tmv-prayer-edit-list {display:flex;flex-direction:column;gap:5px;margin-top:10px}
+.tmv-edit-prayer-row {display:grid;grid-template-columns:1fr 114px 105px;align-items:center;gap:8px;
+  border-top:1px solid #edf1ed;min-height:62px;padding:6px 0;
+}
+.tmv-edit-prayer-row strong {font-size:13px;font-weight:600}
+.tmv-edit-prayer-row button {display:flex;gap:5px;align-items:center;justify-content:center;min-height:43px;
+  padding:6px 9px;border-radius:8px;border:1px solid #dbe8df;background:#fff;font-size:12px;color:#547362;
+}
+.tmv-edit-prayer-row button.tmv-selected {background:#206c50;color:#fff;border-color:#206c50}
+.tmv-week-list,.tmv-history-items,.tmv-task-list {display:flex;flex-direction:column;gap:10px}
+.tmv-week-list button {background:#fff;border:1px solid #e3eae3;border-radius:10px;padding:12px 14px;min-height:50px;
+  display:flex;align-items:center;justify-content:space-between;text-align:left;color:#2d4c39;
+}
+.tmv-week-list button.tmv-active-day {background:#eaf4ed;border-color:#aecdb8}
+.tmv-week-list button strong,.tmv-week-list button span {font-size:12px;font-weight:550;display:inline-flex;align-items:center;gap:3px}
+.tmv-quran-stat {padding:16px 18px;border:1px solid #e2e9e3;background:#fff;border-radius:12px;display:flex;align-items:baseline;gap:12px}
+.tmv-quran-stat strong {font-size:31px;color:#205942;font-weight:650;letter-spacing:-.05em}
+.tmv-quran-stat span {font-size:12px;color:#728775}
+.tmv-owner-quran h3 {font-size:16px;margin-bottom:1px}
+.tmv-reading-history {display:flex;gap:12px;align-items:center;padding:14px 15px;background:#fff;border:1px solid #e3eae4;border-radius:10px}
+.tmv-book-symbol {width:36px;height:36px;background:#f2f7f4;color:#327350;border:1px solid #e5eee7;
+  border-radius:9px;display:grid;place-items:center;flex:0 0 auto}
+.tmv-reading-history>div {flex:1;min-width:0}
+.tmv-reading-history strong {display:block;font-size:12.5px;font-weight:600}
+.tmv-reading-history small {display:block;font-size:11px;color:#829188;margin-top:4px}
+.tmv-reading-history p {font-size:11px;color:#718474;margin-top:5px}
+.tmv-reading-history button {border:0;background:#f9f2f1;color:#9b5148;width:43px;height:43px;border-radius:8px;display:grid;place-items:center}
+.tmv-add-task,.tmv-owner-quick {align-self:flex-start;color:#fff;background:#246c51}
+.tmv-task-card {background:#fff;border:1px solid #e1e9e2;border-radius:12px;padding:19px;display:flex;flex-direction:column;gap:12px}
+.tmv-task-title {display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.tmv-task-title h3 {font-size:15px;font-weight:650}
+.tmv-task-status {white-space:nowrap;border-radius:5px;font-size:10px;font-weight:600;color:#436e52;background:#eef6ef;padding:4px 8px}
+.tmv-status-planned {color:#68786c;background:#f1f4f1}
+.tmv-status-in_progress {color:#86662a;background:#faf5e8}
+.tmv-task-meta,.tmv-task-description {font-size:12px;color:#718578;line-height:1.6}
+.tmv-task-update {border-left:2px solid #d1e1d3;background:#fbfcfb;padding:8px 13px}
+.tmv-task-update small {color:#7a937f;font-size:10px}
+.tmv-task-update p {font-size:12.5px;color:#3d604a;line-height:1.6;margin-top:4px}
+.tmv-owner-card-actions {display:flex;align-items:center;gap:8px;border-top:1px solid #edf1ed;padding-top:11px}
+.tmv-owner-card-actions button {display:grid;place-items:center;background:#f4f7f4;border:1px solid #e8efe9;
+  border-radius:8px;color:#607e69;width:45px;height:45px;
+}
+.tmv-owner-card-actions button:first-child {width:auto;flex:1;display:flex;justify-content:center;gap:8px;
+  padding:0 12px;font-weight:600;color:#2e7051;font-size:12px;
+}
+.tmv-owner-card-actions button:last-child {color:#a85d54}
+.tmv-note-editor {padding:13px;border-radius:10px;border:1px solid #e0ebe2;background:#fbfdfb;display:flex;flex-direction:column;gap:13px}
+.tmv-note-editor form {display:flex;flex-direction:column;gap:9px}
+.tmv-log-entry {border-top:1px solid #e7eee7;padding:12px 0}
+.tmv-log-entry small {font-size:10px;color:#8a9b8b}
+.tmv-log-entry p {font-size:12px;margin-top:3px}
+.tm-details {background:#fff;border:1px solid #e3ebe5;border-radius:10px;padding:11px 14px}
+.tm-details summary {font-size:12px;color:#4e745b;font-weight:600;cursor:pointer;min-height:25px}
+.tm-details[open] {display:flex;flex-direction:column;gap:12px}
+.tmv-filter-details {width:100%}
+
+/* ------- Dialogs: owner PIN and task editor ------- */
+.tm-modal-backdrop {position:fixed;z-index:9999;inset:0;display:flex;align-items:center;justify-content:center;
+  background:rgba(15,34,25,.55);backdrop-filter:blur(3px);padding:22px;
+}
+.tm-modal {background:#fff;border:1px solid #dce7dd;border-radius:16px;padding:26px;width:min(100%,440px);
+  max-height:calc(100dvh - 34px);overflow-y:auto;box-shadow:0 28px 80px rgba(10,27,18,.16);position:relative;
+}
+.tm-modal .tm-close {position:absolute;right:15px;top:13px}
+.tm-lock-icon {width:43px;height:43px;display:grid;place-items:center;color:#346d4a;background:#edf6ee;border-radius:10px;margin-bottom:21px}
+.tm-pin-modal h2 {font-size:22px;font-weight:650;margin-bottom:7px}
+.tm-pin-modal>.tm-muted {margin-bottom:19px;line-height:1.7}
+.tm-modal-heading {display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:19px;padding-right:47px}
+.tm-modal-heading h2 {font-size:20px;font-weight:650}
+.tm-editor {width:min(100%,520px)}
+.tm-editor .tm-stack {gap:14px}
+
+/* ------- Summary chat: compact professional messenger ------- */
+.tmv-chat-backdrop {padding:22px;align-items:center;justify-content:center;background:rgba(14,30,22,.56);backdrop-filter:blur(3px)}
+.tmv-chat {width:min(100%,560px);height:min(615px,calc(100dvh - 44px));max-height:calc(100dvh - 44px);
+  background:#f7f9f8;border:1px solid #e0e8e1;border-radius:17px;box-shadow:0 35px 95px rgba(10,29,19,.25);
+  display:flex;flex-direction:column;overflow:hidden;color:var(--tm-ink);
+}
+/* Until the report is generated the desktop dialog hugs its content.
+   Avoid the large empty area shown in the previous chat UI. */
+.tmv-chat.tmv-chat-compact {height:auto;max-height:min(560px,calc(100dvh - 44px))}
+.tmv-chat-compact .tmv-chat-scroll {flex:0 1 auto;max-height:min(380px,calc(100dvh - 235px))}
+.tmv-chat-head {background:#fff;border-bottom:1px solid #e6ece8;min-height:72px;padding:14px 16px;display:flex;gap:11px;align-items:center;flex:0 0 auto}
+.tmv-chat-avatar {width:39px;height:39px;flex:0 0 39px;display:grid;place-items:center;background:#e9f2ec;
+  border:1px solid #dce9df;color:#235d47;border-radius:10px;
+}
+.tmv-chat-heading {display:flex;flex:1;flex-direction:column;justify-content:center;gap:2px;min-width:0}
+.tmv-chat-heading strong {font-size:13px;font-weight:650;color:#263b2e}
+.tmv-chat-heading>span {display:flex;align-items:center;gap:7px;font-size:11px;color:#7c9181;line-height:1.4}
+.tmv-chat-heading [lang="ur"] {font-size:13px}
+.tmv-chat-close {width:43px;height:43px;background:#fff;border:1px solid #e3e9e4;color:#5c7164;
+  border-radius:9px;display:grid;place-items:center;
+}
+.tmv-chat-close:hover {background:#eff4f0}
+.tmv-chat-scroll {flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;
+  display:flex;flex-direction:column;gap:13px;padding:20px 22px 32px;position:relative;
+  scrollbar-width:thin;scrollbar-color:#cbd7cd transparent;
+}
+.tmv-chat-date-label {color:#9aaba0;text-align:center;font-size:9px;font-weight:650;letter-spacing:.12em;margin:0 0 4px}
+.tmv-chat-message {display:flex;flex-direction:column;width:100%;position:relative}
+.tmv-chat-bubble {padding:11px 14px;border:1px solid #e4ebe4;background:#fff;border-radius:12px 12px 12px 4px;
+  width:fit-content;max-width:min(92%,445px);box-shadow:0 1px 3px rgba(22,44,30,.018);
+}
+.tmv-chat-user {align-items:flex-end}
+.tmv-chat-user .tmv-chat-bubble {background:#e5f1e8;border-color:#d8e8dc;color:#254a34;
+  border-radius:12px 12px 4px 12px;
+}
+.tmv-chat-bubble>p {font-size:13px;font-weight:430;line-height:1.67;color:#35463c;white-space:pre-wrap;overflow-wrap:anywhere}
+.tmv-chat-bubble>p + p {margin-top:9px}
+.tmv-chat-bubble .tmv-chat-urdu {font-size:14px;color:#577261;line-height:1.85;text-align:right;direction:rtl}
+.tmv-chat-user .tmv-chat-bubble p {font-size:13px;color:#265a3b}
+.tmv-chat-quick {display:flex;flex-wrap:wrap;gap:7px;margin:1px 0 0 1px;max-width:100%}
+.tmv-chat-quick button {display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  border:1px solid #d7e5da;background:#fff;color:#255b40;border-radius:999px;
+  padding:9px 13px;min-height:46px;max-width:100%;font-size:12px;font-weight:550;
+  transition:background .14s ease,border-color .14s ease;
+}
+.tmv-chat-quick button:hover {background:#eaf4ec;border-color:#aacdb5}
+.tmv-chat-choice-num {color:#789d85;font-size:11px;font-weight:600}
+.tmv-chat-choice-urdu {font-size:13px;white-space:nowrap;color:#678d71}
+.tmv-chat-report {border-top:1px solid #edf1ec;padding-top:3px;margin-top:13px}
+.tmv-chat-report-line {padding:10px 0;border-bottom:1px solid #eef1ee}
+.tmv-chat-report-line:last-child {border-bottom:0;padding-bottom:2px}
+.tmv-chat-report-line>p:first-child {font-size:12px;color:#3c5545;line-height:1.6;font-weight:510}
+.tmv-chat-report-line>p:last-child {font-size:13px;margin-top:5px}
+.tmv-chat-processing {display:flex;align-items:center;flex-wrap:wrap;gap:7px;color:#64826b;font-size:12px}
+.tmv-chat-processing .tmv-chat-urdu {display:block;flex:0 0 100%;font-size:12px}
+.tmv-chat-loading-dot {width:7px;height:7px;background:#4a9f70;border-radius:50%;animation:tmPulse 1.2s ease-in-out infinite}
+@keyframes tmPulse {50% {opacity:.25}}
+.tmv-chat-ai-details {border:1px solid #dce9df;background:#fff;border-radius:10px;padding:12px 14px;margin-top:3px}
+.tmv-chat-ai-details summary {display:flex;align-items:center;gap:8px;cursor:pointer;color:#295a40;font-size:12px;font-weight:600;min-height:30px}
+.tmv-chat-ai-details summary span {font-size:13px;font-weight:400;color:#759782}
+.tmv-chat-ai-details summary svg {margin-left:auto;transition:transform .16s}
+.tmv-chat-ai-details[open] summary svg {transform:rotate(90deg)}
+.tmv-ai-insight {font-size:12px;white-space:pre-wrap;line-height:1.8;color:#486352;margin-top:11px}
+.tmv-chat-ai-details small {display:block;color:#8c9d8d;font-size:10px;margin-top:9px}
+.tmv-chat-hint {padding:10px 12px;border:1px solid #e6ece5;border-radius:9px;background:#f3f7f3;
+  color:#788c7b;font-size:11px;display:flex;flex-direction:column;gap:4px;line-height:1.5;
+}
+.tmv-chat-hint [lang="ur"] {text-align:right;line-height:1.75;font-size:12px}
+.tmv-chat-again {border:1px solid #d4e4d9;border-radius:9px;background:#fff;min-height:47px;
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;align-self:flex-start;
+  color:#236a49;padding:9px 15px;font-size:12px;font-weight:600;margin-top:3px;
+}
+.tmv-chat-again [lang="ur"] {font-size:13px;font-weight:450}
+.tmv-chat-controls {flex:0 0 auto;background:#fff;border-top:1px solid #e3eae5;padding:12px 17px 9px}
+.tmv-chat-inputbar {display:flex;gap:9px;align-items:center;padding:4px 5px 4px 14px;
+  border:1px solid #dbe5dd;border-radius:11px;background:#fff;
+}
+.tmv-chat-inputbar:focus-within {border-color:#76a185;box-shadow:0 0 0 3px rgba(58,132,87,.08)}
+.tmv-chat-inputbar input {min-width:0;flex:1;height:41px;border:none!important;box-shadow:none!important;outline:0!important;
+  background:transparent!important;color:#253d2b;font-size:13px;padding:0;
+}
+.tmv-chat-inputbar input:disabled {background:transparent}
+.tmv-chat-inputbar button {flex:0 0 40px;width:40px;height:40px;display:grid;place-items:center;
+  border:0;border-radius:8px;background:#20674c;color:#fff;
+}
+.tmv-chat-inputbar button:disabled {background:#e7eee8;color:#9cac9e}
+.tmv-chat-privacy {border:0!important;padding:0!important;background:transparent!important;margin:8px 1px 0}
+.tmv-chat-privacy summary {font-size:10px;color:#889a8d;cursor:pointer;line-height:1.4;font-weight:450;min-height:18px}
+.tmv-chat-privacy p {font-size:10px;color:#899d8e;line-height:1.65;margin-top:7px}
+.tmv-chat-privacy p[lang="ur"] {text-align:right;font-size:11px}
+
+/* ------- Loading / device and reduced-motion adjustments ------- */
+.tm-loading {display:flex;flex-direction:column;justify-content:center;align-items:center;gap:15px;color:#788e7b}
+.tm-spinner {width:28px;height:28px;border:2px solid #d8e7da;border-top-color:#206c50;border-radius:50%;animation:tmSpin 1s linear infinite}
+@keyframes tmSpin {to{transform:rotate(360deg)}}
+
+@media(max-width:760px) {
+  .tmv-auth-frame {max-width:520px;min-height:auto;grid-template-columns:1fr}
+  .tmv-auth-aside {padding:24px 27px;min-height:180px}
+  .tmv-auth-aside::before {width:260px;height:260px;right:-145px;bottom:-152px;box-shadow:0 0 0 40px rgba(255,255,255,.027)}
+  .tmv-auth-brief {margin:21px 0 2px;max-width:400px}
+  .tmv-auth-brief h2 {font-size:27px!important;margin:7px 0!important;max-width:350px}
+  .tmv-auth-brief p,.tmv-auth-aside-footer,.tmv-auth-label {display:none}
+  .tmv-auth-form-panel {padding:31px 28px 34px}
+  .tmv-login-eyebrow {margin-bottom:7px!important}
+  .tm-page .tmv-auth-form-panel h1 {font-size:28px}
+  .tm-page .tmv-auth-form-panel .tm-access-copy {margin-bottom:22px}
+  .tmv-summary-entry {align-items:stretch;flex-direction:column;gap:13px}
+  .tmv-summary-entry button {width:100%;justify-content:space-between;padding:9px 13px}
+  .tmv-summary-entry button span:nth-child(2) {display:inline;font-size:13px;color:#698c78;font-weight:400}
+}
+@media(max-width:600px) {
+  .tm-page .tmv-shell {width:calc(100% - 30px)}
+  .tmv-header {height:70px}
+  .tmv-family-view {padding-top:24px;gap:11px}
+  .tmv-intro {padding-bottom:7px}
+  .tm-page .tmv-intro h1 {font-size:27px}
+  .tmv-summary-entry {padding:17px 17px 16px}
+  .tmv-summary-entry h2 {font-size:14px}
+  .tmv-summary-entry p {font-size:12px}
+  .tmv-story-card {padding:15px 16px 0}
+  .tmv-prayer-one strong {font-size:10px}
+  .tmv-prayer-one small {font-size:9px}
+  .tmv-welcome-body {padding:43px 28px 38px}
+  .tmv-welcome-header {padding:18px 22px}
+  .tm-page .tmv-welcome-body h1 {font-size:31px}
+  .tm-page .tm-typing {font-size:16px;min-height:95px;padding-left:15px}
+  .tmv-welcome-body .tm-primary {width:100%}
+  .tmv-welcome-footer {padding:13px 14px;font-size:8px;flex-wrap:wrap}
+  .tmv-chat-backdrop {padding:0;align-items:stretch}
+  .tmv-chat {width:100%;height:100dvh;max-height:100dvh;border-radius:0;border:0;box-shadow:none}
+  .tmv-chat.tmv-chat-compact {height:100dvh;max-height:100dvh}
+  .tmv-chat-compact .tmv-chat-scroll {flex:1;max-height:none}
+  .tmv-chat-head {padding:12px 14px;min-height:65px}
+  .tmv-chat-scroll {padding:17px 14px 27px;gap:12px}
+  .tmv-chat-bubble {max-width:93%}
+  .tmv-chat-controls {padding:11px 12px calc(9px + env(safe-area-inset-bottom))}
+  .tmv-chat-quick button {min-height:46px;padding:9px 11px}
+  .tmv-chat-again {min-height:46px}
+  .tm-modal-backdrop {align-items:flex-end;padding:0}
+  .tm-modal {width:100%;max-height:94dvh;border-radius:18px 18px 0 0;padding:25px 20px calc(24px + env(safe-area-inset-bottom))}
+  .tmv-edit-prayer-row {grid-template-columns:1fr 86px 78px;gap:6px}
+  .tmv-edit-prayer-row button {padding:5px;font-size:11px;min-height:45px}
+}
+@media(max-width:400px) {
+  .tm-page .tmv-shell {width:calc(100% - 24px)}
+  .tmv-auth-frame {border-radius:15px}
+  .tmv-auth-aside {padding:22px 23px;min-height:164px}
+  .tmv-auth-form-panel {padding:27px 22px 30px}
+  .tmv-auth-brief h2 {font-size:24px!important}
+  .tmv-prayer-one small {font-size:9px}
+  .tmv-summary-entry button span:nth-child(2) {display:none}
+  .tmv-group-title>span {font-size:9px}
+  .tmv-chat-quick button {gap:4px;font-size:11px}
+  .tmv-chat-choice-urdu {font-size:12px}
+}
+@media(prefers-reduced-motion:reduce) {
+ .tm-page *, .tm-page *::before,.tm-page *::after {animation:none!important;transition:none!important;scroll-behavior:auto!important}
+}

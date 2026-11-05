@@ -4,7 +4,7 @@ import {
   ArrowLeft, ArrowRight, BookOpen, BriefcaseBusiness, CalendarDays, Check,
   CheckCircle2, ChevronLeft, ChevronRight, Clock3, Edit3, Eye, EyeOff,
   GraduationCap, Heart, KeyRound, LockKeyhole, LogOut, Plus, Search,
-  Send, ShieldAlert, ShieldCheck, Sparkles, Trash2, TrendingUp, X, Home, Menu,
+  Send, ShieldAlert, ShieldCheck, Sparkles, Trash2, TrendingUp, X, Home, Menu, MessageSquareText,
 } from 'lucide-react';
 import './TrackMe.css';
 
@@ -67,29 +67,40 @@ function LoginScreen({ password, setPassword, onSubmit, busy, error }) {
   const [show, setShow] = useState(false);
   return (
     <div className="tm-access-screen tmv-signin">
-      <div className="tm-access-card">
-        <div className="tmv-signin-wordmark"><span className="tmv-signin-mark">A</span><span>AH<span className="tmv-wordmark-light">SAN</span> <span className="tmv-wordmark-dot">·</span> DAILY UPDATES</span></div>
-        <p className="tmv-login-eyebrow">PRIVATE FAMILY ACCESS</p>
-        <h1>Stay close,<br/>wherever you are.</h1>
-        <p className="tm-access-copy">See Ahsan’s latest updates in one simple place.</p>
-        <form onSubmit={onSubmit} className="tm-stack">
-          <label className="tm-field"><span>Password</span>
-            <div className="tm-input-icon"><LockKeyhole size={18}/><input required type={show ? 'text' : 'password'} autoComplete="current-password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Enter family password" maxLength={200}/>
-              <button type="button" aria-label={show ? 'Hide password' : 'Show password'} onClick={() => setShow(x => !x)}>{show ? <EyeOff size={19}/> : <Eye size={19}/>}</button>
-            </div>
-          </label>
-          {error && <div role="alert" className="tm-error">{error}</div>}
-          <button type="submit" className="tm-primary tm-wide" disabled={busy}>{busy ? 'Opening…' : 'View daily updates'} <ArrowRight size={19}/></button>
-        </form>
-        <p className="tmv-signin-note"><ShieldCheck size={15}/> Only for Ahsan’s family</p>
+      <div className="tmv-auth-frame">
+        <div className="tmv-auth-aside" aria-hidden="true">
+          <div className="tmv-auth-brand"><span className="tmv-auth-monogram">A</span><span>AHSAN / DAILY UPDATES</span></div>
+          <div className="tmv-auth-brief">
+            <span className="tmv-auth-label">A PRIVATE FAMILY JOURNAL</span>
+            <h2>Closer to the moments that matter.</h2>
+            <p>One simple place to follow his day, his work and his progress.</p>
+          </div>
+          <div className="tmv-auth-aside-footer"><span className="tmv-pulse-dot"/> SECURE FAMILY ACCESS</div>
+        </div>
+        <div className="tm-access-card tmv-auth-form-panel">
+          <div className="tmv-auth-mobile-brand"><span className="tmv-auth-monogram">A</span><strong>Ahsan's Updates</strong></div>
+          <p className="tmv-login-eyebrow">FAMILY SIGN IN</p>
+          <h1>Welcome back.</h1>
+          <p className="tm-access-copy">Enter the family password to view Ahsan's latest updates.</p>
+          <form onSubmit={onSubmit} className="tm-stack">
+            <label className="tm-field"><span>Family password</span>
+              <div className="tm-input-icon"><LockKeyhole size={18} strokeWidth={1.9}/><input required type={show ? 'text' : 'password'} autoComplete="current-password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Enter password" maxLength={200}/>
+                <button type="button" aria-label={show ? 'Hide password' : 'Show password'} onClick={() => setShow(x => !x)}>{show ? <EyeOff size={18}/> : <Eye size={18}/>}</button>
+              </div>
+            </label>
+            {error && <div role="alert" className="tm-error">{error}</div>}
+            <button type="submit" className="tm-primary tm-wide" disabled={busy}>{busy ? 'Signing in…' : 'View daily updates'} <ArrowRight size={18}/></button>
+          </form>
+          <p className="tmv-signin-note"><ShieldCheck size={16} strokeWidth={1.8}/> Private and password protected</p>
+        </div>
       </div>
-      <Link className="tm-return" to="/"><ArrowLeft size={17}/> Back to website</Link>
+      <Link className="tm-return" to="/"><ArrowLeft size={16}/> Back to website</Link>
     </div>
   );
 }
 
 function CautionWelcome({ onContinue }) {
-  const message = 'You are tracking your man.\nYou are tracking your son.\nSo keep attention.';
+  const message = "You're following his journey as a son and as a man.\nStay informed. Stay connected.";
   const [typed, setTyped] = useState('');
   useEffect(() => {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { setTyped(message); return; }
@@ -98,19 +109,22 @@ function CautionWelcome({ onContinue }) {
       index += 1;
       setTyped(message.slice(0, index));
       if (index >= message.length) clearInterval(timer);
-    }, 34);
+    }, 27);
     return () => clearInterval(timer);
   }, []);
   return (
-    <div className="tm-welcome-screen" role="dialog" aria-modal="true" aria-label="Welcome to Track Me">
-      <div className="tm-welcome-card">
-        <div className="tm-warning-icon"><ShieldAlert size={29}/></div>
-        <p className="tm-eyebrow">WELCOME / A PERSONAL REMINDER</p>
-        <h2>Every day matters.</h2>
-        <div className="tm-typing" aria-label={message}>{typed}<span aria-hidden="true" className="tm-caret">▌</span></div>
-        <p>Small steps, every day, make a difference.</p>
-        <button className="tm-primary tm-wide" type="button" onClick={onContinue}>Continue <ArrowRight size={19}/></button>
-      </div>
+    <div className="tm-welcome-screen" role="dialog" aria-modal="true" aria-label="Welcome to Ahsan's daily updates">
+      <section className="tm-welcome-card tmv-welcome-panel">
+        <div className="tmv-welcome-header"><span className="tmv-auth-monogram">A</span><span>AHSAN'S UPDATES</span><ShieldCheck size={20}/></div>
+        <div className="tmv-welcome-body">
+          <span className="tmv-welcome-kicker">A PERSONAL REMINDER</span>
+          <h1>Every day tells a story.</h1>
+          <div className="tm-typing" aria-label={message}>{typed}<span aria-hidden="true" className="tm-caret">▌</span></div>
+          <p>A private look into the moments, effort and progress Ahsan shares with you.</p>
+          <button className="tm-primary tm-wide" type="button" onClick={onContinue}>Continue to updates <ArrowRight size={18}/></button>
+        </div>
+        <div className="tmv-welcome-footer">PRIVATE FAMILY JOURNAL <span>·</span> MADE TO KEEP YOU CONNECTED</div>
+      </section>
     </div>
   );
 }
@@ -192,8 +206,8 @@ const CHAT_TOPICS = [
 ];
 const BOT_INTRO = {
   role: 'bot',
-  en: 'Hello! I can explain Ahsan’s saved updates. How many days would you like?',
-  ur: 'السلام علیکم! میں احسن کی محفوظ شدہ اپڈیٹس بتا سکتا ہوں۔ کتنے دنوں کی سمری چاہیے؟',
+  en: 'Hi! I can summarize Ahsan’s updates. Which period should I look at?',
+  ur: 'السلام علیکم! میں احسن کی اپڈیٹس کا خلاصہ بتا سکتا ہوں۔ کتنے دنوں کی سمری چاہیے؟',
 };
 
 function parseChatPeriod(raw) {
@@ -310,13 +324,25 @@ function SummaryChat({ entries, prayerDays, quranEntries, onClose, onSessionErro
   const [busy, setBusy] = useState(false);
   const [aiInsight, setAiInsight] = useState('');
   const [aiError, setAiError] = useState('');
-  const endRef = useRef(null);
-  useEffect(() => { endRef.current?.scrollIntoView({ block: 'end', behavior: 'smooth' }); }, [messages, busy, aiInsight, aiError]);
+  const scrollRef = useRef(null);
+  const reportRef = useRef(null);
+
   useEffect(() => {
     const onKey = event => { if (event.key === 'Escape') onClose(); };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
   }, [onClose]);
+  useEffect(() => {
+    const container = scrollRef.current;
+    if (!container) return;
+    if (step === 'done' && reportRef.current) {
+      // A long report must open at its beginning, not at its last line.
+      const top = reportRef.current.offsetTop - container.offsetTop - 15;
+      container.scrollTop = Math.max(0, top);
+    } else {
+      container.scrollTop = container.scrollHeight;
+    }
+  }, [messages, step]);
 
   function beginAgain() {
     setStep('period'); setPeriod(null); setTopic(null); setText(''); setBusy(false);
@@ -325,17 +351,19 @@ function SummaryChat({ entries, prayerDays, quranEntries, onClose, onSessionErro
   async function showReport(selectedPeriod, selectedTopic, seedMessages) {
     setTopic(selectedTopic);
     setStep('done');
+    setAiInsight(''); setAiError('');
     const p = CHAT_PERIODS.find(x => x.id === selectedPeriod);
     const s = CHAT_TOPICS.find(x => x.id === selectedTopic);
     const lines = buildFamilyReport({ entries, prayerDays, quranEntries, period: selectedPeriod, topic: selectedTopic });
     setMessages([...seedMessages, {
       role: 'bot',
-      en: `Here is Ahsan’s ${p.en.toLowerCase()} summary for ${s.en.toLowerCase()}.`,
-      ur: `یہ احسن کی ${p.ur} کی ${s.ur} سے متعلق محفوظ شدہ سمری ہے۔`,
+      en: `${p.en} · ${s.en} — here is what Ahsan recorded.`,
+      ur: `${p.ur} · ${s.ur} — احسن کے محفوظ کردہ ریکارڈ کی سمری:`,
       lines,
     }]);
     if (selectedPeriod === 'month') {
-      setAiError('The 30-day report is calculated from saved records. The current AI API supports only today and 7 days. / پچھلے ۳۰ دن کی سمری محفوظ شدہ ریکارڈ سے تیار ہوئی ہے۔ موجودہ AI سروس صرف آج اور ۷ دن کی سمری دیتی ہے۔');
+      // No backend change: existing API supports only 'today', 'week', 'all'.
+      setAiError('The 30-day view uses recorded entries, not an AI-generated monthly report. / پچھلے ۳۰ دن کا خلاصہ محفوظ شدہ ریکارڈ پر مبنی ہے، AI کی ماہانہ رپورٹ نہیں۔');
       return;
     }
     setBusy(true);
@@ -344,7 +372,7 @@ function SummaryChat({ entries, prayerDays, quranEntries, onClose, onSessionErro
       setAiInsight(String(data.summary || ''));
     } catch (err) {
       if (err.status === 401) onSessionError(err);
-      setAiError('Extra AI insight is unavailable; the saved-data summary above is still available. / اضافی AI وضاحت فی الحال دستیاب نہیں، لیکن محفوظ شدہ ریکارڈ کی سمری اوپر موجود ہے۔');
+      setAiError('AI insight is unavailable. The saved-record summary above is still available. / اضافی AI وضاحت دستیاب نہیں، لیکن محفوظ شدہ ریکارڈ کی سمری اوپر موجود ہے۔');
     } finally {
       setBusy(false);
     }
@@ -357,20 +385,19 @@ function SummaryChat({ entries, prayerDays, quranEntries, onClose, onSessionErro
     if (step === 'period') {
       const selected = parseChatPeriod(value);
       if (!selected) {
-        setMessages([...next, { role: 'bot', en: 'Please choose Today, Last 7 days or Last 30 days. You can type in English, اردو or Roman Urdu.', ur: 'براہِ کرم آج، پچھلے ۷ دن یا پچھلے ۳۰ دن منتخب کریں۔ آپ انگریزی، اردو یا رومن اردو میں بھی لکھ سکتے ہیں۔' }]);
+        setMessages([...next, { role: 'bot', en: 'Please select Today, 7 days or 30 days.', ur: 'براہِ کرم آج، ۷ دن یا ۳۰ دن منتخب کریں۔' }]);
         return;
       }
       setPeriod(selected);
       const together = /^(?:[123۱۲۳١٢٣])$/.test(value) ? null : parseChatTopic(value);
-      // A complete sentence such as "week office" can skip the second question.
       if (together) { showReport(selected, together, next); return; }
       setStep('topic');
-      setMessages([...next, { role: 'bot', en: 'What would you like me to summarize? Choose a number, tap an option, or write it in your own words.', ur: 'کس چیز کی سمری چاہیے؟ نمبر منتخب کریں، بٹن دبائیں یا اپنی زبان میں لکھیں۔' }]);
+      setMessages([...next, { role: 'bot', en: 'What would you like to know about?', ur: 'آپ کس چیز کی سمری چاہتے ہیں؟' }]);
       return;
     }
     const selected = parseChatTopic(value);
     if (!selected) {
-      setMessages([...next, { role: 'bot', en: 'Please choose 1 to 6, or write Prayer, Quran, Office, University or Personal.', ur: 'براہِ کرم ۱ سے ۶ تک نمبر منتخب کریں، یا نماز، قرآن، دفتر، یونیورسٹی یا ذاتی کام لکھیں۔' }]);
+      setMessages([...next, { role: 'bot', en: 'Choose an option below, or type its name or number.', ur: 'نیچے موجود آپشن منتخب کریں، یا نام یا نمبر لکھیں۔' }]);
       return;
     }
     showReport(period, selected, next);
@@ -378,43 +405,44 @@ function SummaryChat({ entries, prayerDays, quranEntries, onClose, onSessionErro
   const options = step === 'period' ? CHAT_PERIODS : step === 'topic' ? CHAT_TOPICS : [];
   return (
     <div className="tm-modal-backdrop tmv-chat-backdrop" onMouseDown={event => event.target === event.currentTarget && onClose()}>
-      <section className="tmv-chat" role="dialog" aria-modal="true" aria-label="Family summary chat">
+      <section className={`tmv-chat ${step === 'done' ? 'tmv-chat-has-report' : 'tmv-chat-compact'}`} role="dialog" aria-modal="true" aria-label="Bilingual family summary assistant">
         <header className="tmv-chat-head">
-          <div className="tmv-chat-avatar"><Sparkles size={20}/></div>
-          <div><strong>Ask about Ahsan’s day</strong><span lang="ur" dir="rtl">احسن کے دن کے بارے میں پوچھیں</span></div>
-          <button type="button" className="tmv-chat-close" onClick={onClose} aria-label="Close chat"><X size={21}/></button>
+          <div className="tmv-chat-avatar"><MessageSquareText size={20} strokeWidth={1.8}/></div>
+          <div className="tmv-chat-heading"><strong>Daily summary assistant</strong><span>English <span aria-hidden="true">·</span> <span lang="ur" dir="rtl">اردو</span></span></div>
+          <button type="button" className="tmv-chat-close" onClick={onClose} aria-label="Close chat"><X size={20}/></button>
         </header>
-        <div className="tmv-chat-scroll" aria-live="polite" aria-relevant="additions text">
-          {messages.map((m, idx) => <div key={idx} className={`tmv-chat-bubble tmv-chat-${m.role}`}>
-            {m.role === 'user' ? <p>{m.text}</p> : <>
+        <div className="tmv-chat-scroll" ref={scrollRef} aria-live="polite" aria-relevant="additions text">
+          <div className="tmv-chat-date-label">FAMILY UPDATE ASSISTANT</div>
+          {messages.map((m, idx) => <div key={idx} ref={m.lines ? reportRef : undefined} className={`tmv-chat-message tmv-chat-${m.role}`}>
+            {m.role === 'user' ? <div className="tmv-chat-bubble"><p>{m.text}</p></div> : <div className="tmv-chat-bubble">
               <p lang="en">{m.en}</p><p className="tmv-chat-urdu" lang="ur" dir="rtl">{m.ur}</p>
               {m.lines && <div className="tmv-chat-report">{m.lines.map((line, i) => <div className="tmv-chat-report-line" key={i}>
                 <p lang="en">{line.en}</p><p className="tmv-chat-urdu" lang="ur" dir="rtl">{line.ur}</p>
               </div>)}</div>}
-            </>}
+            </div>}
           </div>)}
-          {busy && <div className="tmv-chat-bubble tmv-chat-bot tmv-chat-wait"><p>Adding an AI explanation…</p><p lang="ur" dir="rtl">AI کی اضافی وضاحت تیار ہو رہی ہے…</p></div>}
-          {step === 'done' && aiInsight && <div className="tmv-chat-bubble tmv-chat-bot"><p><strong>Additional AI insight (English)</strong></p><p lang="ur" dir="rtl" className="tmv-chat-urdu">اضافی اے آئی وضاحت (انگریزی میں)</p><p className="tmv-ai-insight">{aiInsight}</p></div>}
-          {step === 'done' && aiError && <div className="tmv-chat-bubble tmv-chat-bot tmv-chat-system"><p>{aiError.split(' / ')[0]}</p><p className="tmv-chat-urdu" dir="rtl" lang="ur">{aiError.split(' / ')[1]}</p></div>}
-          <div ref={endRef}/>
+          {step !== 'done' && <div className="tmv-chat-quick" aria-label="Suggested replies">
+            {options.map(option => <button type="button" key={option.id} onClick={() => submit(step === 'topic' ? option.number : option.id === 'today' ? '1' : option.id === 'week' ? '2' : '3')}>
+              {step === 'topic' && <span className="tmv-chat-choice-num">{option.number}.</span>}
+              <span>{option.en}</span><span className="tmv-chat-choice-urdu" lang="ur" dir="rtl">{option.ur}</span>
+            </button>)}
+          </div>}
+          {busy && <div className="tmv-chat-message tmv-chat-bot"><div className="tmv-chat-bubble tmv-chat-processing"><span className="tmv-chat-loading-dot"/> <span>Checking AI insight…</span><span className="tmv-chat-urdu" lang="ur" dir="rtl">اضافی AI تفصیل تیار ہو رہی ہے…</span></div></div>}
+          {step === 'done' && aiInsight && <details className="tmv-chat-ai-details"><summary>View additional AI insight <span lang="ur" dir="rtl">مزید AI تفصیل دیکھیں</span><ChevronRight size={17}/></summary><p className="tmv-ai-insight">{aiInsight}</p><small>This extra AI insight is in English. / یہ اضافی AI وضاحت انگریزی میں ہے۔</small></details>}
+          {step === 'done' && aiError && <div className="tmv-chat-hint"><span>{aiError.split(' / ')[0]}</span><span lang="ur" dir="rtl">{aiError.split(' / ')[1]}</span></div>}
+          {step === 'done' && <button type="button" className="tmv-chat-again" onClick={beginAgain}>Start another summary <span lang="ur" dir="rtl">دوبارہ سمری لیں</span><ArrowRight size={17}/></button>}
         </div>
         <div className="tmv-chat-controls">
-          {step !== 'done' ? <>
-            <div className="tmv-chat-options">{options.map(option => <button type="button" key={option.id} onClick={() => submit(step === 'topic' ? option.number : option.id === 'today' ? '1' : option.id === 'week' ? '2' : '3')}>
-              {step === 'topic' && <b>{option.number}</b>}<span><strong>{option.en}</strong><small lang="ur" dir="rtl">{option.ur}</small></span>
-            </button>)}</div>
-            <form className="tmv-chat-inputbar" onSubmit={event => { event.preventDefault(); submit(text); }}>
-              <input aria-label="Type your question in English or Urdu" value={text} onChange={event => setText(event.target.value)} placeholder="Type English / اردو / Roman Urdu" maxLength={250}/>
-              <button type="submit" disabled={!text.trim()} aria-label="Send message"><Send size={20}/></button>
-            </form>
-          </> : <button type="button" className="tmv-chat-again" onClick={beginAgain}>Ask for another summary <span lang="ur" dir="rtl">دوبارہ سمری پوچھیں</span><ArrowRight size={19}/></button>}
-          <p className="tmv-chat-privacy">Answers use saved updates only. AI requests share relevant records with Groq. <span lang="ur" dir="rtl">جواب صرف محفوظ ریکارڈ سے بنتے ہیں۔ AI کے لیے متعلقہ ڈیٹا Groq کو بھیجا جاتا ہے۔</span></p>
+          <form className="tmv-chat-inputbar" onSubmit={event => { event.preventDefault(); submit(text); }}>
+            <input aria-label="Type in English, Urdu or Roman Urdu" value={text} onChange={event => setText(event.target.value)} placeholder={step === 'done' ? 'Start another summary above' : 'Type a message / اپنا پیغام لکھیں'} maxLength={250} disabled={step === 'done' || busy}/>
+            <button type="submit" disabled={!text.trim() || step === 'done' || busy} aria-label="Send message"><Send size={18}/></button>
+          </form>
+          <details className="tmv-chat-privacy"><summary>Privacy note / رازداری</summary><p>Answers use saved records. For AI insights, relevant records are sent to Groq.</p><p lang="ur" dir="rtl">جوابات محفوظ شدہ ریکارڈ سے تیار ہوتے ہیں۔ AI کے لیے متعلقہ معلومات Groq کو بھیجی جاتی ہیں۔</p></details>
         </div>
       </section>
     </div>
   );
 }
-
 
 /* ============================================================
    FAMILY READING VIEW — every screen starts with information,
@@ -475,11 +503,11 @@ function FamilyToday({ entries, days, quran, viewDate, setViewDate, onOpen, onOp
   const recorded = PRAYERS.filter(([key])=>prayer.group?.[key]||prayer.makeup?.[key]).length;
   const hasAny = noteCount || pages || recorded;
   return <div className="tmv-family-view">
-    <div className="tmv-intro"><span className="tmv-intro-kicker">FAMILY UPDATES</span><h1>Ahsan’s daily updates</h1><p>See what Ahsan has shared with you.</p></div>
+    <div className="tmv-intro"><span className="tmv-intro-kicker">THE DAILY JOURNAL</span><h1>Ahsan’s daily updates.</h1><p>His day, his progress, and everything he has shared with you.</p></div>
     <DayNavigator value={viewDate} setValue={setViewDate}/>
     <section className="tmv-summary-entry" aria-label="Ask for a summary">
-      <div className="tmv-summary-entry-text"><span className="tmv-summary-symbol"><Sparkles size={22}/></span><div><h2>Want a quick summary?</h2><p lang="ur" dir="rtl">کیا آپ مختصر سمری دیکھنا چاہتے ہیں؟</p></div></div>
-      <button type="button" onClick={onOpenSummary}><span>Summarize all details</span><span lang="ur" dir="rtl">تمام تفصیلات کی سمری یہاں دیکھیں</span><ArrowRight size={19}/></button>
+      <div className="tmv-summary-entry-text"><span className="tmv-summary-symbol"><MessageSquareText size={20} strokeWidth={1.9}/></span><div><h2>Understand his day in seconds.</h2><p lang="ur" dir="rtl">احسن کی روزانہ کی تفصیلات آسانی سے جانیں۔</p></div></div>
+      <button type="button" onClick={onOpenSummary}><span>Summarize all details</span><span lang="ur" dir="rtl">تمام تفصیلات کی سمری</span><ArrowRight size={18}/></button>
     </section>
     {!hasAny && <div className="tmv-empty-day" role="status"><Clock3 size={21}/><span>No daily update has been posted for this date yet. You can still see current projects and upcoming university dates below.</span></div>}
     <div className="tmv-group-title"><h2>Daily Life</h2><span>Actual saved updates</span></div>
@@ -623,7 +651,7 @@ export default function TrackMe() {
   if(!authenticated)return <main className="tm-page"><LoginScreen password={password} setPassword={setPassword} onSubmit={signIn} busy={busy} error={loginError}/></main>;
   if(welcome)return <main className="tm-page"><CautionWelcome onContinue={()=>setWelcome(false)}/></main>;
   return <main className="tm-page tmv-family"><div className="tm-shell tmv-shell">
-    <header className="tmv-header"><button type="button" className="tmv-brand" onClick={()=>go('overview')} aria-label="Go to Ahsan's daily updates"><span className="tmv-logo"><Heart size={19}/></span><span><strong>Ahsan’s Updates</strong><small>Private family space</small></span></button><button type="button" className="tmv-logout" onClick={signOut}><LogOut size={18}/><span>Log out</span></button></header>
+    <header className="tmv-header"><button type="button" className="tmv-brand" onClick={()=>go('overview')} aria-label="Go to Ahsan's daily updates"><span className="tmv-logo" aria-hidden="true">A</span><span><strong>Ahsan’s Updates</strong><small>Family journal</small></span></button><button type="button" className="tmv-logout" onClick={signOut}><LogOut size={18}/><span>Log out</span></button></header>
     {section!=='overview'&&<button type="button" className="tmv-back" onClick={()=>go('overview')}><ArrowLeft size={20}/> Back to daily updates</button>}
     {notice&&<div className="tmv-notice" role="status"><CheckCircle2 size={19}/><span>{notice}</span><button type="button" onClick={()=>setNotice('')} aria-label="Dismiss"><X size={17}/></button></div>}
     {ownerMode&&<div className="tmv-owner-banner"><span><LockKeyhole size={16}/> Owner editing is ON</span><button type="button" onClick={lockOwner}>Finish editing</button></div>}
@@ -631,7 +659,7 @@ export default function TrackMe() {
     {['office','personal','university'].includes(section)&&<WorkPanel section={section} ownerMode={ownerMode} entries={entries} busy={busy} search={search} setSearch={setSearch} filter={filter} setFilter={setFilter} expanded={expanded} setExpanded={setExpanded} note={note} setNote={setNote} onNew={newTask} onNote={addNote} onEdit={item=>setEditor({...item})} onDelete={deleteTask} onStatus={updateTask}/>}
     {section==='prayer'&&<PrayerPanel ownerMode={ownerMode} date={prayerDate} setDate={setPrayerDate} days={prayerDays} busy={busy} onToggle={togglePrayer}/>}
     {section==='quran'&&<QuranPanel ownerMode={ownerMode} quran={quranEntries} busy={busy} onAdd={addQuran} onDelete={deleteQuran}/>}
-    <div className="tmv-bottom"><button type="button" className="tmv-owner-link" onClick={ownerMode?lockOwner:openOwner}><LockKeyhole size={16}/>{ownerMode?'Finish owner updates':'Owner updates (private code)'}</button><p>For family, with love.</p></div>
+    <div className="tmv-bottom"><button type="button" className="tmv-owner-link" onClick={ownerMode?lockOwner:openOwner}><LockKeyhole size={16}/>{ownerMode?'Finish owner updates':'Owner updates (private code)'}</button><p>Only for Ahsan’s family.</p></div>
   </div>
   {pinOpen&&<PinModal busy={busy} onVerify={verifyPin} onClose={()=>setPinOpen(false)} error={pinError}/>}
   {editor&&<TaskEditor key={editor.id||`new-${editor.section}`} initial={editor} saving={busy} onClose={()=>setEditor(null)} onSave={saveTask}/>}
