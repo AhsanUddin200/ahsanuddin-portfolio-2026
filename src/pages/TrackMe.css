@@ -712,3 +712,156 @@ body:has(.tm-page) {background:#f5f7f6}
 
 .tm-page .tmv-partner-followup {display:block;margin-top:7px;color:#20543e;animation:tmvFollowup .3s ease both}
 @keyframes tmvFollowup {from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:translateY(0)}}
+
+
+/* ============================================================
+   Track Me V9 — three targeted fixes only.
+   1. Continuous photo to header and footer.
+   2. Automatic Happa welcome + hidden answered question (JSX).
+   3. Detailed, recognisable coloured vector category icons.
+   No changes to task/editor/chat/permissions/back-end CSS.
+============================================================ */
+.tm-page .tmv-welcome-panel {
+  position:relative;
+  isolation:isolate;
+  overflow:hidden;
+  background:#fff;
+}
+.tm-page .tmv-welcome-portrait {
+  /* Same original photograph, flowing continuously under header and footer. */
+  inset:0;
+  width:100%;
+  height:100%;
+  background-image:url('/ahsan-family-photo.png');
+  background-size:auto 100%;
+  background-position:right center;
+  background-repeat:no-repeat;
+  opacity:.92;
+  -webkit-mask-image:linear-gradient(to right,transparent 18%,rgba(0,0,0,.36) 44%,#000 73%);
+  mask-image:linear-gradient(to right,transparent 18%,rgba(0,0,0,.36) 44%,#000 73%);
+}
+.tm-page .tmv-welcome-panel::before {
+  content:'';
+  position:absolute;
+  inset:0;
+  z-index:0;
+  pointer-events:none;
+  background:linear-gradient(90deg,rgba(255,255,255,.90) 0%,rgba(255,255,255,.86) 37%,rgba(255,255,255,.41) 67%,rgba(255,255,255,.12) 100%);
+}
+.tm-page .tmv-welcome-header,
+.tm-page .tmv-welcome-footer {
+  position:relative;
+  z-index:1;
+  background:transparent;
+  /* No opaque white bands cutting the original photograph. */
+  backdrop-filter:none;
+}
+.tm-page .tmv-welcome-body {position:relative;z-index:1}
+.tm-page .tmv-relation-prompt {margin-bottom:14px}
+.tm-page .tmv-relation-message.tm-typing {
+  margin-top:25px;
+  margin-bottom:16px;
+  max-width:490px;
+  overflow-wrap:anywhere;
+}
+.tm-page .tmv-partner-followup {
+  display:block;
+  margin-top:8px;
+  font-size:inherit;
+  font-weight:500;
+}
+/* Category artwork occupies the same position as previous outline icons. */
+.tm-page .tmv-card-icon {
+  width:45px;
+  height:45px;
+  min-width:45px;
+  border:0;
+  border-radius:10px;
+  background:transparent;
+}
+.tm-page .tmv-card-icon .tmv-category-artwork {
+  width:43px;
+  height:43px;
+  display:block;
+  flex-shrink:0;
+  stroke-width:initial;
+}
+.tm-page .tmv-detail-heading>.tmv-category-artwork {
+  width:44px;
+  height:44px;
+  flex-shrink:0;
+  display:block;
+}
+@media(max-width:600px) {
+  .tm-page .tmv-welcome-portrait {
+    inset:0;
+    width:100%;
+    opacity:.28;
+    background-size:auto 100%;
+    background-position:right center;
+    -webkit-mask-image:linear-gradient(to right,transparent 0%,rgba(0,0,0,.58) 48%,#000 100%);
+    mask-image:linear-gradient(to right,transparent 0%,rgba(0,0,0,.58) 48%,#000 100%);
+  }
+  .tm-page .tmv-welcome-panel::before {
+    background:linear-gradient(90deg,rgba(255,255,255,.95),rgba(255,255,255,.79));
+  }
+  .tm-page .tmv-relation-message.tm-typing {margin-top:19px}
+  .tm-page .tmv-card-icon,
+  .tm-page .tmv-card-icon .tmv-category-artwork {width:40px;height:40px;min-width:40px}
+}
+
+/* =============================================================
+   V10 — Professional category iconography (UI-only change).
+   Fine, consistent stroke weights and neutral surfaces in place of
+   illustrated/cartoon artwork. Preserve all existing layouts/logic.
+============================================================= */
+.tm-page .tmv-card-icon {
+  width:42px;
+  height:42px;
+  min-width:42px;
+  border:1px solid #e1e9e3;
+  border-radius:11px;
+  background:#f5f8f5;
+  color:#2c6254;
+  box-shadow:none;
+  display:grid;
+  place-items:center;
+}
+.tm-page .tmv-card-icon .tmv-category-artwork {
+  display:block;
+  width:27px;
+  height:27px;
+  min-width:0;
+  color:inherit;
+  stroke:currentColor;
+  stroke-width:1.85;
+  flex-shrink:0;
+}
+.tm-page .tmv-detail-heading>.tmv-category-artwork {
+  width:34px;
+  height:34px;
+  min-width:34px;
+  color:#2c6254;
+  stroke:currentColor;
+  stroke-width:1.85;
+}
+/* Keep both lines readable and displayed simultaneously, without a cursor. */
+.tm-page .tmv-relation-message.tm-typing {white-space:normal;}
+.tm-page .tmv-relation-message .tmv-partner-followup {
+  display:block;
+  margin-top:8px;
+  font-size:inherit;
+  font-weight:500;
+}
+@media(max-width:600px) {
+  .tm-page .tmv-card-icon {
+    width:40px;
+    height:40px;
+    min-width:40px;
+  }
+  .tm-page .tmv-card-icon .tmv-category-artwork {
+    width:26px;
+    height:26px;
+    min-width:0;
+  }
+}

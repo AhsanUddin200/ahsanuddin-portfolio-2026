@@ -20,6 +20,62 @@ function AhsanName() {
   return <span className="tmv-handwritten-name">Ahsan</span>;
 }
 
+// Consistent professional line icon system — minimal, precise, and monochrome.
+// Custom prayer and Quran symbols remain semantically recognizable.
+// No emojis, gradients, cartoon shading, or external icon/image dependencies.
+function CategoryArtwork({ type }) {
+  const common = {
+    className: 'tmv-category-artwork',
+    'data-category': type,
+    viewBox: '0 0 48 48',
+    width: 32,
+    height: 32,
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 1.85,
+    strokeLinecap: 'round',
+    strokeLinejoin: 'round',
+    'aria-hidden': true,
+    focusable: false,
+  };
+  switch (type) {
+    case 'prayer':
+      return <svg {...common}>
+        <path d="M7 40h34M11 40V23m26 17V23" />
+        <path d="M15 40V25c0-5.9 3.3-9.6 9-12.2C29.7 15.4 33 19.1 33 25v15" />
+        <path d="M20 40v-9a4 4 0 0 1 8 0v9" />
+        <path d="M24 12.8v-3" />
+        <path d="M27 3.5a5.2 5.2 0 1 0 4.7 7.4A5.1 5.1 0 0 1 27 3.5Z" />
+        <path d="M8 20h6m20 0h6" />
+      </svg>;
+    case 'quran':
+      return <svg {...common}>
+        <path d="M24 14c-5.7-4.5-11.6-5.6-18-3.4V36c7.5-2.2 13.3-.5 18 3.5" />
+        <path d="M24 14c5.7-4.5 11.6-5.6 18-3.4V36c-7.5-2.2-13.3-.5-18 3.5" />
+        <path d="M24 14v25.5M11 17.5c3-.4 5.5.1 8 1.2m-8 4c3-.4 5.5.1 8 1.2m10-5.2c2.5-1.1 5-1.6 8-1.2m-8 6.4c2.5-1.1 5-1.6 8-1.2" />
+      </svg>;
+    case 'office':
+      return <svg {...common}>
+        <rect x="6.5" y="15" width="35" height="26" rx="3.6" />
+        <path d="M17 15v-4a3 3 0 0 1 3-3h8a3 3 0 0 1 3 3v4" />
+        <path d="M6.5 25c9.5 5.8 25.5 5.8 35 0" />
+        <rect x="21" y="26" width="6" height="6" rx="1.2" fill="white" />
+      </svg>;
+    case 'university':
+      return <svg {...common}>
+        <path d="m5 18.5 19-9 19 9-19 9-19-9Z" />
+        <path d="M12.5 22.3v11c6.5 5.4 16.5 5.4 23 0v-11" />
+        <path d="M43 18.5v14" />
+        <path d="M40.5 37h5L43 31.8 40.5 37Z" />
+      </svg>;
+    case 'personal':
+    default:
+      return <svg {...common}>
+        <path d="M24 40s-16-9.7-17.9-19.3C4.4 12 13.4 6.5 20.2 13.2L24 17l3.8-3.8C34.6 6.5 43.6 12 41.9 20.7 40 30.3 24 40Z" />
+        <path d="M16 25h5l3-5 3 9 2.3-4H33" />
+      </svg>;
+  }
+}
 
 const PRAYERS = [
   ['fajr', 'Fajr'], ['dhuhr', 'Dhuhr'], ['asr', 'Asr'],
@@ -113,46 +169,18 @@ function LoginScreen({ password, setPassword, onSubmit, busy, error }) {
 }
 
 function CautionWelcome({ onContinue }) {
-  // A two-choice, front-end-only family welcome. The existing login and
-  // owner's code are unchanged; this is NOT an authentication check.
+  // Greeting only: no changes to authentication, permissions, API or saved data.
+  // No selection within 4 seconds => show both partner lines immediately.
   const [relationChoice, setRelationChoice] = useState(null);
-  const [showPartnerFollowup, setShowPartnerFollowup] = useState(false);
-  const [typed, setTyped] = useState('');
-
-  const message = relationChoice === 'parents'
-    ? 'You are tracking your son.'
-    : relationChoice === 'partner'
-      ? "You are Ahsan's favorite woman and life partner happa❤️"
-      : '';
-
-  // For No: show the personal message first; reveal the next line after 3 sec.
   useEffect(() => {
-    if (relationChoice !== 'partner') {
-      setShowPartnerFollowup(false);
-      return;
-    }
-    setShowPartnerFollowup(false);
-    const timer = window.setTimeout(() => setShowPartnerFollowup(true), 3000);
+    if (relationChoice !== null) return undefined;
+    const timer = window.setTimeout(() => {
+      setRelationChoice(current => current === null ? 'partner-auto' : current);
+    }, 4000);
     return () => window.clearTimeout(timer);
   }, [relationChoice]);
 
-  // Preserve the existing typing effect for the selected relationship.
-  useEffect(() => {
-    setTyped('');
-    if (!message) return;
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      setTyped(message);
-      return;
-    }
-    let index = 0;
-    const timer = window.setInterval(() => {
-      index += 1;
-      setTyped(message.slice(0, index));
-      if (index >= message.length) window.clearInterval(timer);
-    }, 24);
-    return () => window.clearInterval(timer);
-  }, [message]);
-
+  const isPartner = relationChoice === 'partner' || relationChoice === 'partner-auto';
   return (
     <div className="tm-welcome-screen" role="dialog" aria-modal="true" aria-label="Welcome to Ahsan's daily updates">
       <section className="tm-welcome-card tmv-welcome-panel">
@@ -165,23 +193,25 @@ function CautionWelcome({ onContinue }) {
         <div className="tmv-welcome-body">
           <span className="tmv-welcome-kicker">A PERSONAL REMINDER</span>
           <h1>Every day tells a story.</h1>
-          <div className="tmv-relation-prompt">
-            <p className="tmv-relation-question">Are you <AhsanName/>’s parents?</p>
-            <div className="tmv-relation-actions" role="group" aria-label="Are you Ahsan's parents?">
-              <button type="button" aria-pressed={relationChoice === 'parents'}
-                className={`tmv-relation-option ${relationChoice === 'parents' ? 'is-selected' : ''}`}
-                onClick={() => setRelationChoice('parents')}>Yes</button>
-              <button type="button" aria-pressed={relationChoice === 'partner'}
-                className={`tmv-relation-option ${relationChoice === 'partner' ? 'is-selected' : ''}`}
-                onClick={() => setRelationChoice('partner')}>No</button>
+          {relationChoice === null && (
+            <div className="tmv-relation-prompt">
+              <p className="tmv-relation-question">Are you <AhsanName/>’s parents?</p>
+              <div className="tmv-relation-actions" role="group" aria-label="Are you Ahsan's parents?">
+                <button type="button" className="tmv-relation-option"
+                  onClick={() => setRelationChoice('parents')}>Yes</button>
+                <button type="button" className="tmv-relation-option"
+                  onClick={() => setRelationChoice('partner')}>No</button>
+              </div>
             </div>
-          </div>
-          {relationChoice && (
+          )}
+          {relationChoice !== null && (
             <div className="tm-typing tmv-relation-message" role="status" aria-live="polite">
-              {typed}<span aria-hidden="true" className="tm-caret">▌</span>
-              {relationChoice === 'partner' && showPartnerFollowup && (
-                <span className="tmv-partner-followup">You are tracking your man.</span>
-              )}
+              {relationChoice === 'parents'
+                ? 'You are tracking your son.'
+                : isPartner && <>
+                    <span>You are Ahsan's favorite woman and life partner happa❤️</span>
+                    <span className="tmv-partner-followup">You are tracking your man.</span>
+                  </>}
             </div>
           )}
           <p>A private look into the moments, effort and progress <AhsanName/> shares with you.</p>
@@ -194,7 +224,6 @@ function CautionWelcome({ onContinue }) {
     </div>
   );
 }
-
 function PinModal({ busy, onVerify, onClose, error }) {
   const [pin, setPin] = useState('');
   const [show, setShow] = useState(false);
@@ -541,14 +570,12 @@ function DailyEntries({ entries, date, section, onOpen }) {
   const items = entries.filter(x => x.section === section);
   const notes = items.flatMap(item => (item.logs || []).filter(log => dayISO(log.createdAt) === date).map(log => ({ item, log })))
     .sort((a,b) => String(b.log.createdAt).localeCompare(String(a.log.createdAt)));
-  const icon = section === 'office' ? BriefcaseBusiness : section === 'university' ? GraduationCap : Heart;
-  const Icon = icon;
   const name = section === 'office' ? 'Office Work' : section === 'university' ? 'University' : 'Personal Life';
   const upcoming = section === 'university' ? items
     .filter(x => x.meta?.upcomingDate && x.meta.upcomingDate >= date)
     .sort((a,b) => xDate(a).localeCompare(xDate(b))).slice(0,2) : [];
   return <section className={`tmv-story-card tmv-story-${section}`} aria-label={name}>
-    <div className="tmv-card-heading"><span className="tmv-card-icon"><Icon size={21}/></span><h2>{name}</h2></div>
+    <div className="tmv-card-heading"><span className="tmv-card-icon"><CategoryArtwork type={section}/></span><h2>{name}</h2></div>
     {notes.length ? <div className="tmv-update-list">{notes.slice(0,3).map(({item,log}) => <div className="tmv-daily-note" key={`${item.id}-${log.id}`}>
       <strong>{item.meta?.project || item.meta?.university || item.title}</strong>
       {item.meta?.project && <small>{item.title}</small>}
@@ -578,12 +605,12 @@ function FamilyToday({ entries, days, quran, viewDate, setViewDate, onOpen, onOp
     {!hasAny && <div className="tmv-empty-day" role="status"><Clock3 size={21}/><span>No daily update has been posted for this date yet. You can still see current projects and upcoming university dates below.</span></div>}
     <div className="tmv-group-title"><h2>Daily Life</h2><span>Actual saved updates</span></div>
     <section className="tmv-story-card tmv-prayer-card">
-      <div className="tmv-card-heading"><span className="tmv-card-icon"><Clock3 size={21}/></span><h2>Prayer</h2></div>
+      <div className="tmv-card-heading"><span className="tmv-card-icon"><CategoryArtwork type="prayer"/></span><h2>Prayer</h2></div>
       <PrayerReadout date={viewDate} days={days}/>
       <button type="button" className="tmv-read-more" onClick={() => onOpen('prayer')}>See prayer history <ArrowRight size={17}/></button>
     </section>
     <section className="tmv-story-card tmv-quran-card">
-      <div className="tmv-card-heading"><span className="tmv-card-icon"><BookOpen size={21}/></span><h2>Quran Reading</h2></div>
+      <div className="tmv-card-heading"><span className="tmv-card-icon"><CategoryArtwork type="quran"/></span><h2>Quran Reading</h2></div>
       {read.length ? <><div className="tmv-reading-number"><strong>{pages}</strong><span>{pages === 1 ? 'page' : 'pages'} read</span></div>
         <div className="tmv-reading-list">{read.map(item=><div className="tmv-reading-line" key={item.id}><BookOpen size={16}/><span>Para {item.para} · {item.pagesRead} {Number(item.pagesRead)===1?'page':'pages'}{item.note?` · ${item.note}`:''}</span></div>)}</div></>
         : <p className="tmv-empty-note">No reading update has been posted for this day yet.</p>}
@@ -620,7 +647,7 @@ function TaskCard({ item, ownerMode, expanded, onExpand, note, setNote, busy, on
 function PrayerPanel({ ownerMode, date, setDate, days, busy, onToggle }) {
   const record = days[date] || {group:{},makeup:{}};
   const marked=PRAYERS.filter(([key])=>record.group?.[key]||record.makeup?.[key]).length;
-  return <section className="tmv-detail-view"><div className="tmv-detail-heading"><Clock3 size={25}/><div><h2>Prayer Record</h2><p>Daily prayers, as recorded by <AhsanName/>.</p></div></div>
+  return <section className="tmv-detail-view"><div className="tmv-detail-heading"><CategoryArtwork type="prayer"/><div><h2>Prayer Record</h2><p>Daily prayers, as recorded by <AhsanName/>.</p></div></div>
     <DayNavigator value={date} setValue={setDate}/>
     {ownerMode ? <div className="tmv-owner-section"><p className="tmv-owner-label">OWNER EDITING · Changes save immediately</p><div className="tmv-prayer-edit-list">{PRAYERS.map(([key,label])=>{
        const group=Boolean(record.group?.[key]), makeup=Boolean(record.makeup?.[key]);
@@ -637,7 +664,7 @@ function QuranPanel({ ownerMode, quran, busy, onAdd, onDelete }) {
   const update=(key,value)=>setForm(old=>({...old,[key]:value}));
   const total=quran.reduce((s,x)=>s+Number(x.pagesRead||0),0);
   const sorted=[...quran].sort((a,b)=>String(b.date).localeCompare(String(a.date))||String(b.createdAt).localeCompare(String(a.createdAt)));
-  return <section className="tmv-detail-view"><div className="tmv-detail-heading"><BookOpen size={25}/><div><h2>Quran Reading</h2><p>Progress in the 15-line Quran, saved by <AhsanName/>.</p></div></div>
+  return <section className="tmv-detail-view"><div className="tmv-detail-heading"><CategoryArtwork type="quran"/><div><h2>Quran Reading</h2><p>Progress in the 15-line Quran, saved by <AhsanName/>.</p></div></div>
     <div className="tmv-quran-stat"><strong>{total}</strong><span>pages recorded in total</span></div>
     {ownerMode && <form className="tmv-owner-quran tm-stack" onSubmit={async e=>{e.preventDefault();const ok=await onAdd(form);if(ok)setForm(old=>({...old,pagesRead:'1',fromPage:'',toPage:'',note:''}));}}>
       <h3>Add a reading</h3><label className="tm-field"><span>Para</span><select value={form.para} onChange={e=>update('para',e.target.value)}>{Array.from({length:30},(_,i)=><option key={i+1} value={i+1}>Para {i+1}</option>)}</select></label>
@@ -656,7 +683,7 @@ function WorkPanel({ ownerMode, section, entries, busy, search, setSearch, filte
   const items=entries.filter(x=>x.section===section);
   const filtered=items.filter(x=>(filter==='all'||x.status===filter)&&`${x.title} ${x.detail} ${x.meta?.project||''} ${x.meta?.university||''} ${(x.logs||[]).map(l=>l.note).join(' ')}`.toLowerCase().includes(search.toLowerCase()))
     .sort((a,b)=>String(b.updatedAt).localeCompare(String(a.updatedAt)));
-  return <section className="tmv-detail-view"><div className="tmv-detail-heading">{(()=>{const Icon=info.icon;return <Icon size={25}/>;})()}<div><h2>{info.name}</h2><p>{section==='office'?'Projects, daily work and progress.':section==='university'?'Applications, interviews and important dates.':'Personal goals and updates.'}</p></div></div>
+  return <section className="tmv-detail-view"><div className="tmv-detail-heading"><CategoryArtwork type={section}/><div><h2>{info.name}</h2><p>{section==='office'?'Projects, daily work and progress.':section==='university'?'Applications, interviews and important dates.':'Personal goals and updates.'}</p></div></div>
     {ownerMode&&<button type="button" className="tmv-add-task" onClick={()=>onNew(section)}><Plus size={19}/> Add new {section==='university'?'application':'task'}</button>}
     {items.length>5&&<details className="tm-details tmv-filter-details"><summary>Find a specific activity</summary><label className="tm-field"><span>Search</span><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search activities"/></label><label className="tm-field"><span>Progress</span><select value={filter} onChange={e=>setFilter(e.target.value)}><option value="all">All</option>{Object.entries(STATUS).map(([key,label])=><option key={key} value={key}>{label}</option>)}</select></label></details>}
     {filtered.length ? <div className="tmv-task-list">{filtered.map(item=><TaskCard key={item.id} item={item} ownerMode={ownerMode} expanded={expanded===item.id} onExpand={id=>{setExpanded(id);setNote('');}} note={expanded===item.id?note:''} setNote={setNote} busy={busy} onNote={onNote} onEdit={onEdit} onDelete={onDelete} onStatus={onStatus}/>)}</div>:<p className="tmv-empty-note">No activities saved here yet.</p>}
