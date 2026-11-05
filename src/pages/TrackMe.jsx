@@ -77,6 +77,87 @@ function CategoryArtwork({ type }) {
   }
 }
 
+
+// Silent ambient stock video behind family update cards only.
+// External Mixkit preview clips are streamed; no API, DB or other page changes.
+// Each clip loads when its card comes near the viewport; failures fall back to the
+// original white card design. The Quran/prayer clips are personal-use stock clips.
+const FAMILY_CARD_VIDEO_SOURCES = {
+  prayer: [
+    'https://assets.mixkit.co/videos/preview/mixkit-men-praying-inside-a-mosque-on-the-floor-34223-large.mp4',
+    'https://assets.mixkit.co/videos/34223/34223-720.mp4',
+  ],
+  quran: [
+    'https://assets.mixkit.co/videos/preview/mixkit-person-turning-the-sheets-of-the-quran-35441-large.mp4',
+    'https://assets.mixkit.co/videos/35441/35441-720.mp4',
+  ],
+  office: [
+    'https://assets.mixkit.co/videos/preview/mixkit-laptop-screen-showing-software-code-1732-large.mp4',
+    'https://assets.mixkit.co/videos/1732/1732-720.mp4',
+  ],
+  university: [
+    'https://assets.mixkit.co/videos/preview/mixkit-girl-doing-homework-in-a-library-4531-large.mp4',
+    'https://assets.mixkit.co/videos/4531/4531-720.mp4',
+  ],
+  personal: [
+    'https://assets.mixkit.co/videos/preview/mixkit-man-texting-on-whatsapp-41173-large.mp4',
+    'https://assets.mixkit.co/videos/41173/41173-720.mp4',
+  ],
+};
+
+function FamilyCardVideo({ category }) {
+  const ref = useRef(null);
+  const [shouldLoad, setShouldLoad] = useState(false);
+  const [clipIndex, setClipIndex] = useState(0);
+  const sources = FAMILY_CARD_VIDEO_SOURCES[category] || [];
+
+  useEffect(() => {
+    const video = ref.current;
+    if (!video || typeof window === 'undefined') return;
+
+    // Respect mobile data saver and the user's reduced-motion preference.
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ||
+        navigator.connection?.saveData) return;
+
+    let inView = false;
+    const check = () => {
+      if (inView && document.visibilityState === 'visible') {
+        video.play().catch(() => {});
+      } else {
+        video.pause();
+      }
+    };
+    const observer = new IntersectionObserver(([entry]) => {
+      inView = entry.isIntersecting;
+      if (inView) setShouldLoad(true);
+      check();
+    }, { rootMargin: '90px 0px', threshold: 0.05 });
+    observer.observe(video);
+    document.addEventListener('visibilitychange', check);
+    return () => {
+      observer.disconnect();
+      document.removeEventListener('visibilitychange', check);
+      video.pause();
+    };
+  }, []);
+
+  if (!sources.length) return null;
+
+  return <video
+    ref={ref}
+    className={`tmv-card-video tmv-card-video-${category}`}
+    src={shouldLoad && clipIndex < sources.length ? sources[clipIndex] : undefined}
+    muted
+    loop
+    autoPlay
+    playsInline
+    preload="none"
+    aria-hidden="true"
+    tabIndex={-1}
+    onError={() => setClipIndex(i => i + 1)}
+  />;
+}
+
 const PRAYERS = [
   ['fajr', 'Fajr'], ['dhuhr', 'Dhuhr'], ['asr', 'Asr'],
   ['maghrib', 'Maghrib'], ['isha', 'Isha'],
@@ -679,6 +760,7 @@ function DailyEntries({ entries, date, section, onOpen }) {
     .slice(0,2);
   const friendlyStatus = status => ({ planned:'To do', in_progress:'In progress', done:'Completed' }[status] || 'Recorded');
   return <section className={`tmv-story-card tmv-story-${section}`} aria-label={name}>
+    <FamilyCardVideo category={section} />
     <div className="tmv-card-heading"><span className="tmv-card-icon"><CategoryArtwork type={section}/></span><h2>{name}</h2></div>
     {notes.length ? <div className="tmv-update-list">{notes.slice(0,3).map(({item,log}) => <div className="tmv-daily-note" key={`${item.id}-${log.id}`}>
       <strong>{item.meta?.project || item.meta?.university || item.title}</strong>
@@ -718,11 +800,13 @@ function FamilyToday({ entries, days, quran, viewDate, setViewDate, onOpen, onOp
     {!hasAny && <div className="tmv-empty-day" role="status"><Clock3 size={21}/><span>No new daily note for this date. Current projects and university applications are still shown below.</span></div>}
     <div className="tmv-group-title"><h2>Daily Life</h2><span>Actual saved updates</span></div>
     <section className="tmv-story-card tmv-prayer-card">
+      <FamilyCardVideo category="prayer" />
       <div className="tmv-card-heading"><span className="tmv-card-icon"><CategoryArtwork type="prayer"/></span><h2>Prayer</h2></div>
       <PrayerReadout date={viewDate} days={days}/>
       <button type="button" className="tmv-read-more" onClick={() => onOpen('prayer')}>See prayer history <ArrowRight size={17}/></button>
     </section>
     <section className="tmv-story-card tmv-quran-card">
+      <FamilyCardVideo category="quran" />
       <div className="tmv-card-heading"><span className="tmv-card-icon"><CategoryArtwork type="quran"/></span><h2>Quran Reading</h2></div>
       {read.length ? <><div className="tmv-reading-number"><strong>{pages}</strong><span>{pages === 1 ? 'page' : 'pages'} read</span></div>
         <div className="tmv-reading-list">{read.map(item=><div className="tmv-reading-line" key={item.id}><BookOpen size={16}/><span>Para {item.para} · {item.pagesRead} {Number(item.pagesRead)===1?'page':'pages'}{item.note?` · ${item.note}`:''}</span></div>)}</div></>
