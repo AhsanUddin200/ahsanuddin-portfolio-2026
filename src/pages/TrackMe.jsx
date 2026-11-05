@@ -78,38 +78,172 @@ function CategoryArtwork({ type }) {
 }
 
 
-// Silent ambient stock video behind family update cards only.
-// External Mixkit preview clips are streamed; no API, DB or other page changes.
-// Each clip loads when its card comes near the viewport; failures fall back to the
-// original white card design. The Quran/prayer clips are personal-use stock clips.
+// Seven different videos per category: Monday to Sunday, then repeat weekly.
+// Each selected day's weekday chooses its own clip. Second source is a fallback
+// for the SAME video, never another weekday's footage.
+// Muted, lazy-loaded, looped, with data-saver and reduced-motion safeguards.
 const FAMILY_CARD_VIDEO_SOURCES = {
   prayer: [
-    'https://assets.mixkit.co/videos/preview/mixkit-men-praying-inside-a-mosque-on-the-floor-34223-large.mp4',
-    'https://assets.mixkit.co/videos/34223/34223-720.mp4',
+    [
+      'https://assets.mixkit.co/videos/preview/mixkit-men-praying-inside-a-mosque-on-the-floor-34223-large.mp4',
+      'https://assets.mixkit.co/videos/34223/34223-720.mp4',
+    ],
+    [
+      'https://assets.mixkit.co/videos/preview/mixkit-drone-flying-above-a-mosque-11922-large.mp4',
+      'https://assets.mixkit.co/videos/11922/11922-720.mp4',
+    ],
+    [
+      'https://assets.mixkit.co/videos/preview/mixkit-huge-living-room-with-a-carpet-inside-a-mosque-34251-large.mp4',
+      'https://assets.mixkit.co/videos/34251/34251-720.mp4',
+    ],
+    [
+      'https://assets.mixkit.co/videos/preview/mixkit-elegant-living-room-inside-a-mosque-39179-large.mp4',
+      'https://assets.mixkit.co/videos/39179/39179-720.mp4',
+    ],
+    [
+      'https://assets.mixkit.co/videos/preview/mixkit-inside-a-mosque-in-istanbul-15694-large.mp4',
+      'https://assets.mixkit.co/videos/15694/15694-720.mp4',
+    ],
+    [
+      'https://assets.mixkit.co/videos/preview/mixkit-mosque-in-the-top-of-a-cloudy-hill-9595-large.mp4',
+      'https://assets.mixkit.co/videos/9595/9595-720.mp4',
+    ],
+    [
+      'https://assets.mixkit.co/videos/preview/mixkit-big-mosque-in-the-middle-of-a-city-from-the-top-34295-large.mp4',
+      'https://assets.mixkit.co/videos/34295/34295-720.mp4',
+    ],
   ],
   quran: [
-    'https://assets.mixkit.co/videos/preview/mixkit-person-turning-the-sheets-of-the-quran-35441-large.mp4',
-    'https://assets.mixkit.co/videos/35441/35441-720.mp4',
+    [
+      'https://assets.mixkit.co/videos/preview/mixkit-person-turning-the-sheets-of-the-quran-35441-large.mp4',
+      'https://assets.mixkit.co/videos/35441/35441-720.mp4',
+    ],
+    [
+      'https://assets.mixkit.co/videos/preview/mixkit-the-book-of-the-quran-close-up-view-34189-large.mp4',
+      'https://assets.mixkit.co/videos/34189/34189-720.mp4',
+    ],
+    [
+      'https://assets.mixkit.co/videos/preview/mixkit-religious-man-looking-at-the-pages-of-the-quran-34186-large.mp4',
+      'https://assets.mixkit.co/videos/34186/34186-720.mp4',
+    ],
+    [
+      'https://assets.mixkit.co/videos/preview/mixkit-quran-resting-on-a-plinth-11924-large.mp4',
+      'https://assets.mixkit.co/videos/11924/11924-720.mp4',
+    ],
+    [
+      'https://assets.mixkit.co/videos/preview/mixkit-man-reading-coral-inside-a-mosque-34208-large.mp4',
+      'https://assets.mixkit.co/videos/34208/34208-720.mp4',
+    ],
+    [
+      'https://assets.mixkit.co/videos/preview/mixkit-man-running-his-finger-on-the-pages-of-the-quran-34188-large.mp4',
+      'https://assets.mixkit.co/videos/34188/34188-720.mp4',
+    ],
+    [
+      'https://assets.mixkit.co/videos/preview/mixkit-closeup-of-the-quran-11921-large.mp4',
+      'https://assets.mixkit.co/videos/11921/11921-720.mp4',
+    ],
   ],
   office: [
-    'https://assets.mixkit.co/videos/preview/mixkit-laptop-screen-showing-software-code-1732-large.mp4',
-    'https://assets.mixkit.co/videos/1732/1732-720.mp4',
+    [
+      'https://assets.mixkit.co/videos/preview/mixkit-laptop-screen-showing-software-code-1732-large.mp4',
+      'https://assets.mixkit.co/videos/1732/1732-720.mp4',
+    ],
+    [
+      'https://assets.mixkit.co/videos/preview/mixkit-software-developer-working-on-code-screen-close-up-1728-large.mp4',
+      'https://assets.mixkit.co/videos/1728/1728-720.mp4',
+    ],
+    [
+      'https://assets.mixkit.co/videos/preview/mixkit-a-software-developer-working-and-drinking-coffee-1749-large.mp4',
+      'https://assets.mixkit.co/videos/1749/1749-720.mp4',
+    ],
+    [
+      'https://assets.mixkit.co/videos/preview/mixkit-computer-hacker-logging-a-website-with-code-47321-large.mp4',
+      'https://assets.mixkit.co/videos/47321/47321-720.mp4',
+    ],
+    [
+      'https://assets.mixkit.co/videos/preview/mixkit-programming-and-coding-new-technologies-46635-large.mp4',
+      'https://assets.mixkit.co/videos/46635/46635-720.mp4',
+    ],
+    [
+      'https://assets.mixkit.co/videos/preview/mixkit-numeric-code-on-screen-close-up-34838-large.mp4',
+      'https://assets.mixkit.co/videos/34838/34838-720.mp4',
+    ],
+    [
+      'https://assets.mixkit.co/videos/preview/mixkit-green-computer-code-scrolling-22760-large.mp4',
+      'https://assets.mixkit.co/videos/22760/22760-720.mp4',
+    ],
   ],
   university: [
-    'https://assets.mixkit.co/videos/preview/mixkit-girl-doing-homework-in-a-library-4531-large.mp4',
-    'https://assets.mixkit.co/videos/4531/4531-720.mp4',
+    [
+      'https://assets.mixkit.co/videos/preview/mixkit-girl-doing-homework-in-a-library-4531-large.mp4',
+      'https://assets.mixkit.co/videos/4531/4531-720.mp4',
+    ],
+    [
+      'https://assets.mixkit.co/videos/preview/mixkit-students-walking-in-a-university-4519-large.mp4',
+      'https://assets.mixkit.co/videos/4519/4519-720.mp4',
+    ],
+    [
+      'https://assets.mixkit.co/videos/preview/mixkit-reverse-tour-of-a-library-full-of-books-21595-large.mp4',
+      'https://assets.mixkit.co/videos/21595/21595-720.mp4',
+    ],
+    [
+      'https://assets.mixkit.co/videos/preview/mixkit-students-walking-on-a-university-campus-4503-large.mp4',
+      'https://assets.mixkit.co/videos/4503/4503-720.mp4',
+    ],
+    [
+      'https://assets.mixkit.co/videos/preview/mixkit-concentrated-boy-studying-at-home-4761-large.mp4',
+      'https://assets.mixkit.co/videos/4761/4761-720.mp4',
+    ],
+    [
+      'https://assets.mixkit.co/videos/preview/mixkit-students-in-a-cafeteria-discussing-an-assignment-4794-large.mp4',
+      'https://assets.mixkit.co/videos/4794/4794-720.mp4',
+    ],
+    [
+      'https://assets.mixkit.co/videos/preview/mixkit-panning-shot-of-college-study-desk-101309-large.mp4',
+      'https://assets.mixkit.co/videos/101309/101309-720.mp4',
+    ],
   ],
   personal: [
-    'https://assets.mixkit.co/videos/preview/mixkit-man-texting-on-whatsapp-41173-large.mp4',
-    'https://assets.mixkit.co/videos/41173/41173-720.mp4',
+    [
+      'https://assets.mixkit.co/videos/preview/mixkit-man-texting-on-whatsapp-41173-large.mp4',
+      'https://assets.mixkit.co/videos/41173/41173-720.mp4',
+    ],
+    [
+      'https://assets.mixkit.co/videos/preview/mixkit-man-answering-a-whatsapp-41165-large.mp4',
+      'https://assets.mixkit.co/videos/41165/41165-720.mp4',
+    ],
+    [
+      'https://assets.mixkit.co/videos/preview/mixkit-hands-of-a-person-typing-on-a-cell-phone-4915-large.mp4',
+      'https://assets.mixkit.co/videos/4915/4915-720.mp4',
+    ],
+    [
+      'https://assets.mixkit.co/videos/preview/mixkit-hands-shown-texting-on-a-smartphone-144-large.mp4',
+      'https://assets.mixkit.co/videos/144/144-720.mp4',
+    ],
+    [
+      'https://assets.mixkit.co/videos/preview/mixkit-woman-typing-on-her-cell-phone-43270-large.mp4',
+      'https://assets.mixkit.co/videos/43270/43270-720.mp4',
+    ],
+    [
+      'https://assets.mixkit.co/videos/preview/mixkit-black-phone-on-laptop-247-large.mp4',
+      'https://assets.mixkit.co/videos/247/247-720.mp4',
+    ],
+    [
+      'https://assets.mixkit.co/videos/preview/mixkit-person-answering-a-message-41166-large.mp4',
+      'https://assets.mixkit.co/videos/41166/41166-720.mp4',
+    ],
   ],
 };
 
-function FamilyCardVideo({ category }) {
+function FamilyCardVideo({ category, date }) {
   const ref = useRef(null);
   const [shouldLoad, setShouldLoad] = useState(false);
   const [clipIndex, setClipIndex] = useState(0);
-  const sources = FAMILY_CARD_VIDEO_SOURCES[category] || [];
+  // Noon avoids off-by-one dates when the visitor views older journal days.
+  const weekday = /^\d{4}-\d{2}-\d{2}$/.test(date || '')
+    ? (new Date(`${date}T12:00:00`).getDay() + 6) % 7
+    : (new Date().getDay() + 6) % 7;
+  const sources = FAMILY_CARD_VIDEO_SOURCES[category]?.[weekday] || [];
 
   useEffect(() => {
     const video = ref.current;
@@ -745,39 +879,53 @@ function PrayerReadout({ date, days }) {
 
 function DailyEntries({ entries, date, section, onOpen }) {
   const items = entries.filter(item => item.section === section);
-  const notes = items.flatMap(item => (item.logs || [])
-    .filter(log => dayISO(log.createdAt) === date)
-    .map(log => ({ item, log })))
-    .sort((a,b) => String(b.log.createdAt).localeCompare(String(a.log.createdAt)));
   const name = section === 'office' ? 'Office Work' : section === 'university' ? 'University' : 'Personal Life';
-  const upcoming = section === 'university' ? items
-    .filter(item => item.meta?.upcomingDate && item.meta.upcomingDate >= date)
-    .sort((a,b) => xDate(a).localeCompare(xDate(b))).slice(0,2) : [];
-  // On the current date, show saved projects/applications even when no fresh
-  // progress note exists. Label them as a current snapshot, never "today's work".
-  const current = notes.length || date !== dayISO() ? [] : [...items]
-    .sort((a,b) => String(b.updatedAt || b.createdAt || '').localeCompare(String(a.updatedAt || a.createdAt || '')))
-    .slice(0,2);
+  const notes = items.flatMap(item => (item.logs || []).map(log => ({ item, log })))
+    .filter(({ log }) => log?.createdAt && dayISO(log.createdAt) <= date)
+    .sort((a, b) => String(b.log.createdAt).localeCompare(String(a.log.createdAt)));
+
+  const todaysNotes = notes.filter(({log}) => dayISO(log.createdAt) === date);
+  const lastPreviousNote = todaysNotes.length ? null : notes.find(({log}) => dayISO(log.createdAt) < date);
+  // If no note was ever recorded, show only the most recently saved task
+  // known at the selected date. Do not describe a task as work done today.
+  const lastSavedTask = todaysNotes.length || lastPreviousNote ? null : [...items]
+    .filter(item => {
+      const firstSaved = item.createdAt || item.updatedAt;
+      return firstSaved && dayISO(firstSaved) <= date;
+    })
+    .sort((a, b) => String(b.updatedAt || b.createdAt || '').localeCompare(String(a.updatedAt || a.createdAt || '')))[0];
+
   const friendlyStatus = status => ({ planned:'To do', in_progress:'In progress', done:'Completed' }[status] || 'Recorded');
+  const intro = date === dayISO() ? 'No recent work today yet' : 'No update recorded for this date';
+  const renderRecord = (item, latestNote = null) => <div className="tmv-current-record" key={latestNote?.id || item.id}>
+    <strong>{item.meta?.project || item.meta?.university || item.title}</strong>
+    {(item.meta?.project || item.meta?.university) && <p>{item.title}{item.meta?.program ? ` · ${item.meta.program}` : ''}</p>}
+    {latestNote ? <p>{latestNote.note}</p> : item.detail && <p>{item.detail}</p>}
+    {!latestNote && <small>{section === 'university'
+      ? (APP_STATUS[item.meta?.applicationStatus] || friendlyStatus(item.status))
+      : friendlyStatus(item.status)}</small>}
+  </div>;
+
   return <section className={`tmv-story-card tmv-story-${section}`} aria-label={name}>
-    <FamilyCardVideo category={section} />
+    <FamilyCardVideo key={`${section}-${date}`} category={section} date={date} />
     <div className="tmv-card-heading"><span className="tmv-card-icon"><CategoryArtwork type={section}/></span><h2>{name}</h2></div>
-    {notes.length ? <div className="tmv-update-list">{notes.slice(0,3).map(({item,log}) => <div className="tmv-daily-note" key={`${item.id}-${log.id}`}>
-      <strong>{item.meta?.project || item.meta?.university || item.title}</strong>
-      {(item.meta?.project || item.meta?.university) && <small>{item.title}{item.meta?.program ? ` · ${item.meta.program}` : ''}</small>}
-      <p>{log.note}</p>
-    </div>)}{notes.length > 3 && <p className="tmv-more-count">+{notes.length - 3} more updates</p>}</div>
-    : current.length ? <div className="tmv-current-records">
-      <p className="tmv-current-caption">Current saved {section === 'university' ? 'applications' : section === 'office' ? 'projects' : 'activities'} · no new note today</p>
-      {current.map(item => <div key={item.id} className="tmv-current-record">
-        <strong>{section === 'university' ? (item.meta?.university || item.title) : (item.meta?.project || item.title)}</strong>
-        {(section === 'university' ? (item.meta?.university ? [item.meta?.program, item.title].filter(Boolean).join(' · ') : item.meta?.program) : item.meta?.project ? item.title : '') &&
-          <p>{section === 'university' ? (item.meta?.university ? [item.meta?.program, item.title].filter(Boolean).join(' · ') : item.meta?.program) : item.title}</p>}
-        {item.detail && <p>{item.detail}</p>}
-        <small>{section === 'university' ? (APP_STATUS[item.meta?.applicationStatus] || friendlyStatus(item.status)) : friendlyStatus(item.status)}</small>
+    {todaysNotes.length ? <div className="tmv-update-list">
+      {todaysNotes.slice(0,3).map(({item,log}) => <div className="tmv-daily-note" key={`${item.id}-${log.id}`}>
+        <strong>{item.meta?.project || item.meta?.university || item.title}</strong>
+        {(item.meta?.project || item.meta?.university) && <small>{item.title}{item.meta?.program ? ` · ${item.meta.program}` : ''}</small>}
+        <p>{log.note}</p>
       </div>)}
-    </div> : <p className="tmv-empty-note">No update has been posted for this day yet.</p>}
-    {section === 'university' && upcoming.length > 0 && <div className="tmv-upcoming"><strong>Coming up</strong>{upcoming.map(item => <p key={item.id}><CalendarDays size={16}/><span>{item.meta?.university || item.title} · {prettyDate(xDate(item))}</span></p>)}</div>}
+      {todaysNotes.length > 3 && <p className="tmv-more-count">+{todaysNotes.length - 3} more updates</p>}
+    </div> : <div className="tmv-current-records">
+      <p className="tmv-current-caption">{intro}</p>
+      {lastPreviousNote ? <>
+        <p className="tmv-last-update-date">Last update · {prettyDate(lastPreviousNote.log.createdAt)}</p>
+        {renderRecord(lastPreviousNote.item, lastPreviousNote.log)}
+      </> : lastSavedTask ? <>
+        <p className="tmv-last-update-date">Last saved task · {prettyDate(lastSavedTask.updatedAt || lastSavedTask.createdAt)}</p>
+        {renderRecord(lastSavedTask)}
+      </> : <p className="tmv-empty-note">No earlier updates recorded yet.</p>}
+    </div>}
     <button type="button" className="tmv-read-more" onClick={() => onOpen(section)}>See all {section === 'university' ? 'applications' : section === 'office' ? 'projects' : 'activities'} <ArrowRight size={17}/></button>
   </section>;
 }
@@ -785,6 +933,9 @@ function xDate(x) { return x.meta?.upcomingDate || x.dueDate || ''; }
 
 function FamilyToday({ entries, days, quran, viewDate, setViewDate, onOpen, onOpenSummary, ownerMode, onNew }) {
   const read = quran.filter(item => item.date === viewDate).sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt)));
+  const lastQuranReading = read.length ? null : [...quran]
+    .filter(item => item.date && item.date < viewDate)
+    .sort((a,b) => String(b.date).localeCompare(String(a.date)) || String(b.createdAt).localeCompare(String(a.createdAt)))[0];
   const pages = read.reduce((n,item)=>n+Number(item.pagesRead||0),0);
   const noteCount = entries.reduce((sum,item)=>sum+(item.logs||[]).filter(log=>dayISO(log.createdAt)===viewDate).length,0);
   const prayer = days[viewDate] || {};
@@ -800,17 +951,24 @@ function FamilyToday({ entries, days, quran, viewDate, setViewDate, onOpen, onOp
     {!hasAny && <div className="tmv-empty-day" role="status"><Clock3 size={21}/><span>No new daily note for this date. Current projects and university applications are still shown below.</span></div>}
     <div className="tmv-group-title"><h2>Daily Life</h2><span>Actual saved updates</span></div>
     <section className="tmv-story-card tmv-prayer-card">
-      <FamilyCardVideo category="prayer" />
+      <FamilyCardVideo key={`prayer-${viewDate}`} category="prayer" date={viewDate} />
       <div className="tmv-card-heading"><span className="tmv-card-icon"><CategoryArtwork type="prayer"/></span><h2>Prayer</h2></div>
       <PrayerReadout date={viewDate} days={days}/>
       <button type="button" className="tmv-read-more" onClick={() => onOpen('prayer')}>See prayer history <ArrowRight size={17}/></button>
     </section>
     <section className="tmv-story-card tmv-quran-card">
-      <FamilyCardVideo category="quran" />
+      <FamilyCardVideo key={`quran-${viewDate}`} category="quran" date={viewDate} />
       <div className="tmv-card-heading"><span className="tmv-card-icon"><CategoryArtwork type="quran"/></span><h2>Quran Reading</h2></div>
       {read.length ? <><div className="tmv-reading-number"><strong>{pages}</strong><span>{pages === 1 ? 'page' : 'pages'} read</span></div>
         <div className="tmv-reading-list">{read.map(item=><div className="tmv-reading-line" key={item.id}><BookOpen size={16}/><span>Para {item.para} · {item.pagesRead} {Number(item.pagesRead)===1?'page':'pages'}{item.note?` · ${item.note}`:''}</span></div>)}</div></>
-        : <p className="tmv-empty-note">No reading update has been posted for this day yet.</p>}
+        : <div className="tmv-quran-last-update">
+          <p className="tmv-current-caption">{viewDate === dayISO() ? 'No Quran reading today yet' : 'No reading recorded for this date'}</p>
+          {lastQuranReading ? <>
+            <p className="tmv-last-update-date">Last reading · {prettyDate(lastQuranReading.date)}</p>
+            <strong>Para {lastQuranReading.para} · {lastQuranReading.pagesRead} {Number(lastQuranReading.pagesRead) === 1 ? 'page' : 'pages'} read</strong>
+            {lastQuranReading.note && <p>{lastQuranReading.note}</p>}
+          </> : <p className="tmv-empty-note">No earlier reading recorded yet.</p>}
+        </div>}
       <button type="button" className="tmv-read-more" onClick={() => onOpen('quran')}>See reading history <ArrowRight size={17}/></button>
     </section>
     <div className="tmv-group-title"><h2>Work & Plans</h2><span>In <AhsanName/>’s own words</span></div>

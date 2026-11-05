@@ -1071,8 +1071,8 @@ body:has(.tm-page) {background:#f5f7f6}
   display: block;
   object-fit: cover;
   object-position: center;
-  opacity: .46;
-  filter: saturate(.72) contrast(.92) brightness(1.07);
+  opacity: .62;
+  filter: saturate(.76) contrast(.97) brightness(1.02);
   z-index: 0;
   pointer-events: none;
 }
@@ -1081,9 +1081,9 @@ body:has(.tm-page) {background:#f5f7f6}
   position: absolute;
   inset: 0;
   background: linear-gradient(110deg,
-    rgba(255,255,255,.90) 0%,
-    rgba(255,255,255,.80) 48%,
-    rgba(255,255,255,.74) 100%);
+    rgba(255,255,255,.83) 0%,
+    rgba(255,255,255,.75) 48%,
+    rgba(255,255,255,.70) 100%);
   z-index: 1;
   pointer-events: none;
 }
@@ -1101,7 +1101,7 @@ body:has(.tm-page) {background:#f5f7f6}
 }
 @media (max-width: 640px) {
   .tmv-family-view .tmv-story-card::before {
-    background: rgba(255,255,255,.88);
+    background: rgba(255,255,255,.82);
   }
   .tmv-family-view .tmv-prayer-card::before {
     background: rgba(255,255,255,.91);
@@ -1110,3 +1110,9 @@ body:has(.tm-page) {background:#f5f7f6}
 @media (prefers-reduced-motion: reduce) {
   .tmv-family-view .tmv-card-video { display: none; }
 }
+
+/* V15: last saved progress shown as a single dated record; no dashboard changes. */
+.tm-page .tmv-last-update-date {margin:4px 0 2px;color:#557562;font-size:12px;font-weight:650;line-height:1.5}
+.tm-page .tmv-quran-last-update {display:flex;flex-direction:column;gap:6px;min-width:0}
+.tm-page .tmv-quran-last-update strong {font-size:13px;line-height:1.55;color:#194c36;font-weight:650}
+.tm-page .tmv-quran-last-update > p:last-child {font-size:12px;line-height:1.55;color:#586b60;overflow-wrap:anywhere}
