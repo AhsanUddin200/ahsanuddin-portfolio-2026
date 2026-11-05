@@ -1042,3 +1042,11 @@ body:has(.tm-page) {background:#f5f7f6}
   .tm-page .tmv-welcome-body {padding:205px 16px 23px}
   .tm-page .tmv-welcome-header {padding:12px}
 }
+
+/* V13: clarify current saved work on the family home without changing other cards. */
+.tm-page .tmv-current-records {display:flex;flex-direction:column;gap:10px;min-width:0}
+.tm-page .tmv-current-caption {margin:0;font-size:12px;line-height:1.5;color:#637768;font-weight:500}
+.tm-page .tmv-current-record {border-left:2px solid #d0e0d3;padding:2px 0 3px 12px;min-width:0}
+.tm-page .tmv-current-record strong {display:block;color:#1d4030;font-size:13px;line-height:1.5;font-weight:650;overflow-wrap:anywhere}
+.tm-page .tmv-current-record p {margin:3px 0 0;font-size:12px;line-height:1.55;color:#53695a;overflow-wrap:anywhere}
+.tm-page .tmv-current-record small {display:inline-block;margin-top:6px;font-size:11px;color:#30694b;font-weight:650}

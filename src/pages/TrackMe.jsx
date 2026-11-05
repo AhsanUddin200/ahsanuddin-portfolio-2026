@@ -325,110 +325,153 @@ function parseChatTopic(raw) {
   return null;
 }
 
-// Short, factual family updates from existing saved records.
-// No backend/database changes. A single-topic reply is at most one compact
-// bilingual update; "Everything" is at most three compact updates.
+// Clear bilingual family updates based on saved records only.
+// Give the actual task, what changed, the university/program and next date.
+// A current status without a note is never described as work done today.
+// This uses only existing data and does not change the API or database.
 function buildFamilyReport({ entries, prayerDays, quranEntries, period, topic }) {
   const days = CHAT_PERIODS.find(x => x.id === period)?.days || 7;
   const end = dayISO();
   const start = shiftDay(end, -(days - 1));
   const inPeriod = value => {
     if (!value) return false;
-    const d = String(value).length === 10 ? String(value) : dayISO(value);
-    return d >= start && d <= end;
+    const date = String(value).length === 10 ? String(value) : dayISO(value);
+    return date >= start && date <= end;
   };
-  const short = (value, limit = 68) => {
-    const s = String(value ?? '').replace(/\s+/g, ' ').trim();
-    return s.length > limit ? s.slice(0, limit - 1).trimEnd() + '…' : s;
+  const brief = (value, max = 115) => {
+    const text = String(value ?? '').replace(/\s+/g, ' ').trim();
+    return text.length > max ? `${text.slice(0, max - 1).trimEnd()}…` : text;
   };
   const rows = [];
   const add = (en, ur) => rows.push({ en, ur });
-  const bySection = key => (entries || []).filter(x => x.section === key);
+  const bySection = key => (entries || []).filter(item => item.section === key);
   const urPrayer = { fajr:'فجر', dhuhr:'ظہر', asr:'عصر', maghrib:'مغرب', isha:'عشاء' };
-  const tracked = Object.entries(prayerDays || {}).filter(([date]) => inPeriod(date));
+  const prayerDaysInRange = Object.entries(prayerDays || {}).filter(([date]) => inPeriod(date));
   const checked = [];
-  tracked.forEach(([date, d]) => {
-    PRAYERS.forEach(([key, label]) => {
-      if (d?.group?.[key]) checked.push({ date, key, label, kind:'Jamaat' });
-      else if (d?.makeup?.[key]) checked.push({ date, key, label, kind:'Qaza' });
-    });
-  });
-  let prayerEn, prayerUr;
-  if (!checked.length) {
-    prayerEn = 'Prayer: No update recorded.';
-    prayerUr = 'نماز: ابھی کوئی انٹری نہیں۔';
-  } else if (days === 1) {
-    prayerEn = 'Prayer: ' + checked.map(p => `${p.label} Done (${p.kind})`).join(' · ') + '.';
-    prayerUr = 'نماز: ' + checked.map(p => `${urPrayer[p.key]} ادا (${p.kind === 'Jamaat' ? 'جماعت' : 'قضا'})`).join('، ') + '۔';
-  } else {
-    const jamaat = checked.filter(x => x.kind === 'Jamaat').length;
+  prayerDaysInRange.forEach(([date, record]) => PRAYERS.forEach(([key, label]) => {
+    if (record?.group?.[key]) checked.push({ date, key, label, type:'Jamaat' });
+    else if (record?.makeup?.[key]) checked.push({ date, key, label, type:'Qaza' });
+  }));
+
+  let prayerEn = 'Prayer: No entry saved for this period.';
+  let prayerUr = 'نماز: اس مدت کی کوئی انٹری نہیں ہے۔';
+  if (checked.length && days === 1) {
+    const groups = checked.filter(p => p.type === 'Jamaat');
+    const makeups = checked.filter(p => p.type === 'Qaza');
+    const enParts = [];
+    const urParts = [];
+    if (groups.length) {
+      enParts.push(`${groups.map(p => p.label).join(', ')} — done (Jamaat)`);
+      urParts.push(`${groups.map(p => urPrayer[p.key]).join('، ')} — جماعت کے ساتھ ادا`);
+    }
+    if (makeups.length) {
+      enParts.push(`${makeups.map(p => p.label).join(', ')} — done (Qaza)`);
+      urParts.push(`${makeups.map(p => urPrayer[p.key]).join('، ')} — قضا ادا`);
+    }
+    prayerEn = `Prayer: ${enParts.join('; ')}.`;
+    prayerUr = `نماز: ${urParts.join('؛ ')}۔`;
+  } else if (checked.length) {
+    const jamaat = checked.filter(p => p.type === 'Jamaat').length;
     const qaza = checked.length - jamaat;
-    prayerEn = `Prayer: ${jamaat} Jamaat, ${qaza} Qaza recorded.`;
-    prayerUr = `نماز: ${jamaat} جماعت، ${qaza} قضا درج ہیں۔`;
+    prayerEn = `Prayer: ${jamaat} Jamaat${qaza ? `, ${qaza} Qaza` : ''} recorded in ${days} days.`;
+    prayerUr = `نماز: ${days} دن میں ${jamaat} جماعت${qaza ? `، ${qaza} قضا` : ''} درج ہیں۔`;
   }
 
-  const readings = (quranEntries || []).filter(x => inPeriod(x.date));
-  const pages = readings.reduce((n, x) => n + Math.max(0, Number(x.pagesRead) || 0), 0);
-  const paras = [...new Set(readings.map(x => Number(x.para)).filter(Number.isFinite))].sort((a,b)=>a-b);
-  const paraName = paras.length ? `Para ${paras.slice(0, 3).join(', ')}${paras.length > 3 ? '…' : ''}` : '';
-  const paraUr = paras.length ? `پارہ ${paras.slice(0, 3).join('، ')}${paras.length > 3 ? '…' : ''}` : '';
-  const quranEn = readings.length ? `Quran: ${paraName} · ${pages} page${pages === 1 ? '' : 's'}.` : 'Quran: No update recorded.';
-  const quranUr = readings.length ? `قرآن: ${paraUr}، ${pages} صفحات۔` : 'قرآن: ابھی کوئی انٹری نہیں۔';
+  const readings = (quranEntries || []).filter(item => inPeriod(item.date));
+  const pages = readings.reduce((sum, item) => sum + Math.max(0, Number(item.pagesRead) || 0), 0);
+  const paras = [...new Set(readings.map(item => Number(item.para)).filter(Number.isFinite))].sort((a,b) => a - b);
+  const paraListEn = paras.slice(0, 4).join(', ') + (paras.length > 4 ? '…' : '');
+  const paraListUr = paras.slice(0, 4).join('، ') + (paras.length > 4 ? '…' : '');
+  const quranEn = readings.length ? `Quran: Para ${paraListEn} — ${pages} pages read.` : 'Quran: No new reading saved.';
+  const quranUr = readings.length ? `قرآن: پارہ ${paraListUr}، ${pages} صفحات پڑھے۔` : 'قرآن: نئی تلاوت درج نہیں ہوئی۔';
 
-  // Pick an actual progress note first, then a recently changed task. Do not
-  // describe older items as activities completed today.
-  const workUpdate = (section, labelEn, labelUr) => {
-    const matching = bySection(section);
-    const recent = matching.flatMap(task => (task.logs || [])
-      .filter(log => inPeriod(log.createdAt))
-      .map(log => ({ task, text: log.note, at: log.createdAt }))
-    ).sort((a,b) => String(b.at).localeCompare(String(a.at)));
-    if (recent.length) {
-      const first = recent[0];
-      const title = short(section === 'office' ? (first.task.meta?.project || first.task.title) : first.task.title, 34);
-      const note = short(first.text, 68);
-      return { en:`${labelEn}: ${title} — ${note}.`, ur:`${labelUr}: ${title} — ${note}۔`, recorded:true };
-    }
-    const changed = matching.filter(x => inPeriod(x.updatedAt) || inPeriod(x.createdAt))
-      .sort((a,b)=>String(b.updatedAt||'').localeCompare(String(a.updatedAt||'')))[0];
-    if (changed) {
-      const title = short(section === 'office' ? (changed.meta?.project || changed.title) : changed.title, 46);
-      const st = { planned:['Planned','منصوبہ'], in_progress:['In progress','جاری'], done:['Done','مکمل'] }[changed.status] || ['Recorded','درج'];
-      return { en:`${labelEn}: ${title} — ${st[0]}.`, ur:`${labelUr}: ${title} — ${st[1]}۔`, recorded:true };
-    }
-    return { en:`${labelEn}: No new update.`, ur:`${labelUr}: نئی اپڈیٹ نہیں۔`, recorded:false };
+  const statusLabels = {
+    planned: ['to do','کرنا باقی ہے'],
+    in_progress: ['in progress','کام جاری ہے'],
+    done: ['completed','مکمل ہو گیا'],
   };
-  const office = workUpdate('office','Office','دفتر');
-  const personal = workUpdate('personal','Personal','ذاتی کام');
+  const allNotes = task => (task.logs || []).filter(note => inPeriod(note.createdAt))
+    .sort((a,b) => String(b.createdAt).localeCompare(String(a.createdAt)));
+  const newest = (a,b) => String(b.updatedAt || b.createdAt || '').localeCompare(String(a.updatedAt || a.createdAt || ''));
+  const taskLabel = task => {
+    const parent = brief(task.meta?.project || '', 38);
+    const title = brief(task.title || '', 68);
+    return parent && parent.toLowerCase() !== title.toLowerCase() ? `${parent} — ${title}` : (title || parent);
+  };
+
+  // Clear language for Office and Personal: prioritize real progress notes,
+  // otherwise show actual task titles and status as a *current snapshot*.
+  const explainWork = (section, labelEn, labelUr) => {
+    const items = bySection(section);
+    if (!items.length) return { recorded:false, en:`${labelEn}: No tasks saved.`, ur:`${labelUr}: کوئی کام درج نہیں۔` };
+    const updates = items.flatMap(task => allNotes(task).map(note => ({ task, note })))
+      .sort((a,b) => String(b.note.createdAt).localeCompare(String(a.note.createdAt)));
+    if (updates.length) {
+      const first = updates[0];
+      const text = `${taskLabel(first.task)}: ${brief(first.note.note, 140)}`;
+      const suffix = updates.length > 1 ? ` (+${updates.length - 1} more update${updates.length > 2 ? 's' : ''})` : '';
+      return {
+        recorded:true,
+        en:`${labelEn}: ${text}${suffix}.`,
+        ur:`${labelUr}: ${text}${updates.length > 1 ? ` (مزید ${updates.length - 1} اپڈیٹس)` : ''}۔`,
+      };
+    }
+    const active = [...items].sort((a,b) => {
+      const priority = x => x.status === 'in_progress' ? 0 : x.status === 'planned' ? 1 : 2;
+      return priority(a) - priority(b) || newest(a,b);
+    }).slice(0,2);
+    const statusText = item => statusLabels[item.status] || ['recorded','درج'];
+    const en = active.map(task => `${taskLabel(task)} (${statusText(task)[0]})`).join('; ');
+    const ur = active.map(task => `${taskLabel(task)} (${statusText(task)[1]})`).join('؛ ');
+    return {
+      recorded:true,
+      en:`${labelEn} — current tasks: ${en}. No new progress note ${days === 1 ? 'today' : 'in this period'}.`,
+      ur:`${labelUr} — موجودہ کام: ${ur}۔ ${days === 1 ? 'آج کی' : 'اس مدت کی'} نئی پیش رفت درج نہیں ہوئی۔`,
+    };
+  };
+  const office = explainWork('office','Office','دفتر');
+  const personal = explainWork('personal','Personal','ذاتی کام');
 
   const universities = bySection('university');
-  const activeUniversity = [...universities].sort((a,b) => {
-    const score = x => {
-      const recent = inPeriod(x.updatedAt) || inPeriod(x.createdAt) || (x.logs || []).some(l=>inPeriod(l.createdAt));
-      const upcoming = x.meta?.upcomingDate && x.meta.upcomingDate >= end;
-      return (recent ? 4 : 0) + (upcoming ? 2 : 0) + (x.meta?.applicationStatus && x.meta.applicationStatus !== 'planning' ? 1 : 0);
+  const bestUniversity = [...universities].sort((a,b) => {
+    const score = task => {
+      const latest = allNotes(task).length > 0;
+      const upcoming = task.meta?.upcomingDate && task.meta.upcomingDate >= end;
+      const recent = inPeriod(task.updatedAt) || inPeriod(task.createdAt);
+      return (latest ? 6 : 0) + (upcoming ? 3 : 0) + (recent ? 2 : 0);
     };
-    return score(b)-score(a) || String(b.updatedAt||'').localeCompare(String(a.updatedAt||''));
+    return score(b) - score(a) || newest(a,b);
   })[0];
-  let university;
-  if (activeUniversity) {
-    const m = activeUniversity.meta || {};
-    const name = short(m.university || activeUniversity.title, 42);
-    // Country is optional and is only shown when explicitly present in saved data.
-    // This version does NOT add a country field or modify Redis/API schemas.
-    const tagged = /(?:^|[\n,;])\s*country\s*[:：-]\s*([^\n,;]+)/i.exec(String(activeUniversity.detail || ''));
-    const country = short(m.country || (tagged && tagged[1]) || '', 23);
-    const place = country ? `${name}, ${country}` : name;
+  let university = { recorded:false, en:'University: No application saved.', ur:'یونیورسٹی: کوئی درخواست درج نہیں۔' };
+  if (bestUniversity) {
+    const m = bestUniversity.meta || {};
+    const universityName = brief(m.university || bestUniversity.title, 60);
+    const program = brief(m.program || '', 48);
+    const countryMatch = /(?:^|[\n,;])\s*country\s*[:：-]\s*([^\n,;]+)/i.exec(String(bestUniversity.detail || ''));
+    const country = brief(m.country || countryMatch?.[1] || '', 30);
+    const place = `${universityName}${country ? `, ${country}` : ''}${program ? ` (${program})` : ''}`;
     const status = {
-      planning:['To apply','درخواست دینی ہے'], applied:['Applied','درخواست دے دی'],
-      upcoming:['Upcoming','آنے والی تاریخ'], interview:['Interview','انٹرویو'],
-      waiting:['Waiting','جواب کا انتظار'], offer:['Offer received','آفر ملی'],
-      accepted:['Accepted','داخلہ منظور'], rejected:['Not selected','منتخب نہیں ہوئے'],
-    }[m.applicationStatus] || ['Recorded','درج'];
-    const next = m.upcomingDate && m.upcomingDate >= end ? ` · ${prettyDate(m.upcomingDate)}` : '';
-    university = { en:`University: ${place} — ${status[0]}${next}.`, ur:`یونیورسٹی: ${place} — ${status[1]}${next}۔` };
-  } else {
-    university = { en:'University: No application recorded.', ur:'یونیورسٹی: کوئی درخواست درج نہیں۔' };
+      planning:['planning to apply','درخواست دینے کی تیاری'],
+      applied:['applied','درخواست جمع ہو گئی'],
+      upcoming:['upcoming application','درخواست کی تاریخ آنے والی ہے'],
+      interview:['interview stage','انٹرویو کا مرحلہ'],
+      waiting:['waiting','انتظار'],
+      offer:['offer received','آفر موصول ہوئی'],
+      accepted:['accepted','داخلہ منظور ہوا'],
+      rejected:['not selected','منتخب نہیں ہوئے'],
+    }[m.applicationStatus] || ['status not set','حالت درج نہیں'];
+    const upcoming = m.upcomingDate && m.upcomingDate >= end ? prettyDate(m.upcomingDate) : '';
+    const recentNote = allNotes(bestUniversity)[0];
+    const action = bestUniversity.title && bestUniversity.title.toLowerCase() !== universityName.toLowerCase() ? brief(bestUniversity.title, 55) : '';
+    const enAction = action ? ` Next step: ${action}.` : '';
+    const urAction = action ? ` اگلا کام: ${action}۔` : '';
+    const enNote = recentNote ? ` Latest update: ${brief(recentNote.note, 125).replace(/[.!؟۔]+$/, '')}.` : '';
+    const urNote = recentNote ? ` نئی اپڈیٹ: ${brief(recentNote.note, 125).replace(/[.!؟۔]+$/, '')}۔` : '';
+    university = {
+      recorded:true,
+      en:`University: ${place} — ${status[0]}.${enAction}${upcoming ? ` Important date: ${upcoming}.` : ''}${enNote}`,
+      ur:`یونیورسٹی: ${place} — ${status[1]}۔${urAction}${upcoming ? ` اہم تاریخ: ${upcoming}۔` : ''}${urNote}`,
+    };
   }
 
   if (topic === 'prayer') add(prayerEn, prayerUr);
@@ -437,18 +480,14 @@ function buildFamilyReport({ entries, prayerDays, quranEntries, period, topic })
   else if (topic === 'university') add(university.en, university.ur);
   else if (topic === 'personal') add(personal.en, personal.ur);
   else {
-    // Everything: up to three paired lines. Skip empty categories instead
-    // of reporting five different zero counts to a family member.
     if (checked.length || readings.length) add(
       [checked.length ? prayerEn : '', readings.length ? quranEn : ''].filter(Boolean).join(' '),
       [checked.length ? prayerUr : '', readings.length ? quranUr : ''].filter(Boolean).join(' ')
     );
-    if (office.recorded || activeUniversity) add(
-      [office.recorded ? office.en : '', activeUniversity ? university.en : ''].filter(Boolean).join(' '),
-      [office.recorded ? office.ur : '', activeUniversity ? university.ur : ''].filter(Boolean).join(' ')
-    );
+    if (office.recorded) add(office.en, office.ur);
+    if (university.recorded) add(university.en, university.ur);
     if (personal.recorded) add(personal.en, personal.ur);
-    if (!rows.length) add('No updates recorded for this period.', 'اس مدت کی کوئی اپڈیٹ درج نہیں۔');
+    if (!rows.length) add('No updates or current activities are saved yet.', 'ابھی کوئی اپڈیٹ یا موجودہ سرگرمی محفوظ نہیں۔');
   }
   return rows;
 }
@@ -624,21 +663,38 @@ function PrayerReadout({ date, days }) {
 }
 
 function DailyEntries({ entries, date, section, onOpen }) {
-  const items = entries.filter(x => x.section === section);
-  const notes = items.flatMap(item => (item.logs || []).filter(log => dayISO(log.createdAt) === date).map(log => ({ item, log })))
+  const items = entries.filter(item => item.section === section);
+  const notes = items.flatMap(item => (item.logs || [])
+    .filter(log => dayISO(log.createdAt) === date)
+    .map(log => ({ item, log })))
     .sort((a,b) => String(b.log.createdAt).localeCompare(String(a.log.createdAt)));
   const name = section === 'office' ? 'Office Work' : section === 'university' ? 'University' : 'Personal Life';
   const upcoming = section === 'university' ? items
-    .filter(x => x.meta?.upcomingDate && x.meta.upcomingDate >= date)
+    .filter(item => item.meta?.upcomingDate && item.meta.upcomingDate >= date)
     .sort((a,b) => xDate(a).localeCompare(xDate(b))).slice(0,2) : [];
+  // On the current date, show saved projects/applications even when no fresh
+  // progress note exists. Label them as a current snapshot, never "today's work".
+  const current = notes.length || date !== dayISO() ? [] : [...items]
+    .sort((a,b) => String(b.updatedAt || b.createdAt || '').localeCompare(String(a.updatedAt || a.createdAt || '')))
+    .slice(0,2);
+  const friendlyStatus = status => ({ planned:'To do', in_progress:'In progress', done:'Completed' }[status] || 'Recorded');
   return <section className={`tmv-story-card tmv-story-${section}`} aria-label={name}>
     <div className="tmv-card-heading"><span className="tmv-card-icon"><CategoryArtwork type={section}/></span><h2>{name}</h2></div>
     {notes.length ? <div className="tmv-update-list">{notes.slice(0,3).map(({item,log}) => <div className="tmv-daily-note" key={`${item.id}-${log.id}`}>
       <strong>{item.meta?.project || item.meta?.university || item.title}</strong>
-      {item.meta?.project && <small>{item.title}</small>}
+      {(item.meta?.project || item.meta?.university) && <small>{item.title}{item.meta?.program ? ` · ${item.meta.program}` : ''}</small>}
       <p>{log.note}</p>
     </div>)}{notes.length > 3 && <p className="tmv-more-count">+{notes.length - 3} more updates</p>}</div>
-    : <p className="tmv-empty-note">No update has been posted for this day yet.</p>}
+    : current.length ? <div className="tmv-current-records">
+      <p className="tmv-current-caption">Current saved {section === 'university' ? 'applications' : section === 'office' ? 'projects' : 'activities'} · no new note today</p>
+      {current.map(item => <div key={item.id} className="tmv-current-record">
+        <strong>{section === 'university' ? (item.meta?.university || item.title) : (item.meta?.project || item.title)}</strong>
+        {(section === 'university' ? (item.meta?.university ? [item.meta?.program, item.title].filter(Boolean).join(' · ') : item.meta?.program) : item.meta?.project ? item.title : '') &&
+          <p>{section === 'university' ? (item.meta?.university ? [item.meta?.program, item.title].filter(Boolean).join(' · ') : item.meta?.program) : item.title}</p>}
+        {item.detail && <p>{item.detail}</p>}
+        <small>{section === 'university' ? (APP_STATUS[item.meta?.applicationStatus] || friendlyStatus(item.status)) : friendlyStatus(item.status)}</small>
+      </div>)}
+    </div> : <p className="tmv-empty-note">No update has been posted for this day yet.</p>}
     {section === 'university' && upcoming.length > 0 && <div className="tmv-upcoming"><strong>Coming up</strong>{upcoming.map(item => <p key={item.id}><CalendarDays size={16}/><span>{item.meta?.university || item.title} · {prettyDate(xDate(item))}</span></p>)}</div>}
     <button type="button" className="tmv-read-more" onClick={() => onOpen(section)}>See all {section === 'university' ? 'applications' : section === 'office' ? 'projects' : 'activities'} <ArrowRight size={17}/></button>
   </section>;
@@ -659,7 +715,7 @@ function FamilyToday({ entries, days, quran, viewDate, setViewDate, onOpen, onOp
       <div className="tmv-summary-entry-text"><span className="tmv-summary-symbol"><MessageSquareText size={20} strokeWidth={1.9}/></span><div><h2>Understand his day in seconds.</h2><p lang="ur" dir="rtl">احسن کی روزانہ کی تفصیلات آسانی سے جانیں۔</p></div></div>
       <button type="button" onClick={onOpenSummary}><span>Summarize all details</span><span lang="ur" dir="rtl">تمام تفصیلات کی سمری</span><ArrowRight size={18}/></button>
     </section>
-    {!hasAny && <div className="tmv-empty-day" role="status"><Clock3 size={21}/><span>No daily update has been posted for this date yet. You can still see current projects and upcoming university dates below.</span></div>}
+    {!hasAny && <div className="tmv-empty-day" role="status"><Clock3 size={21}/><span>No new daily note for this date. Current projects and university applications are still shown below.</span></div>}
     <div className="tmv-group-title"><h2>Daily Life</h2><span>Actual saved updates</span></div>
     <section className="tmv-story-card tmv-prayer-card">
       <div className="tmv-card-heading"><span className="tmv-card-icon"><CategoryArtwork type="prayer"/></span><h2>Prayer</h2></div>
@@ -785,8 +841,8 @@ export default function TrackMe() {
   }
   async function signIn(e){e.preventDefault();setBusy(true);setLoginError('');try{await api({action:'login',password});const data=await api();setEntries(data.entries||[]);setPrayerDays(data.prayerDays||{});setQuranEntries(data.quranEntries||[]);setAuthenticated(true);setPassword('');setWelcome(true);}catch(err){setLoginError(err.message);}finally{setBusy(false);}}
   async function signOut(){try{await api({action:'logout'});setAuthenticated(false);setOwnerMode(false);setCreationPin('');setEntries([]);setPrayerDays({});setQuranEntries([]);setWelcome(false);setEditor(null);setNotice('');setSection('overview');}catch(err){fail(err);}}
-  function openOwner(){setPinError('');setPinOpen(true);}
-  async function verifyPin(pin){setBusy(true);setPinError('');try{await api({action:'verify_create_pin',pin});setCreationPin(pin);setOwnerMode(true);setPinOpen(false);setNotice('Owner editing is now on.');}catch(err){setPinError(err.message);}finally{setBusy(false);}}
+  function openOwner(){if(ownerMode)return;setPinError('');setPinOpen(true);}
+  async function verifyPin(pin){setBusy(true);setPinError('');try{await api({action:'verify_create_pin',pin});setCreationPin(pin);setOwnerMode(true);setPinOpen(false);setNotice('Owner mode is on. You can update every section without entering the code again. Select Finish editing when done.');}catch(err){setPinError(err.message);}finally{setBusy(false);}}
   function lockOwner(){setOwnerMode(false);setCreationPin('');setEditor(null);setExpanded(null);setNotice('Owner editing is off.');}
   function newTask(target='office'){if(!ownerMode){openOwner();return;}setEditor(initialTask(target));}
   async function saveTask(form){setBusy(true);setNotice('');try{const editing=Boolean(editor?.id);const data=await api({action:editing?'update':'create',...(editing?{id:editor.id}:{pin:creationPin}),item:form});setEntries(list=>editing?list.map(x=>x.id===data.item.id?data.item:x):[data.item,...list]);setEditor(null);setNotice(editing?'Updated successfully.':'New task saved.');}catch(err){fail(err);}finally{setBusy(false);}}
@@ -804,7 +860,7 @@ export default function TrackMe() {
     <header className="tmv-header"><button type="button" className="tmv-brand" onClick={()=>go('overview')} aria-label="Go to Ahsan's daily updates"><AhsanAvatar className="tmv-avatar-header"/><span><strong><AhsanName/>’s Updates</strong><small>Family journal</small></span></button><button type="button" className="tmv-logout" onClick={signOut}><LogOut size={18}/><span>Log out</span></button></header>
     {section!=='overview'&&<button type="button" className="tmv-back" onClick={()=>go('overview')}><ArrowLeft size={20}/> Back to daily updates</button>}
     {notice&&<div className="tmv-notice" role="status"><CheckCircle2 size={19}/><span>{notice}</span><button type="button" onClick={()=>setNotice('')} aria-label="Dismiss"><X size={17}/></button></div>}
-    {ownerMode&&<div className="tmv-owner-banner"><span><LockKeyhole size={16}/> Owner editing is ON</span><button type="button" onClick={lockOwner}>Finish editing</button></div>}
+    {ownerMode&&<div className="tmv-owner-banner"><span><LockKeyhole size={16}/> Owner mode · all sections unlocked</span><button type="button" onClick={lockOwner}>Finish editing</button></div>}
     {section==='overview'&&<FamilyToday entries={entries} days={prayerDays} quran={quranEntries} viewDate={viewDate} setViewDate={setViewDate} onOpen={go} ownerMode={ownerMode} onNew={newTask} onOpenSummary={()=>setSummaryOpen(true)}/>}
     {['office','personal','university'].includes(section)&&<WorkPanel section={section} ownerMode={ownerMode} entries={entries} busy={busy} search={search} setSearch={setSearch} filter={filter} setFilter={setFilter} expanded={expanded} setExpanded={setExpanded} note={note} setNote={setNote} onNew={newTask} onNote={addNote} onEdit={item=>setEditor({...item})} onDelete={deleteTask} onStatus={updateTask}/>}
     {section==='prayer'&&<PrayerPanel ownerMode={ownerMode} date={prayerDate} setDate={setPrayerDate} days={prayerDays} busy={busy} onToggle={togglePrayer}/>}
