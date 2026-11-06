@@ -1317,7 +1317,7 @@ body:has(.tm-page) {background:#f5f7f6}
   isolation:isolate;
   overflow:hidden;
   width:100%;
-  padding:18px 21px 17px;
+  padding:11px 18px 11px;
   border:1px solid #dce8df;
   border-radius:20px;
   background:linear-gradient(117deg,#fff 2%,#fcfefa 48%,#eff7f2 100%);
@@ -1336,24 +1336,31 @@ body:has(.tm-page) {background:#f5f7f6}
 .tm-page .tmv-date-top {
   display:flex;align-items:center;justify-content:space-between;
   gap:12px;
-  padding:0 0 15px;
+  padding:0 0 9px;
   border-bottom:1px solid #e8eee8;
 }
-.tm-page .tmv-date-title {min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:4px}
+/* Keep live clock alongside the date instead of adding a third tall row. */
+.tm-page .tmv-date-title {
+  min-width:0;display:grid;grid-template-columns:minmax(0,1fr) max-content;
+  column-gap:10px;row-gap:2px;align-items:center;
+}
 .tm-page .tmv-date-eyebrow {
   font:650 10px/1.5 'Inter',system-ui,sans-serif;
   letter-spacing:.095em;color:#57806a;
+  grid-column:1/-1;
 }
 .tm-page .tmv-date-eyebrow span {margin:0 4px;color:#bac9bd}
 .tm-page .tmv-date-title>strong {
   color:#153829;
   font:700 17px/1.35 'Inter',system-ui,sans-serif;
   letter-spacing:-.023em;
+  grid-column:1;grid-row:2;
 }
 .tm-page .tmv-date-title>.tmv-date-short {display:none}
 .tm-page .tmv-date-clock {
   display:inline-flex;align-items:center;gap:6px;
-  margin-top:4px;padding:5px 9px 5px 7px;
+  grid-column:2;grid-row:2;
+  margin-top:0;padding:4px 8px 4px 7px;
   border:1px solid #e3ebe4;border-radius:999px;
   background:rgba(255,255,255,.75);
   font:650 11px/1.1 'Inter',system-ui,sans-serif;
@@ -1389,10 +1396,10 @@ body:has(.tm-page) {background:#f5f7f6}
 .tm-page .tmv-date-day:focus-visible {outline:2px solid #176f4c;outline-offset:3px}
 .tm-page .tmv-date-strip {
   display:flex;align-items:center;justify-content:center;
-  gap:12px;padding:15px 0 0;
+  gap:12px;padding:9px 0 0;
 }
 .tm-page .tmv-date-step {
-  flex:0 0 42px;width:42px;height:54px;
+  flex:0 0 42px;width:42px;height:50px;
   display:grid;place-items:center;
   border:1px solid #e3ebe5;border-radius:12px;
   color:#35674a;background:#fff;cursor:pointer;
@@ -1404,9 +1411,9 @@ body:has(.tm-page) {background:#f5f7f6}
   display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;
 }
 .tm-page .tmv-date-day {
-  min-width:0;width:100%;min-height:74px;
+  min-width:0;width:100%;min-height:55px;
   display:flex;align-items:center;justify-content:center;flex-direction:column;
-  gap:3px;padding:9px 2px 7px;
+  gap:2px;padding:5px 2px 4px;
   border:1px solid transparent;border-radius:12px;
   background:rgba(238,245,239,.75);
   color:#698371;cursor:pointer;
@@ -1418,11 +1425,11 @@ body:has(.tm-page) {background:#f5f7f6}
   text-transform:uppercase;letter-spacing:.04em;
 }
 .tm-page .tmv-date-day>strong {
-  font:700 20px/1.05 'Inter',system-ui,sans-serif;
+  font:700 19px/1.05 'Inter',system-ui,sans-serif;
   letter-spacing:-.03em;color:#284d38;
 }
 .tm-page .tmv-date-day-indicator {
-  display:block;height:11px;
+  display:block;height:9px;
   font:750 8px/1.4 'Inter',system-ui,sans-serif;
   letter-spacing:.04em;color:transparent;
 }
@@ -1446,38 +1453,40 @@ body:has(.tm-page) {background:#f5f7f6}
 .tm-page .tmv-date-day--active>strong {color:#fff}
 .tm-page .tmv-date-day--active .tmv-date-day-indicator {color:#d5f1de}
 .tm-page .tmv-date-selected-hint {
-  margin:12px 0 0;
+  margin:8px 0 0;
   color:#597264;font:500 11px/1.5 'Inter',system-ui,sans-serif;
   text-align:center;
 }
 @media(max-width:600px) {
-  .tm-page .tmv-date-selector {padding:15px 12px 15px;border-radius:16px}
-  .tm-page .tmv-date-top {gap:8px;padding-bottom:13px}
+  .tm-page .tmv-date-selector {padding:10px 12px 10px;border-radius:16px}
+  .tm-page .tmv-date-top {gap:8px;padding-bottom:7px}
   .tm-page .tmv-date-title>strong {font-size:14px}
   .tm-page .tmv-date-title>.tmv-date-full {display:none}
   .tm-page .tmv-date-title>.tmv-date-short {display:block}
   .tm-page .tmv-date-eyebrow {font-size:9px;letter-spacing:.055em}
   .tm-page .tmv-date-clock {padding:4px 8px 4px 6px;font-size:10px;gap:5px}
-  .tm-page .tmv-date-clock small {font-size:9px}
+  .tm-page .tmv-date-clock small {display:none}
   .tm-page .tmv-date-actions {gap:6px}
   .tm-page .tmv-date-calendar {width:43px;min-height:43px;padding:0}
   .tm-page .tmv-date-calendar>span {display:none}
   .tm-page .tmv-date-today {min-height:43px;padding:0 10px;font-size:11px}
-  .tm-page .tmv-date-strip {gap:5px;padding-top:12px}
-  .tm-page .tmv-date-step {width:33px;flex-basis:33px;height:58px;border-radius:10px}
+  .tm-page .tmv-date-strip {gap:5px;padding-top:8px}
+  .tm-page .tmv-date-step {width:33px;flex-basis:33px;height:50px;border-radius:10px}
   .tm-page .tmv-date-days {grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}
   .tm-page .tmv-date-day--outer {display:none}
-  .tm-page .tmv-date-day {min-height:69px;gap:2px;padding:7px 1px 6px;border-radius:10px}
+  .tm-page .tmv-date-day {min-height:55px;gap:2px;padding:5px 1px 4px;border-radius:10px}
   .tm-page .tmv-date-day>span {font-size:9px;letter-spacing:0}
   .tm-page .tmv-date-day>strong {font-size:19px}
   .tm-page .tmv-date-day-indicator {font-size:7px}
-  .tm-page .tmv-date-selected-hint {font-size:10px;margin-top:10px}
+  .tm-page .tmv-date-selected-hint {font-size:10px;margin-top:7px}
 }
 @media(max-width:355px) {
   .tm-page .tmv-date-selector {padding-inline:9px}
   .tm-page .tmv-date-title>strong {font-size:13px}
   .tm-page .tmv-date-eyebrow {font-size:8px}
   .tm-page .tmv-date-days {gap:3px}
+  .tm-page .tmv-date-title {column-gap:5px}
+  .tm-page .tmv-date-clock {padding:3px 5px;font-size:9px}
   .tm-page .tmv-date-strip {gap:3px}
   .tm-page .tmv-date-day:nth-child(3),
   .tm-page .tmv-date-day:nth-child(4) {display:none}
