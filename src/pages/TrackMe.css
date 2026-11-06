@@ -1277,3 +1277,31 @@ body:has(.tm-page) {background:#f5f7f6}
     font-size: 10.5px;
   }
 }
+
+
+/* Track Me V18 — compact no-update toast; all existing cards unchanged. */
+.tm-page .tmv-day-toast {
+  position:fixed;
+  z-index:1300;
+  top:calc(env(safe-area-inset-top, 0px) + 18px);
+  left:50%;
+  transform:translateX(-50%);
+  width:min(420px, calc(100vw - 28px));
+  display:flex;
+  align-items:center;
+  gap:11px;
+  padding:12px 12px 12px 13px;
+  background:#fff;
+  color:#20362d;
+  border:1px solid #dce7df;
+  border-radius:13px;
+  box-shadow:0 8px 26px rgba(19,44,32,.17);
+  animation:tmv-toast-enter .23s ease-out both;
+}
+.tm-page .tmv-day-toast-icon {flex:0 0 auto;color:#357d5b;display:flex}
+.tm-page .tmv-day-toast-copy {flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.tm-page .tmv-day-toast-copy strong {font:650 13px/1.4 'Inter',system-ui,sans-serif;color:#233a2d}
+.tm-page .tmv-day-toast-copy small {font:400 13px/1.4 'Noto Naskh Arabic',serif;color:#627769;text-align:left}
+.tm-page .tmv-day-toast button {flex:0 0 auto;border:0;background:transparent;color:#637569;display:grid;place-items:center;min-width:34px;min-height:34px;border-radius:7px;padding:0;cursor:pointer}
+@keyframes tmv-toast-enter {from{opacity:0;transform:translate(-50%,-9px)}to{opacity:1;transform:translate(-50%,0)}}
+@media (prefers-reduced-motion:reduce){.tm-page .tmv-day-toast{animation:none}}

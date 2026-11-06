@@ -540,6 +540,14 @@ function parseChatTopic(raw) {
   return null;
 }
 
+// A task is a daily update only if it was actually added, edited,
+// or given a progress note in the requested date range. A saved old
+// status/next date alone must NEVER appear as a new update.
+function hasTaskEventInPeriod(task, inPeriod) {
+  return inPeriod(task?.createdAt) || inPeriod(task?.updatedAt) ||
+    (task?.logs || []).some(note => inPeriod(note.createdAt));
+}
+
 // Clear bilingual family updates based on saved records only.
 // Give the actual task, what changed, the university/program and next date.
 // A current status without a note is never described as work done today.
@@ -614,11 +622,11 @@ function buildFamilyReport({ entries, prayerDays, quranEntries, period, topic })
     return parent && parent.toLowerCase() !== title.toLowerCase() ? `${parent} — ${title}` : (title || parent);
   };
 
-  // Clear language for Office and Personal: prioritize real progress notes,
-  // otherwise show actual task titles and status as a *current snapshot*.
+  // Real entries only. A previous task status is NOT today's progress.
+  // A newly created/edited task counts as a recorded task event, but it is
+  // labelled as such rather than incorrectly described as work completed.
   const explainWork = (section, labelEn, labelUr) => {
     const items = bySection(section);
-    if (!items.length) return { recorded:false, en:`${labelEn}: No tasks saved.`, ur:`${labelUr}: کوئی کام درج نہیں۔` };
     const updates = items.flatMap(task => allNotes(task).map(note => ({ task, note })))
       .sort((a,b) => String(b.note.createdAt).localeCompare(String(a.note.createdAt)));
     if (updates.length) {
@@ -631,33 +639,39 @@ function buildFamilyReport({ entries, prayerDays, quranEntries, period, topic })
         ur:`${labelUr}: ${text}${updates.length > 1 ? ` (مزید ${updates.length - 1} اپڈیٹس)` : ''}۔`,
       };
     }
-    const active = [...items].sort((a,b) => {
-      const priority = x => x.status === 'in_progress' ? 0 : x.status === 'planned' ? 1 : 2;
-      return priority(a) - priority(b) || newest(a,b);
-    }).slice(0,2);
-    const statusText = item => statusLabels[item.status] || ['recorded','درج'];
-    const en = active.map(task => `${taskLabel(task)} (${statusText(task)[0]})`).join('; ');
-    const ur = active.map(task => `${taskLabel(task)} (${statusText(task)[1]})`).join('؛ ');
+    const recentlyChanged = items
+      .filter(task => inPeriod(task.createdAt) || inPeriod(task.updatedAt))
+      .sort(newest);
+    if (recentlyChanged.length) {
+      const task = recentlyChanged[0];
+      const newlyAdded = inPeriod(task.createdAt);
+      const state = statusLabels[task.status] || ['recorded', 'درج'];
+      const itemName = taskLabel(task);
+      return {
+        recorded:true,
+        en:`${labelEn}: ${newlyAdded ? 'New task added' : 'Task updated'} — ${itemName} (${state[0]}).`,
+        ur:`${labelUr}: ${newlyAdded ? 'نیا کام درج ہوا' : 'کام کی معلومات بدلی گئیں'} — ${itemName} (${state[1]})۔`,
+      };
+    }
     return {
-      recorded:true,
-      en:`${labelEn} — current tasks: ${en}. No new progress note ${days === 1 ? 'today' : 'in this period'}.`,
-      ur:`${labelUr} — موجودہ کام: ${ur}۔ ${days === 1 ? 'آج کی' : 'اس مدت کی'} نئی پیش رفت درج نہیں ہوئی۔`,
+      recorded:false,
+      en:`${labelEn}: No new update in this period.`,
+      ur:`${labelUr}: اس مدت میں کوئی نئی اپڈیٹ درج نہیں ہوئی۔`,
     };
   };
   const office = explainWork('office','Office','دفتر');
   const personal = explainWork('personal','Personal','ذاتی کام');
 
   const universities = bySection('university');
-  const bestUniversity = [...universities].sort((a,b) => {
-    const score = task => {
-      const latest = allNotes(task).length > 0;
-      const upcoming = task.meta?.upcomingDate && task.meta.upcomingDate >= end;
-      const recent = inPeriod(task.updatedAt) || inPeriod(task.createdAt);
-      return (latest ? 6 : 0) + (upcoming ? 3 : 0) + (recent ? 2 : 0);
-    };
+  // The current application is not a new daily entry unless the
+  // application or one of its notes was changed in the chosen period.
+  const recentUniversities = universities.filter(task => hasTaskEventInPeriod(task, inPeriod));
+  const bestUniversity = [...recentUniversities].sort((a,b) => {
+    const score = task => (allNotes(task).length ? 6 : 0) +
+      (inPeriod(task.updatedAt) ? 3 : 0) + (inPeriod(task.createdAt) ? 2 : 0);
     return score(b) - score(a) || newest(a,b);
   })[0];
-  let university = { recorded:false, en:'University: No application saved.', ur:'یونیورسٹی: کوئی درخواست درج نہیں۔' };
+  let university = { recorded:false, en:'University: No new update in this period.', ur:'یونیورسٹی: اس مدت میں کوئی نئی اپڈیٹ درج نہیں ہوئی۔' };
   if (bestUniversity) {
     const m = bestUniversity.meta || {};
     const universityName = brief(m.university || bestUniversity.title, 60);
@@ -689,11 +703,11 @@ function buildFamilyReport({ entries, prayerDays, quranEntries, period, topic })
     };
   }
 
-  if (topic === 'prayer') add(prayerEn, prayerUr);
-  else if (topic === 'quran') add(quranEn, quranUr);
-  else if (topic === 'office') add(office.en, office.ur);
-  else if (topic === 'university') add(university.en, university.ur);
-  else if (topic === 'personal') add(personal.en, personal.ur);
+  if (topic === 'prayer') { if (checked.length) add(prayerEn, prayerUr); else rows.push({en:prayerEn,ur:prayerUr,noUpdates:true}); }
+  else if (topic === 'quran') { if (readings.length) add(quranEn, quranUr); else rows.push({en:quranEn,ur:quranUr,noUpdates:true}); }
+  else if (topic === 'office') rows.push({...office,noUpdates:!office.recorded});
+  else if (topic === 'university') rows.push({...university,noUpdates:!university.recorded});
+  else if (topic === 'personal') rows.push({...personal,noUpdates:!personal.recorded});
   else {
     if (checked.length || readings.length) add(
       [checked.length ? prayerEn : '', readings.length ? quranEn : ''].filter(Boolean).join(' '),
@@ -702,7 +716,11 @@ function buildFamilyReport({ entries, prayerDays, quranEntries, period, topic })
     if (office.recorded) add(office.en, office.ur);
     if (university.recorded) add(university.en, university.ur);
     if (personal.recorded) add(personal.en, personal.ur);
-    if (!rows.length) add('No updates or current activities are saved yet.', 'ابھی کوئی اپڈیٹ یا موجودہ سرگرمی محفوظ نہیں۔');
+    if (!rows.length) rows.push({
+      en: days === 1 ? 'No updates yet today.' : 'No updates recorded for this period.',
+      ur: days === 1 ? 'آج ابھی کوئی نئی اپڈیٹ نہیں ہے۔' : 'اس مدت میں کوئی اپڈیٹ درج نہیں ہوئی۔',
+      noUpdates: true,
+    });
   }
   return rows;
 }
@@ -717,6 +735,7 @@ function SummaryChat({ entries, prayerDays, quranEntries, onClose, onSessionErro
   const [aiInsight, setAiInsight] = useState('');
   const [aiError, setAiError] = useState('');
   const [aiRequested, setAiRequested] = useState(false);
+  const [reportEmpty, setReportEmpty] = useState(false);
   const scrollRef = useRef(null);
   const reportRef = useRef(null);
 
@@ -739,7 +758,7 @@ function SummaryChat({ entries, prayerDays, quranEntries, onClose, onSessionErro
 
   function beginAgain() {
     setStep('period'); setPeriod(null); setTopic(null); setText(''); setBusy(false);
-    setAiInsight(''); setAiError(''); setAiRequested(false); setMessages([BOT_INTRO]);
+    setAiInsight(''); setAiError(''); setAiRequested(false); setReportEmpty(false); setMessages([BOT_INTRO]);
   }
   async function showReport(selectedPeriod, selectedTopic, seedMessages) {
     setTopic(selectedTopic);
@@ -748,6 +767,7 @@ function SummaryChat({ entries, prayerDays, quranEntries, onClose, onSessionErro
     const p = CHAT_PERIODS.find(x => x.id === selectedPeriod);
     const s = CHAT_TOPICS.find(x => x.id === selectedTopic);
     const lines = buildFamilyReport({ entries, prayerDays, quranEntries, period: selectedPeriod, topic: selectedTopic });
+    setReportEmpty(lines.some(line => line.noUpdates));
     setMessages([...seedMessages, {
       role: 'bot',
       en: `${p.en} · ${s.en} — quick update.`,
@@ -758,7 +778,7 @@ function SummaryChat({ entries, prayerDays, quranEntries, onClose, onSessionErro
   // Optional short Groq insight is fetched only if the family asks to see it.
   // The main English/Urdu summary above always uses the existing saved records.
   async function requestAiInsight() {
-    if (busy || aiRequested || step !== 'done') return;
+    if (busy || aiRequested || reportEmpty || step !== 'done') return;
     setAiRequested(true);
     if (period === 'month') {
       setAiError('30-day summary uses saved records. / ۳۰ دن کی سمری محفوظ ریکارڈ سے بنتی ہے۔');
@@ -827,7 +847,7 @@ function SummaryChat({ entries, prayerDays, quranEntries, onClose, onSessionErro
               <span>{option.en}</span><span className="tmv-chat-choice-urdu" lang="ur" dir="rtl">{option.ur}</span>
             </button>)}
           </div>}
-          {step === 'done' && <div className="tmv-chat-optional">
+          {step === 'done' && !reportEmpty && <div className="tmv-chat-optional">
             <button type="button" disabled={busy || aiRequested} onClick={requestAiInsight}>
               {busy ? 'Preparing short note…' : aiRequested ? 'Extra AI note' : 'Optional short AI note'}
               <span lang="ur" dir="rtl">{busy ? 'مختصر نوٹ تیار ہو رہا ہے…' : 'اختیاری مختصر AI نوٹ'}</span>
@@ -940,7 +960,18 @@ function FamilyToday({ entries, days, quran, viewDate, setViewDate, onOpen, onOp
   const noteCount = entries.reduce((sum,item)=>sum+(item.logs||[]).filter(log=>dayISO(log.createdAt)===viewDate).length,0);
   const prayer = days[viewDate] || {};
   const recorded = PRAYERS.filter(([key])=>prayer.group?.[key]||prayer.makeup?.[key]).length;
-  const hasAny = noteCount || pages || recorded;
+  const recentlyChangedTask = entries.some(item =>
+    (item.createdAt && dayISO(item.createdAt) === viewDate) ||
+    (item.updatedAt && dayISO(item.updatedAt) === viewDate)
+  );
+  const hasAny = Boolean(noteCount || pages || recorded || recentlyChangedTask);
+  const [showEmptyDayToast, setShowEmptyDayToast] = useState(false);
+  useEffect(() => {
+    if (hasAny) { setShowEmptyDayToast(false); return; }
+    setShowEmptyDayToast(true);
+    const timer = setTimeout(() => setShowEmptyDayToast(false), 4800);
+    return () => clearTimeout(timer);
+  }, [viewDate, hasAny]);
   return <div className="tmv-family-view">
     <div className="tmv-intro"><span className="tmv-intro-kicker">THE DAILY JOURNAL</span><h1><AhsanName/>’s daily updates.</h1><p>His day, his progress, and everything he has shared with you.</p></div>
     <DayNavigator value={viewDate} setValue={setViewDate}/>
@@ -948,7 +979,13 @@ function FamilyToday({ entries, days, quran, viewDate, setViewDate, onOpen, onOp
       <div className="tmv-summary-entry-text"><span className="tmv-summary-symbol"><MessageSquareText size={20} strokeWidth={1.9}/></span><div><h2>Understand his day in seconds.</h2><p lang="ur" dir="rtl">احسن کی روزانہ کی تفصیلات آسانی سے جانیں۔</p></div></div>
       <button type="button" onClick={onOpenSummary}><span>Summarize all details</span><span lang="ur" dir="rtl">تمام تفصیلات کی سمری</span><ArrowRight size={18}/></button>
     </section>
-    {!hasAny && <div className="tmv-empty-day" role="status"><Clock3 size={21}/><span>No new daily note for this date. Current projects and university applications are still shown below.</span></div>}
+    {showEmptyDayToast && !hasAny && <div className="tmv-day-toast" role="status" aria-live="polite">
+      <span className="tmv-day-toast-icon"><Clock3 size={19}/></span>
+      <span className="tmv-day-toast-copy"><strong>{viewDate === dayISO() ? 'No updates yet today' : 'No updates recorded for this date'}</strong>
+        <small lang="ur" dir="rtl">{viewDate === dayISO() ? 'آج ابھی کوئی نئی اپڈیٹ نہیں ہے۔' : 'اس تاریخ کی کوئی اپڈیٹ درج نہیں ہوئی۔'}</small>
+      </span>
+      <button type="button" onClick={() => setShowEmptyDayToast(false)} aria-label="Dismiss notification"><X size={17}/></button>
+    </div>}
     <div className="tmv-group-title"><h2>Daily Life</h2><span>Actual saved updates</span></div>
     <section className="tmv-story-card tmv-prayer-card">
       <FamilyCardVideo key={`prayer-${viewDate}`} category="prayer" date={viewDate} />
