@@ -384,9 +384,10 @@ function LoginScreen({ password, setPassword, onSubmit, busy, error }) {
 }
 
 function CautionWelcome({ onContinue }) {
-  // Greeting only: no changes to authentication, permissions, API or saved data.
-  // No selection within 4 seconds => show both partner lines immediately.
+  // Family sign-in flow: sign in -> Yes / No -> automatic daily updates.
+  // Preserve the previous 4-second no-selection partner welcome.
   const [relationChoice, setRelationChoice] = useState(null);
+
   useEffect(() => {
     if (relationChoice !== null) return undefined;
     const timer = window.setTimeout(() => {
@@ -394,6 +395,15 @@ function CautionWelcome({ onContinue }) {
     }, 4000);
     return () => window.clearTimeout(timer);
   }, [relationChoice]);
+
+  useEffect(() => {
+    if (relationChoice === null) return undefined;
+    // Give family members a moment to read their personal welcome,
+    // then open the same existing daily updates screen automatically.
+    const delay = relationChoice === 'parents' ? 2300 : 3500;
+    const timer = window.setTimeout(() => onContinue(), delay);
+    return () => window.clearTimeout(timer);
+  }, [relationChoice, onContinue]);
 
   const isPartner = relationChoice === 'partner' || relationChoice === 'partner-auto';
   return (
@@ -430,9 +440,6 @@ function CautionWelcome({ onContinue }) {
             </div>
           )}
           <p>A private look into the moments, effort and progress <AhsanName/> shares with you.</p>
-          <button className="tm-primary tm-wide" type="button" onClick={onContinue}>
-            Continue to updates <ArrowRight size={18}/>
-          </button>
         </div>
         <div className="tmv-welcome-footer">PRIVATE FAMILY JOURNAL <span>·</span> MADE TO KEEP YOU CONNECTED</div>
       </section>
