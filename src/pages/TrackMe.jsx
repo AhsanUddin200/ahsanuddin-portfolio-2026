@@ -373,7 +373,9 @@ function LoginScreen({ password, setPassword, onSubmit, busy, error }) {
               </div>
             </label>
             {error && <div role="alert" className="tm-error">{error}</div>}
-            <button type="submit" className="tm-primary tm-wide" disabled={busy}>{busy ? 'Signing in…' : 'View daily updates'} <ArrowRight size={18}/></button>
+            <p id="tmv-password-autocheck" className="tmv-password-autocheck" role="status" aria-live="polite">
+              {busy ? 'Checking password…' : 'Sign in automatically after you finish typing. You can also press Enter.'}
+            </p>
           </form>
           <p className="tmv-signin-note"><ShieldCheck size={16} strokeWidth={1.8}/> Private and password protected</p>
         </div>
@@ -396,14 +398,18 @@ function CautionWelcome({ onContinue }) {
     return () => window.clearTimeout(timer);
   }, [relationChoice]);
 
+  // After either choice, show a visible 4-second countdown on both
+  // desktop and mobile. The existing no-click partner default stays 4 seconds.
+  const [secondsLeft, setSecondsLeft] = useState(4);
+  const continueRef = useRef(onContinue);
+  useEffect(() => { continueRef.current = onContinue; }, [onContinue]);
   useEffect(() => {
     if (relationChoice === null) return undefined;
-    // Give family members a moment to read their personal welcome,
-    // then open the same existing daily updates screen automatically.
-    const delay = relationChoice === 'parents' ? 2300 : 3500;
-    const timer = window.setTimeout(() => onContinue(), delay);
-    return () => window.clearTimeout(timer);
-  }, [relationChoice, onContinue]);
+    setSecondsLeft(4);
+    const tick = window.setInterval(() => setSecondsLeft(n => Math.max(0, n - 1)), 1000);
+    const finish = window.setTimeout(() => continueRef.current(), 4000);
+    return () => { window.clearInterval(tick); window.clearTimeout(finish); };
+  }, [relationChoice]);
 
   const isPartner = relationChoice === 'partner' || relationChoice === 'partner-auto';
   return (
@@ -438,6 +444,12 @@ function CautionWelcome({ onContinue }) {
                     <span className="tmv-partner-followup">You are tracking your man.</span>
                   </>}
             </div>
+          )}
+          {relationChoice !== null && (
+            <p className="tmv-welcome-auto-status" role="status" aria-live="polite">
+              Opening daily updates in <strong>{secondsLeft}s</strong>…
+              <span>آپ کی اپڈیٹس {secondsLeft} سیکنڈ میں کھل جائیں گی۔</span>
+            </p>
           )}
           <p>A private look into the moments, effort and progress <AhsanName/> shares with you.</p>
         </div>
@@ -1167,6 +1179,11 @@ export default function TrackMe() {
   const [authenticated,setAuthenticated]=useState(false);
   const [password,setPassword]=useState('');
   const [loginError,setLoginError]=useState('');
+  // Auto-submit only after typing stops. Keep one request in flight and
+  // never try the same incorrect candidate repeatedly on every render.
+  const loginAttemptRef = useRef({ pending:false, last:'' });
+  const latestPasswordRef = useRef('');
+  latestPasswordRef.current = password;
   const [welcome,setWelcome]=useState(false);
   const [entries,setEntries]=useState([]);
   const [prayerDays,setPrayerDays]=useState({});
@@ -1192,14 +1209,45 @@ export default function TrackMe() {
       .catch(err=>{if(mounted)setLoginError(err.message);}).finally(()=>{if(mounted)setLoading(false);});
     return ()=>{mounted=false;};
   },[]);
+  useEffect(() => {
+    if (loading || authenticated || welcome || busy || !password.trim()) return undefined;
+    if (loginAttemptRef.current.last === password) return undefined;
+    // 1.8s quiet time prevents an API request for every typed character.
+    // Vercel's existing 8-attempt/15-minute limit remains unchanged.
+    const timer = window.setTimeout(() => {
+      if (!loginAttemptRef.current.pending && loginAttemptRef.current.last !== password) {
+        signIn(undefined, password);
+      }
+    }, 1800);
+    return () => window.clearTimeout(timer);
+  }, [password, loading, authenticated, welcome, busy]);
+
   function fail(err){
     setNotice(err.message||'Request failed.');
     if(err.status===401&&err.message?.toLowerCase().includes('session')){
       setAuthenticated(false);setOwnerMode(false);setCreationPin('');setEntries([]);setPrayerDays({});setQuranEntries([]);setLoginError('Please sign in again.');
     }
   }
-  async function signIn(e){e.preventDefault();setBusy(true);setLoginError('');try{await api({action:'login',password});const data=await api();setEntries(data.entries||[]);setPrayerDays(data.prayerDays||{});setQuranEntries(data.quranEntries||[]);setAuthenticated(true);setPassword('');setWelcome(true);}catch(err){setLoginError(err.message);}finally{setBusy(false);}}
-  async function signOut(){try{await api({action:'logout'});setAuthenticated(false);setOwnerMode(false);setCreationPin('');setEntries([]);setPrayerDays({});setQuranEntries([]);setWelcome(false);setEditor(null);setNotice('');setSection('overview');}catch(err){fail(err);}}
+  async function signIn(e, suppliedPassword = password){
+    e?.preventDefault?.();
+    if (loginAttemptRef.current.pending || !suppliedPassword.trim()) return;
+    loginAttemptRef.current.pending=true;
+    loginAttemptRef.current.last=suppliedPassword;
+    setBusy(true);setLoginError('');
+    try {
+      await api({action:'login',password:suppliedPassword});
+      const data=await api();
+      setEntries(data.entries||[]);setPrayerDays(data.prayerDays||{});setQuranEntries(data.quranEntries||[]);
+      setAuthenticated(true);setPassword('');setWelcome(true);
+    } catch(err) {
+      // Do not show an error for an older, incomplete input if typing resumed.
+      if (latestPasswordRef.current === suppliedPassword) setLoginError(err.message);
+    } finally {
+      loginAttemptRef.current.pending=false;
+      setBusy(false);
+    }
+  }
+  async function signOut(){try{await api({action:'logout'});loginAttemptRef.current.last='';setAuthenticated(false);setOwnerMode(false);setCreationPin('');setEntries([]);setPrayerDays({});setQuranEntries([]);setWelcome(false);setEditor(null);setNotice('');setSection('overview');}catch(err){fail(err);}}
   function openOwner(){if(ownerMode)return;setPinError('');setPinOpen(true);}
   async function verifyPin(pin){setBusy(true);setPinError('');try{await api({action:'verify_create_pin',pin});setCreationPin(pin);setOwnerMode(true);setPinOpen(false);setNotice('Owner mode is on. You can update every section without entering the code again. Select Finish editing when done.');}catch(err){setPinError(err.message);}finally{setBusy(false);}}
   function lockOwner(){setOwnerMode(false);setCreationPin('');setEditor(null);setExpanded(null);setNotice('Owner editing is off.');}

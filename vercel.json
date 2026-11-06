@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/track-me",
+      "destination": "/track-me.html"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

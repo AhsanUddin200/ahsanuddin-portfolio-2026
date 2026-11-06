@@ -1495,3 +1495,35 @@ body:has(.tm-page) {background:#f5f7f6}
 @media(prefers-reduced-motion:reduce) {
   .tm-page .tmv-date-day {transition:none}
 }
+
+
+/* V22 · automatic family login + explicit welcome countdown only */
+.tm-page .tmv-password-autocheck {
+  margin: 4px 0 0;
+  color: #536f63;
+  font-size: 12px;
+  line-height: 1.65;
+  font-weight: 500;
+}
+.tm-page .tmv-welcome-auto-status {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  width: fit-content;
+  max-width: 100%;
+  padding: 8px 12px;
+  margin: 13px 0 0;
+  color: #184d39;
+  border-radius: 10px;
+  background: rgba(242, 250, 245, .95);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.45;
+}
+.tm-page .tmv-welcome-auto-status strong {font-variant-numeric: tabular-nums; font-weight: 800}
+.tm-page .tmv-welcome-auto-status > span {font-size: 12px;font-weight: 500;color: #4c6c5b}
+@media (max-width: 600px) {
+  .tm-page .tmv-welcome-auto-status {font-size: 12px;padding: 8px 11px}
+  .tm-page .tmv-password-autocheck {font-size: 11px}
+}
