@@ -1,4 +1,3 @@
-
 import {
   useEffect,
   useState,
@@ -28,6 +27,7 @@ import {
 } from "../data/portfolioData";
 
 import BrandLogo from "./BrandLogo";
+import "./NavbarUpdates.css";
 
 function Navbar() {
   const location = useLocation();
@@ -182,44 +182,20 @@ function Navbar() {
             </kbd>
           </button>
 
-          {/* =====================
-              TRACK ME - PRIVATE
-              NEW ADDITION
-          ====================== */}
-
+          {/* Private daily updates — clear label, single-line mobile button */}
           <Link
             to="/track-me"
             className="track-me-nav-link"
-            aria-label="Open private Track Me workspace"
+            aria-label="View Ahsan's private daily updates"
+            title="Ahsan's Daily Updates"
+            onClick={closeMenu}
           >
-            <LockKeyhole
-              size={15}
-              strokeWidth={2}
-            />
-
-            <span>
-              Track Me
-            </span>
+            <LockKeyhole size={17} strokeWidth={2} aria-hidden="true" />
+            <span className="track-me-label-wide">Daily Updates</span>
+            <span className="track-me-label-short">Updates</span>
           </Link>
 
-          {/* =====================
-              LET'S TALK
-          ====================== */}
 
-          <a
-            href={`mailto:${personalInfo.email}`}
-            className="navbar-contact-button"
-            aria-label="Contact Ahsan Nasir by email"
-          >
-            <span>
-              Let&apos;s Talk
-            </span>
-
-            <ArrowUpRight
-              size={17}
-              strokeWidth={2}
-            />
-          </a>
         </div>
 
         {/* =====================
@@ -326,47 +302,16 @@ function Navbar() {
                 )
               )}
 
-              {/* =====================
-                  TRACK ME - MOBILE
-                  NEW ADDITION
-              ====================== */}
-
-              <motion.div
-                initial={{
-                  opacity: 0,
-                  x: -20,
-                }}
-                animate={{
-                  opacity: 1,
-                  x: 0,
-                }}
-                transition={{
-                  delay: 0.3,
-                }}
+              <Link
+                to="/track-me"
+                onClick={closeMenu}
+                className="track-me-mobile-link"
+                aria-label="View Ahsan's private daily updates"
               >
-                <Link
-                  to="/track-me"
-                  className="track-me-mobile-link"
-                  aria-label="Open private Track Me workspace"
-                  onClick={
-                    closeMenu
-                  }
-                >
-                  <span>
-                    <LockKeyhole
-                      size={17}
-                    />
-                  </span>
-
-                  <strong>
-                    Track Me (Private)
-                  </strong>
-
-                  <ArrowUpRight
-                    size={18}
-                  />
-                </Link>
-              </motion.div>
+                <span><LockKeyhole size={18} aria-hidden="true" /></span>
+                <strong>Daily Updates</strong>
+                <ArrowUpRight size={18} aria-hidden="true" />
+              </Link>
 
               {/* =====================
                   MOBILE QUICK SEARCH
