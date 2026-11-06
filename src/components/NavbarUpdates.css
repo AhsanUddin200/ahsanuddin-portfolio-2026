@@ -1,0 +1,147 @@
+/*
+ * Navbar-only patch — private family updates CTA.
+ * Does NOT change Track Me, its authentication, or any portfolio section.
+ * Imported by Navbar.jsx. Higher-specificity rules keep the fix independent
+ * of the existing large App.css stylesheet.
+ */
+
+/* One clear destination: link labelled Daily Updates, not Track Me. */
+.navbar .track-me-nav-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  gap: 9px;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid rgba(200, 255, 69, .35);
+  border-radius: 12px;
+  background: rgba(200, 255, 69, .09);
+  color: #ecf4e9;
+  font-family: var(--font-primary, Manrope, sans-serif);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -.01em;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background .2s ease, border-color .2s ease;
+}
+
+.navbar .track-me-nav-link svg {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 17px;
+  color: #c8ff45;
+}
+
+.navbar .track-me-nav-link:hover {
+  background: rgba(200, 255, 69, .16);
+  border-color: rgba(200, 255, 69, .55);
+}
+
+.navbar .track-me-nav-link:focus-visible,
+.navbar .track-me-mobile-link:focus-visible {
+  outline: 2px solid #c8ff45;
+  outline-offset: 3px;
+}
+
+.navbar .track-me-label-short {
+  display: none;
+}
+
+/* Same self-explanatory name inside the existing mobile dropdown. */
+.navbar .track-me-mobile-link {
+  display: grid;
+  grid-template-columns: 45px minmax(0, 1fr) auto;
+  align-items: center;
+  min-height: 64px;
+  gap: 0;
+  border-bottom: 1px solid var(--color-border, rgba(255,255,255,.12));
+  color: #edf4eb;
+  text-decoration: none;
+}
+
+.navbar .track-me-mobile-link > span {
+  display: flex;
+  align-items: center;
+  color: #c8ff45;
+}
+
+.navbar .track-me-mobile-link > strong {
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: -.02em;
+}
+
+.navbar .track-me-mobile-link > svg {
+  color: #c8ff45;
+}
+
+/* Existing stylesheet sets .navbar-actions both to display:none and flex
+   at different locations. Make the responsive intention unambiguous. */
+@media (max-width: 900px) {
+  .navbar .navbar-container {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    align-items: center;
+    column-gap: 8px;
+  }
+
+  .navbar .navbar-actions {
+    display: flex !important;
+    align-items: center;
+    justify-content: flex-end;
+    justify-self: end;
+    margin: 0;
+    gap: 0;
+    min-width: 0;
+  }
+
+  .navbar .navbar-command-btn {
+    display: none !important;
+  }
+
+  .navbar .mobile-menu-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    justify-self: end;
+    flex: 0 0 auto;
+    width: 44px;
+    height: 44px;
+    margin: 0;
+    padding: 0;
+  }
+
+  .navbar .track-me-nav-link {
+    min-height: 44px;
+    padding: 0 13px;
+    font-size: 13px;
+  }
+}
+
+/* Use a shorter *visible* label instead of wrapping at phone widths. */
+@media (max-width: 480px) {
+  .navbar .track-me-label-wide { display: none; }
+  .navbar .track-me-label-short { display: inline; }
+
+  .navbar .track-me-nav-link {
+    padding-inline: 11px;
+    gap: 7px;
+    border-radius: 11px;
+    font-size: 12px;
+  }
+  .navbar .navbar-container { column-gap: 6px; }
+}
+
+/* A narrow 320px device should still show both Updates and the menu. */
+@media (max-width: 350px) {
+  .navbar .brand-logo-content { display: none !important; }
+  .navbar .track-me-nav-link { min-height: 42px; }
+  .navbar .mobile-menu-button { width: 42px; height: 42px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .navbar .track-me-nav-link { transition: none; }
+}
