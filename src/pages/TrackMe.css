@@ -1119,122 +1119,161 @@ body:has(.tm-page) {background:#f5f7f6}
 
 
 /* ============================================================
-   V16 — Readable text on the five daily video cards (CSS only)
-   No markup, video opacity, background, layout, API or data edits.
-   Stronger type contrast + comfortably readable mobile font sizes.
+   V17 — Card typography refinement ONLY
+   All five family cards retain their current HTML, videos, layout,
+   icons, colors of surfaces and functionality. No text strokes/shadows.
+   Hierarchy: section -> update -> context -> date/action.
    ============================================================ */
+
+/* Inherit the existing professional Inter font and render cleanly. */
+.tm-page .tmv-family-view .tmv-story-card {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Category headings: readable, compact, and distinct. */
 .tm-page .tmv-family-view .tmv-story-card .tmv-card-heading h2 {
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 700;
-  line-height: 1.35;
-  letter-spacing: -.02em;
-  color: #17382c;
+  line-height: 1.38;
+  letter-spacing: -0.022em;
+  color: #173429;
 }
+
+/* An empty day must be readable without looking like disabled text. */
 .tm-page .tmv-family-view .tmv-story-card .tmv-empty-note {
-  font-size: 13.5px;
+  font-size: 14px;
   font-weight: 500;
-  line-height: 1.65;
-  color: #435d4c;
+  line-height: 1.7;
+  color: #3e5749;
 }
+
+/* 'No recent work today' and last-update date: clear but secondary. */
 .tm-page .tmv-family-view .tmv-story-card .tmv-current-caption {
   font-size: 13.5px;
   font-weight: 600;
-  line-height: 1.55;
-  color: #385b47;
+  line-height: 1.65;
+  color: #31543e;
 }
 .tm-page .tmv-family-view .tmv-story-card .tmv-last-update-date {
   font-size: 12.5px;
-  font-weight: 700;
-  color: #246144;
+  font-weight: 650;
   line-height: 1.6;
+  letter-spacing: 0;
+  color: #246246;
 }
+
+/* Project, university, personal activity names. */
 .tm-page .tmv-family-view .tmv-story-card .tmv-current-record strong,
 .tm-page .tmv-family-view .tmv-story-card .tmv-daily-note strong {
   font-size: 15px;
   font-weight: 700;
-  color: #17392a;
   line-height: 1.5;
-  letter-spacing: -.012em;
+  letter-spacing: -0.016em;
+  color: #17372a;
 }
+
+/* Work description and the owner's actual daily notes. */
 .tm-page .tmv-family-view .tmv-story-card .tmv-current-record p,
 .tm-page .tmv-family-view .tmv-story-card .tmv-daily-note p {
-  font-size: 13.5px;
+  font-size: 14px;
   font-weight: 500;
-  line-height: 1.65;
-  color: #344d3f;
+  line-height: 1.7;
+  letter-spacing: 0;
+  color: #344b3e;
+  overflow-wrap: anywhere;
 }
+
+/* Secondary task status, programme, labels, and remaining count. */
 .tm-page .tmv-family-view .tmv-story-card .tmv-current-record small,
 .tm-page .tmv-family-view .tmv-story-card .tmv-daily-note small,
 .tm-page .tmv-family-view .tmv-story-card .tmv-more-count {
-  font-size: 12px;
-  font-weight: 650;
-  line-height: 1.6;
-  color: #37684d;
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.65;
+  color: #306548;
 }
+
+/* Simple action label: 'See all projects' etc. */
 .tm-page .tmv-family-view .tmv-story-card .tmv-read-more {
-  font-size: 13.5px;
-  font-weight: 700;
-  color: #185b3e;
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 1.5;
+  color: #15583d;
 }
-/* Prayer stays a five-column row; only make its existing labels clearer. */
+
+/* Prayer: maintain 5 columns and short readable labels. */
 .tm-page .tmv-family-view .tmv-prayer-card .tmv-prayer-head strong {
   font-size: 13px;
   font-weight: 700;
-  color: #1c6846;
+  line-height: 1.5;
+  color: #205e42;
 }
 .tm-page .tmv-family-view .tmv-prayer-card .tmv-prayer-head span {
-  font-size: 12px;
+  font-size: 12.5px;
   font-weight: 500;
-  color: #526b5a;
+  line-height: 1.5;
+  color: #435f4b;
 }
 .tm-page .tmv-family-view .tmv-prayer-card .tmv-prayer-one strong {
-  font-size: 12px;
+  font-size: 12.5px;
   font-weight: 700;
-  color: #18382a;
+  line-height: 1.45;
+  color: #17382a;
 }
 .tm-page .tmv-family-view .tmv-prayer-card .tmv-prayer-one small {
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 500;
-  color: #536c59;
-  line-height: 1.45;
+  line-height: 1.5;
+  color: #48604d;
 }
-/* Quran reading: make Para, page count and notes easy to scan. */
+
+/* Quran pages, para and recorded reading. */
 .tm-page .tmv-family-view .tmv-quran-card .tmv-reading-number strong {
-  color: #173e2c;
   font-weight: 700;
+  color: #173d2b;
 }
 .tm-page .tmv-family-view .tmv-quran-card .tmv-reading-number span,
 .tm-page .tmv-family-view .tmv-quran-card .tmv-reading-line {
-  font-size: 13.5px;
-  font-weight: 550;
-  line-height: 1.6;
-  color: #385441;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.7;
+  color: #344e3d;
 }
 .tm-page .tmv-family-view .tmv-quran-card .tmv-quran-last-update strong {
   font-size: 15px;
   font-weight: 700;
   line-height: 1.5;
-  color: #173e2c;
+  color: #173d2b;
 }
 .tm-page .tmv-family-view .tmv-quran-card .tmv-quran-last-update > p:last-child {
-  font-size: 13.5px;
+  font-size: 14px;
   font-weight: 500;
-  line-height: 1.6;
-  color: #385441;
+  line-height: 1.7;
+  color: #344e3d;
 }
-/* The university upcoming date is still in the same location. */
+
+/* University: upcoming dates stay in the same location. */
 .tm-page .tmv-family-view .tmv-story-card .tmv-upcoming strong {
-  font-size: 12.5px;
+  font-size: 13px;
   font-weight: 700;
-  color: #315a41;
+  line-height: 1.5;
+  color: #2c5840;
 }
 .tm-page .tmv-family-view .tmv-story-card .tmv-upcoming p {
-  font-size: 13px;
+  font-size: 13.5px;
   font-weight: 500;
-  line-height: 1.55;
-  color: #405e4b;
+  line-height: 1.65;
+  color: #385343;
 }
+
+/* Small screens: make labels fit without changing the five-column layout. */
 @media (max-width: 400px) {
-  .tm-page .tmv-family-view .tmv-prayer-card .tmv-prayer-one strong { font-size: 11.5px; }
-  .tm-page .tmv-family-view .tmv-prayer-card .tmv-prayer-one small { font-size: 10px; }
+  .tm-page .tmv-family-view .tmv-prayer-card .tmv-prayer-one strong {
+    font-size: 11.5px;
+  }
+  .tm-page .tmv-family-view .tmv-prayer-card .tmv-prayer-one small {
+    font-size: 10.5px;
+  }
 }
