@@ -4,7 +4,7 @@ import {
   ArrowLeft, ArrowRight, BookOpen, BriefcaseBusiness, CalendarDays, Check,
   CheckCircle2, ChevronLeft, ChevronRight, Clock3, Edit3, Eye, EyeOff,
   GraduationCap, Heart, KeyRound, LockKeyhole, LogOut, Plus, Search,
-  Send, ShieldAlert, ShieldCheck, Sparkles, Trash2, TrendingUp, X, Home, Menu, MessageSquareText,
+  Send, ShieldAlert, ShieldCheck, Sparkles, Trash2, TrendingUp, X, Home, Menu, MessageSquareText, Sun, Moon,
 } from 'lucide-react';
 import './TrackMe.css';
 
@@ -877,12 +877,85 @@ function SummaryChat({ entries, prayerDays, quranEntries, onClose, onSessionErro
 ============================================================ */
 
 function DayNavigator({ value, setValue }) {
-  const isToday = value === dayISO();
-  return <div className="tmv-day-nav" aria-label="Choose a day">
-    <button type="button" onClick={() => setValue(shiftDay(value, -1))} aria-label="Previous day"><ChevronLeft size={23}/></button>
-    <div className="tmv-day-center"><span>{isToday ? 'TODAY' : 'DAILY UPDATE'}</span><strong>{new Date(`${value}T12:00:00`).toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' })}</strong></div>
-    <button type="button" onClick={() => setValue(shiftDay(value, 1))} disabled={isToday} aria-label="Next day"><ChevronRight size={23}/></button>
-  </div>;
+  // Only the calendar presentation changes. FamilyToday still uses viewDate to
+  // read Prayer, Quran, Office, University and Personal records for that date.
+  const [clock, setClock] = useState(() => new Date());
+  useEffect(() => {
+    const timer = window.setInterval(() => setClock(new Date()), 30000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const today = dayISO(clock);
+  const isToday = value === today;
+  const selectedDate = new Date(`${value}T12:00:00`);
+  const fullDate = selectedDate.toLocaleDateString('en-US', {
+    weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
+  });
+  const shortDate = selectedDate.toLocaleDateString('en-US', {
+    weekday: 'short', month: 'short', day: 'numeric', year: 'numeric',
+  });
+  const clockText = clock.toLocaleTimeString('en-US', {
+    hour: 'numeric', minute: '2-digit', hour12: true,
+  });
+  const isDaytime = clock.getHours() >= 6 && clock.getHours() < 18;
+
+  // Keep today visible alongside a recently selected day. For older dates,
+  // slide the strip back so the selected day remains visible on a phone.
+  // Data itself always comes from `value`, never from the displayed week end.
+  const dayDistance = Math.round((new Date(`${today}T12:00:00`) - selectedDate) / 86400000);
+  const endOfStrip = dayDistance >= 0 && dayDistance <= 4 ? today : value;
+  const visibleDays = Array.from({ length: 7 }, (_, i) => shiftDay(endOfStrip, i - 6));
+  const nextDate = shiftDay(value, 1);
+
+  return <section className="tmv-date-selector" aria-label="Browse daily updates by date">
+    <div className="tmv-date-top">
+      <div className="tmv-date-title">
+        <span className="tmv-date-eyebrow">DAILY JOURNAL <span aria-hidden="true">/</span> {isToday ? 'TODAY' : 'SELECTED DATE'}</span>
+        <strong className="tmv-date-full" aria-live="polite">{fullDate}</strong>
+        <strong className="tmv-date-short" aria-hidden="true">{shortDate}</strong>
+        <span className={`tmv-date-clock ${isDaytime ? 'tmv-date-clock--sun' : 'tmv-date-clock--moon'}`} aria-label={`${isDaytime ? 'Daytime' : 'Nighttime'} local time: ${clockText}`}>
+          {isDaytime ? <Sun size={14} strokeWidth={1.9} aria-hidden="true" /> : <Moon size={14} strokeWidth={1.9} aria-hidden="true" />}
+          <span>{clockText}</span><small>local time</small>
+        </span>
+      </div>
+      <div className="tmv-date-actions">
+        {!isToday && <button type="button" className="tmv-date-today" onClick={() => setValue(today)} aria-label="Jump to today">Today</button>}
+        <label className="tmv-date-calendar" title="Choose a date from the calendar">
+          <CalendarDays size={18} strokeWidth={1.8} aria-hidden="true" />
+          <span>Calendar</span>
+          <input type="date" aria-label="Choose a date" value={value} max={today} onChange={event => {
+            const date = event.target.value;
+            if (date && date <= today) setValue(date);
+          }} />
+        </label>
+      </div>
+    </div>
+    <div className="tmv-date-strip">
+      <button type="button" className="tmv-date-step" onClick={() => setValue(shiftDay(value, -1))} aria-label="Previous day"><ChevronLeft size={19} aria-hidden="true" /></button>
+      <div className="tmv-date-days" role="group" aria-label="Choose a day to see its updates">
+        {visibleDays.map((date, index) => {
+          const day = new Date(`${date}T12:00:00`);
+          const selected = date === value;
+          const todayInStrip = date === today;
+          return <button
+            key={date}
+            type="button"
+            className={`tmv-date-day${selected ? ' tmv-date-day--active' : ''}${todayInStrip ? ' tmv-date-day--today' : ''}${index < 2 ? ' tmv-date-day--outer' : ''}`}
+            onClick={() => setValue(date)}
+            aria-pressed={selected}
+            aria-current={todayInStrip ? 'date' : undefined}
+            aria-label={`${day.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}${todayInStrip ? ', today' : ''}${selected ? ', selected' : ''}`}
+          >
+            <span>{day.toLocaleDateString('en-US', { weekday: 'short' })}</span>
+            <strong>{day.getDate()}</strong>
+            <small className="tmv-date-day-indicator" aria-hidden="true">{todayInStrip ? 'TODAY' : ' '}</small>
+          </button>;
+        })}
+      </div>
+      <button type="button" className="tmv-date-step" onClick={() => setValue(nextDate)} disabled={isToday} aria-label="Next day"><ChevronRight size={19} aria-hidden="true" /></button>
+    </div>
+    {!isToday && <p className="tmv-date-selected-hint" role="status">Showing saved updates for {shortDate} — not today's entries.</p>}
+  </section>;
 }
 
 function PrayerReadout({ date, days }) {
