@@ -1,0 +1,16 @@
+{
+  "id": "/track-me",
+  "name": "Ahsan's Updates — Family Journal",
+  "short_name": "Ahsan's Updates",
+  "description": "Private family journal. Sign in to see Ahsan's daily updates.",
+  "start_url": "/track-me",
+  "scope": "/track-me",
+  "display": "standalone",
+  "background_color": "#f7faf8",
+  "theme_color": "#155a43",
+  "orientation": "any",
+  "icons": [
+    { "src": "/track-me-icon-192.png", "type": "image/png", "sizes": "192x192", "purpose": "any" },
+    { "src": "/track-me-icon-512.png", "type": "image/png", "sizes": "512x512", "purpose": "any" }
+  ]
+}

@@ -4,7 +4,7 @@ import {
   ArrowLeft, ArrowRight, BookOpen, BriefcaseBusiness, CalendarDays, Check,
   CheckCircle2, ChevronLeft, ChevronRight, Clock3, Edit3, Eye, EyeOff,
   GraduationCap, Heart, KeyRound, LockKeyhole, LogOut, Plus, Search,
-  Send, ShieldAlert, ShieldCheck, Sparkles, Trash2, TrendingUp, X, Home, Menu, MessageSquareText, Sun, Moon,
+  Send, ShieldAlert, ShieldCheck, Sparkles, Trash2, TrendingUp, X, Home, Menu, MessageSquareText, Sun, Moon, Volume2, VolumeX, Smartphone,
 } from 'lucide-react';
 import './TrackMe.css';
 
@@ -18,6 +18,47 @@ function AhsanAvatar({ className = '' }) {
 
 function AhsanName() {
   return <span className="tmv-handwritten-name">Ahsan</span>;
+}
+
+// Optional home-screen shortcut. No offline cache and no private record storage.
+function InstallShortcut() {
+  const [promptEvent, setPromptEvent] = useState(null);
+  const [helpOpen, setHelpOpen] = useState(false);
+  const [installed, setInstalled] = useState(false);
+  useEffect(() => {
+    const isInstalled = window.matchMedia?.('(display-mode: standalone)')?.matches || window.navigator.standalone === true;
+    setInstalled(Boolean(isInstalled));
+    const capture = event => { event.preventDefault(); setPromptEvent(event); };
+    const onInstalled = () => { setInstalled(true); setHelpOpen(false); setPromptEvent(null); };
+    window.addEventListener('beforeinstallprompt', capture);
+    window.addEventListener('appinstalled', onInstalled);
+    return () => {
+      window.removeEventListener('beforeinstallprompt', capture);
+      window.removeEventListener('appinstalled', onInstalled);
+    };
+  }, []);
+  if (installed) return null;
+  async function install() {
+    if (promptEvent) {
+      try { await promptEvent.prompt(); await promptEvent.userChoice; }
+      catch { setHelpOpen(true); }
+      setPromptEvent(null);
+      return;
+    }
+    setHelpOpen(value => !value);
+  }
+  return <div className="tmv-install-helper">
+    <button className="tmv-install-trigger" type="button" onClick={install} aria-expanded={helpOpen}>
+      <Smartphone size={16} aria-hidden="true"/> Save to phone <span lang="ur" dir="rtl">فون پر محفوظ کریں</span>
+    </button>
+    {helpOpen && <div className="tmv-install-instructions" role="status">
+      <p><strong>iPhone:</strong> Open in Safari → Share → Add to Home Screen.</p>
+      <p lang="ur" dir="rtl">آئی فون: سفاری میں کھولیں ← شیئر ← ہوم اسکرین میں شامل کریں۔</p>
+      <p><strong>Android:</strong> Open in Chrome → menu (⋮) → Add to Home Screen / Install app.</p>
+      <p lang="ur" dir="rtl">اینڈرائیڈ: کروم میں کھولیں ← مینو (⋮) ← ہوم اسکرین پر شامل کریں۔</p>
+      <small>Opens directly at Ahsan's Updates. Internet and your family password are still required.</small>
+    </div>}
+  </div>;
 }
 
 // Consistent professional line icon system — minimal, precise, and monochrome.
@@ -378,6 +419,7 @@ function LoginScreen({ password, setPassword, onSubmit, busy, error }) {
             </p>
           </form>
           <p className="tmv-signin-note"><ShieldCheck size={16} strokeWidth={1.8}/> Private and password protected</p>
+          <InstallShortcut/>
         </div>
       </div>
       <Link className="tm-return" to="/"><ArrowLeft size={16}/> Back to website</Link>
@@ -547,6 +589,32 @@ function parseChatPeriod(raw) {
   if (/^(3|۳|٣)$/.test(s) || /month|30\s*(days|day|din)|thirty days|mahina|maheena|mahine|maheen|مہین|ماہ|تیس دن|۳۰\s*دن|٣٠\s*دن/.test(s)) return 'month';
   return null;
 }
+// Resolve natural questions to a date without altering the server API.
+// Past dates are never sent to the API's current-day-only AI endpoint.
+function parseChatDate(raw, selectedDate) {
+  const original = String(raw || '').trim();
+  const s = original.toLowerCase();
+  const today = dayISO();
+  if (/selected\s*(day|date)|chosen\s*(day|date)|this\s*date|selected|منتخب\s*تاریخ|یہ\s*تاریخ|is\s*date|isi\s*din|jis\s*din/i.test(s)) return { period:'selected', date:selectedDate };
+  if (/\byesterday\b|\bkal\b|\bguzishta\s*kal\b|\bpic(h)?la\s*din\b|گزشتہ\s*کل|کل\s*کی|کل\s*کا/i.test(s)) return { period:'selected', date:shiftDay(today,-1) };
+  // For a numeric calendar date, ISO is unambiguous.
+  const iso = /\b(20\d{2})-(\d{2})-(\d{2})\b/.exec(s);
+  let date = iso?.[0];
+  // English month names also allow "3 Nov 2026" and "Nov 3".
+  if (!date) {
+    const monthPattern = '(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)';
+    const wordDate = new RegExp(`\\b(?:\\d{1,2}\\s+${monthPattern}|${monthPattern}\\s+\\d{1,2})(?:\\s*,?\\s*20\\d{2})?\\b`, 'i').exec(original);
+    if (wordDate) {
+      const year = /20\d{2}/.test(wordDate[0]) ? '' : ` ${new Date().getFullYear()}`;
+      const parsed = new Date(wordDate[0]+year);
+      if (!Number.isNaN(parsed.getTime())) date = dayISO(parsed);
+    }
+  }
+  if (date && /^20\d{2}-\d{2}-\d{2}$/.test(date) && date <= today && dayISO(new Date(`${date}T12:00:00`)) === date) return { period:'selected', date };
+  const defaultPeriod = parseChatPeriod(original);
+  return defaultPeriod ? { period:defaultPeriod, date:defaultPeriod === 'today' ? today : null } : null;
+}
+
 function parseChatTopic(raw) {
   const s = String(raw || '').trim().toLowerCase().replace(/\s+/g, ' ');
   if (!s) return null;
@@ -571,9 +639,9 @@ function hasTaskEventInPeriod(task, inPeriod) {
 // Give the actual task, what changed, the university/program and next date.
 // A current status without a note is never described as work done today.
 // This uses only existing data and does not change the API or database.
-function buildFamilyReport({ entries, prayerDays, quranEntries, period, topic }) {
-  const days = CHAT_PERIODS.find(x => x.id === period)?.days || 7;
-  const end = dayISO();
+function buildFamilyReport({ entries, prayerDays, quranEntries, period, topic, selectedDate }) {
+  const days = period === 'selected' ? 1 : (CHAT_PERIODS.find(x => x.id === period)?.days || 7);
+  const end = period === 'selected' ? selectedDate : dayISO();
   const start = shiftDay(end, -(days - 1));
   const inPeriod = value => {
     if (!value) return false;
@@ -649,13 +717,13 @@ function buildFamilyReport({ entries, prayerDays, quranEntries, period, topic })
     const updates = items.flatMap(task => allNotes(task).map(note => ({ task, note })))
       .sort((a,b) => String(b.note.createdAt).localeCompare(String(a.note.createdAt)));
     if (updates.length) {
-      const first = updates[0];
-      const text = `${taskLabel(first.task)}: ${brief(first.note.note, 140)}`;
-      const suffix = updates.length > 1 ? ` (+${updates.length - 1} more update${updates.length > 2 ? 's' : ''})` : '';
+      const recent = updates.slice(0, 2);
+      const text = recent.map(({task,note}) => `${taskLabel(task)} — ${brief(note.note, 105)}`).join('; ');
+      const more = Math.max(0, updates.length - recent.length);
       return {
         recorded:true,
-        en:`${labelEn}: ${text}${suffix}.`,
-        ur:`${labelUr}: ${text}${updates.length > 1 ? ` (مزید ${updates.length - 1} اپڈیٹس)` : ''}۔`,
+        en:`${labelEn} progress: ${text}${more ? ` (+${more} earlier updates)` : ''}.`,
+        ur:`${labelUr} کی پیش رفت: ${text}${more ? ` (مزید ${more} اپڈیٹس)` : ''}۔`,
       };
     }
     const recentlyChanged = items
@@ -668,8 +736,8 @@ function buildFamilyReport({ entries, prayerDays, quranEntries, period, topic })
       const itemName = taskLabel(task);
       return {
         recorded:true,
-        en:`${labelEn}: ${newlyAdded ? 'New task added' : 'Task updated'} — ${itemName} (${state[0]}).`,
-        ur:`${labelUr}: ${newlyAdded ? 'نیا کام درج ہوا' : 'کام کی معلومات بدلی گئیں'} — ${itemName} (${state[1]})۔`,
+        en:`${labelEn}: ${newlyAdded ? 'Task created' : 'Task details changed'} — ${itemName} (current status: ${state[0]}).`,
+        ur:`${labelUr}: ${newlyAdded ? 'نیا کام درج ہوا' : 'کام کی معلومات بدلی گئیں'} — ${itemName} (موجودہ حالت: ${state[1]})۔`,
       };
     }
     return {
@@ -717,8 +785,8 @@ function buildFamilyReport({ entries, prayerDays, quranEntries, period, topic })
     const urNote = recentNote ? ` نئی اپڈیٹ: ${brief(recentNote.note, 125).replace(/[.!؟۔]+$/, '')}۔` : '';
     university = {
       recorded:true,
-      en:`University: ${place} — ${status[0]}.${enAction}${upcoming ? ` Important date: ${upcoming}.` : ''}${enNote}`,
-      ur:`یونیورسٹی: ${place} — ${status[1]}۔${urAction}${upcoming ? ` اہم تاریخ: ${upcoming}۔` : ''}${urNote}`,
+      en:`University: ${place}.${enNote || (inPeriod(bestUniversity.createdAt) ? ' Application record added.' : ' Application record updated.')} Current status: ${status[0]}.${enAction}${upcoming ? ` Next date: ${upcoming}.` : ''}`,
+      ur:`یونیورسٹی: ${place}۔${urNote || (inPeriod(bestUniversity.createdAt) ? ' درخواست کا ریکارڈ شامل ہوا۔' : ' درخواست کی معلومات بدلی گئیں۔')} موجودہ حالت: ${status[1]}۔${urAction}${upcoming ? ` اگلی تاریخ: ${upcoming}۔` : ''}`,
     };
   }
 
@@ -736,18 +804,19 @@ function buildFamilyReport({ entries, prayerDays, quranEntries, period, topic })
     if (university.recorded) add(university.en, university.ur);
     if (personal.recorded) add(personal.en, personal.ur);
     if (!rows.length) rows.push({
-      en: days === 1 ? 'No updates yet today.' : 'No updates recorded for this period.',
-      ur: days === 1 ? 'آج ابھی کوئی نئی اپڈیٹ نہیں ہے۔' : 'اس مدت میں کوئی اپڈیٹ درج نہیں ہوئی۔',
+      en: days === 1 ? (end === dayISO() ? 'No updates yet today.' : `No updates recorded on ${prettyDate(end)}.`) : 'No updates recorded for this period.',
+      ur: days === 1 ? (end === dayISO() ? 'آج ابھی کوئی نئی اپڈیٹ نہیں ہے۔' : `${prettyDate(end)} کو کوئی اپڈیٹ درج نہیں ہوئی۔`) : 'اس مدت میں کوئی اپڈیٹ درج نہیں ہوئی۔',
       noUpdates: true,
     });
   }
   return rows;
 }
 
-function SummaryChat({ entries, prayerDays, quranEntries, onClose, onSessionError }) {
+function SummaryChat({ entries, prayerDays, quranEntries, selectedDate, onClose, onSessionError }) {
   const [messages, setMessages] = useState([BOT_INTRO]);
   const [step, setStep] = useState('period');
   const [period, setPeriod] = useState(null);
+  const [reportDate, setReportDate] = useState(selectedDate);
   const [topic, setTopic] = useState(null);
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
@@ -755,9 +824,46 @@ function SummaryChat({ entries, prayerDays, quranEntries, onClose, onSessionErro
   const [aiError, setAiError] = useState('');
   const [aiRequested, setAiRequested] = useState(false);
   const [reportEmpty, setReportEmpty] = useState(false);
+  const [speaking, setSpeaking] = useState('');
+  const [voiceError, setVoiceError] = useState('');
+  const spokenTextRef = useRef(null);
   const scrollRef = useRef(null);
   const reportRef = useRef(null);
 
+  useEffect(() => () => {
+    // Never continue reading private updates after the chatbot closes.
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) window.speechSynthesis.cancel();
+  }, []);
+  function stopReading() {
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    setSpeaking('');
+  }
+  function readAloud(language) {
+    setVoiceError('');
+    if (!('speechSynthesis' in window) || typeof window.SpeechSynthesisUtterance === 'undefined') {
+      setVoiceError('Read aloud is not supported on this browser. / اس براؤزر میں آواز کی سہولت دستیاب نہیں۔');
+      return;
+    }
+    if (speaking === language) { stopReading(); return; }
+    stopReading();
+    const voices = window.speechSynthesis.getVoices();
+    const voice = voices.find(v => language === 'ur' ? /^ur(?:-|$)/i.test(v.lang) : /^en(?:-|$)/i.test(v.lang));
+    if (language === 'ur' && !voice) {
+      setVoiceError('An Urdu voice is not available on this device. Please install an Urdu speech voice in your phone settings. / اس فون میں اردو آواز موجود نہیں ہے۔');
+      return;
+    }
+    const report = spokenTextRef.current;
+    if (!report) return;
+    const content = [language === 'ur' ? report.ur : report.en, ...report.lines.map(line => language === 'ur' ? line.ur : line.en)].join('. ');
+    const utter = new window.SpeechSynthesisUtterance(content);
+    utter.lang = language === 'ur' ? 'ur-PK' : 'en-US';
+    if (voice) utter.voice = voice;
+    utter.rate = language === 'ur' ? 0.86 : 0.92;
+    utter.onend = () => setSpeaking('');
+    utter.onerror = () => { setSpeaking(''); setVoiceError('Unable to play audio on this device. / اس فون پر آواز نہیں چل سکی۔'); };
+    setSpeaking(language);
+    window.speechSynthesis.speak(utter);
+  }
   useEffect(() => {
     const onKey = event => { if (event.key === 'Escape') onClose(); };
     document.addEventListener('keydown', onKey);
@@ -776,36 +882,41 @@ function SummaryChat({ entries, prayerDays, quranEntries, onClose, onSessionErro
   }, [messages, step]);
 
   function beginAgain() {
-    setStep('period'); setPeriod(null); setTopic(null); setText(''); setBusy(false);
-    setAiInsight(''); setAiError(''); setAiRequested(false); setReportEmpty(false); setMessages([BOT_INTRO]);
+    stopReading(); setReportDate(selectedDate); setStep('period'); setPeriod(null); setTopic(null); setText(''); setBusy(false);
+    setAiInsight(''); setAiError(''); setVoiceError(''); setAiRequested(false); setReportEmpty(false); spokenTextRef.current=null; setMessages([BOT_INTRO]);
   }
-  async function showReport(selectedPeriod, selectedTopic, seedMessages) {
+  async function showReport(selectedPeriod, selectedTopic, seedMessages, exactDate = reportDate) {
+    stopReading();
     setTopic(selectedTopic);
+    setReportDate(exactDate);
     setStep('done');
-    setAiInsight(''); setAiError(''); setAiRequested(false);
-    const p = CHAT_PERIODS.find(x => x.id === selectedPeriod);
+    setAiInsight(''); setAiError(''); setVoiceError(''); setAiRequested(false);
+    const p = selectedPeriod === 'selected'
+      ? { en: prettyDate(exactDate), ur: `منتخب تاریخ ${prettyDate(exactDate)}` }
+      : CHAT_PERIODS.find(x => x.id === selectedPeriod);
     const s = CHAT_TOPICS.find(x => x.id === selectedTopic);
-    const lines = buildFamilyReport({ entries, prayerDays, quranEntries, period: selectedPeriod, topic: selectedTopic });
+    const lines = buildFamilyReport({ entries, prayerDays, quranEntries, period: selectedPeriod, topic: selectedTopic, selectedDate: exactDate });
     setReportEmpty(lines.some(line => line.noUpdates));
-    setMessages([...seedMessages, {
-      role: 'bot',
-      en: `${p.en} · ${s.en} — quick update.`,
-      ur: `${p.ur} · ${s.ur} — مختصر اپڈیٹ:`,
-      lines,
-    }]);
+    const report = {role:'bot',en:`${p.en} · ${s.en} — saved updates.`,ur:`${p.ur} · ${s.ur} — محفوظ شدہ اپڈیٹس:`,lines};
+    spokenTextRef.current = report;
+    setMessages([...seedMessages, report]);
   }
   // Optional short Groq insight is fetched only if the family asks to see it.
   // The main English/Urdu summary above always uses the existing saved records.
   async function requestAiInsight() {
     if (busy || aiRequested || reportEmpty || step !== 'done') return;
     setAiRequested(true);
+    if (period === 'selected' && reportDate !== dayISO()) {
+      setAiError('The extra AI endpoint only supports the current day. The dated summary above uses saved records. / پرانی تاریخ کی سمری محفوظ ریکارڈ سے تیار ہوئی ہے۔');
+      return;
+    }
     if (period === 'month') {
       setAiError('30-day summary uses saved records. / ۳۰ دن کی سمری محفوظ ریکارڈ سے بنتی ہے۔');
       return;
     }
     setBusy(true);
     try {
-      const data = await api({ action:'summary', period, section: topic, language:'en' });
+      const data = await api({ action:'summary', period: period === 'selected' ? 'today' : period, section: topic, language:'en' });
       // Keep two brief actionable lines, stripping headings and markdown noise.
       const summary = String(data.summary || '').replace(/\*\*/g, '').replace(/^#{1,4}\s*/gm, '');
       const parts = summary.split(/\n+/).map(s=>s.trim()).filter(s=>s && !/^(overall progress|completed work|currently in progress|pending tasks|recommended next focus|highlights|prayer and quran|next focus|1\.|2\.|3\.|4\.|5\.)\s*:?$/i.test(s));
@@ -822,14 +933,17 @@ function SummaryChat({ entries, prayerDays, quranEntries, onClose, onSessionErro
     setText('');
     const next = [...messages, { role: 'user', text: value }];
     if (step === 'period') {
-      const selected = parseChatPeriod(value);
+      const found = parseChatDate(value, selectedDate);
+      const together = /^(?:[123۱۲۳١٢٣])$/.test(value) ? null : parseChatTopic(value);
+      // A question like "What did Ahsan do in office?" uses the day chosen on the calendar.
+      const selected = found || (together ? {period:'selected',date:selectedDate} : null);
       if (!selected) {
-        setMessages([...next, { role: 'bot', en: 'Please select Today, 7 days or 30 days.', ur: 'براہِ کرم آج، ۷ دن یا ۳۰ دن منتخب کریں۔' }]);
+        setMessages([...next, { role: 'bot', en: 'Choose a date, Today, 7 days or 30 days. You can also ask “office on 3 Nov”.', ur: 'منتخب تاریخ، آج، ۷ دن یا ۳۰ دن کا انتخاب کریں۔' }]);
         return;
       }
-      setPeriod(selected);
-      const together = /^(?:[123۱۲۳١٢٣])$/.test(value) ? null : parseChatTopic(value);
-      if (together) { showReport(selected, together, next); return; }
+      setPeriod(selected.period);
+      setReportDate(selected.date || selectedDate);
+      if (together) { showReport(selected.period, together, next, selected.date || selectedDate); return; }
       setStep('topic');
       setMessages([...next, { role: 'bot', en: 'What would you like to know about?', ur: 'آپ کس چیز کی سمری چاہتے ہیں؟' }]);
       return;
@@ -839,9 +953,9 @@ function SummaryChat({ entries, prayerDays, quranEntries, onClose, onSessionErro
       setMessages([...next, { role: 'bot', en: 'Choose an option below, or type its name or number.', ur: 'نیچے موجود آپشن منتخب کریں، یا نام یا نمبر لکھیں۔' }]);
       return;
     }
-    showReport(period, selected, next);
+    showReport(period, selected, next, reportDate);
   }
-  const options = step === 'period' ? CHAT_PERIODS : step === 'topic' ? CHAT_TOPICS : [];
+  const options = step === 'period' ? (selectedDate === dayISO() ? CHAT_PERIODS : [{id:'selected', en:`Selected: ${prettyDate(selectedDate)}`, ur:'منتخب تاریخ', days:1}, ...CHAT_PERIODS]) : step === 'topic' ? CHAT_TOPICS : [];
   return (
     <div className="tm-modal-backdrop tmv-chat-backdrop" onMouseDown={event => event.target === event.currentTarget && onClose()}>
       <section className={`tmv-chat ${step === 'done' ? 'tmv-chat-has-report' : 'tmv-chat-compact'}`} role="dialog" aria-modal="true" aria-label="Bilingual family summary assistant">
@@ -861,10 +975,19 @@ function SummaryChat({ entries, prayerDays, quranEntries, onClose, onSessionErro
             </div>}
           </div>)}
           {step !== 'done' && <div className="tmv-chat-quick" aria-label="Suggested replies">
-            {options.map(option => <button type="button" key={option.id} onClick={() => submit(step === 'topic' ? option.number : option.id === 'today' ? '1' : option.id === 'week' ? '2' : '3')}>
+            {options.map(option => <button type="button" key={option.id} onClick={() => submit(step === 'topic' ? option.number : option.id === 'selected' ? 'selected date' : option.id === 'today' ? '1' : option.id === 'week' ? '2' : '3')}>
               {step === 'topic' && <span className="tmv-chat-choice-num">{option.number}.</span>}
               <span>{option.en}</span><span className="tmv-chat-choice-urdu" lang="ur" dir="rtl">{option.ur}</span>
             </button>)}
+          </div>}
+          {step === 'done' && <div className="tmv-chat-speech" aria-label="Read the summary aloud">
+            <button type="button" onClick={() => readAloud('en')} aria-pressed={speaking === 'en'}>
+              {speaking === 'en' ? <VolumeX size={16}/> : <Volume2 size={16}/>} {speaking === 'en' ? 'Stop' : 'Listen in English'}
+            </button>
+            <button type="button" onClick={() => readAloud('ur')} aria-pressed={speaking === 'ur'}>
+              {speaking === 'ur' ? <VolumeX size={16}/> : <Volume2 size={16}/>} <span lang="ur" dir="rtl">{speaking === 'ur' ? 'روکیں' : 'اردو میں سنیں'}</span>
+            </button>
+            {voiceError && <p role="status" className="tmv-speech-error">{voiceError}</p>}
           </div>}
           {step === 'done' && !reportEmpty && <div className="tmv-chat-optional">
             <button type="button" disabled={busy || aiRequested} onClick={requestAiInsight}>
@@ -1273,9 +1396,10 @@ export default function TrackMe() {
     {section==='prayer'&&<PrayerPanel ownerMode={ownerMode} date={prayerDate} setDate={setPrayerDate} days={prayerDays} busy={busy} onToggle={togglePrayer}/>}
     {section==='quran'&&<QuranPanel ownerMode={ownerMode} quran={quranEntries} busy={busy} onAdd={addQuran} onDelete={deleteQuran}/>}
     <div className="tmv-bottom"><button type="button" className="tmv-owner-link" onClick={ownerMode?lockOwner:openOwner}><LockKeyhole size={16}/>{ownerMode?'Finish owner updates':'Owner updates (private code)'}</button><p>Only for <AhsanName/>’s family.</p></div>
+    <div className="tmv-install-footer"><InstallShortcut/></div>
   </div>
   {pinOpen&&<PinModal busy={busy} onVerify={verifyPin} onClose={()=>setPinOpen(false)} error={pinError}/>}
   {editor&&<TaskEditor key={editor.id||`new-${editor.section}`} initial={editor} saving={busy} onClose={()=>setEditor(null)} onSave={saveTask}/>}
-  {summaryOpen&&<SummaryChat entries={entries} prayerDays={prayerDays} quranEntries={quranEntries} onClose={()=>setSummaryOpen(false)} onSessionError={fail}/>}
+  {summaryOpen&&<SummaryChat entries={entries} prayerDays={prayerDays} quranEntries={quranEntries} selectedDate={viewDate} onClose={()=>setSummaryOpen(false)} onSessionError={fail}/>}
   </main>;
 }
