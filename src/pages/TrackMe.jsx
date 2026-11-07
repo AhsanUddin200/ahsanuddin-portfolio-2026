@@ -1358,7 +1358,7 @@ function WorkPanel({ ownerMode, section, entries, busy, search, setSearch, filte
 
 export default function TrackMe() {
   const [showStandaloneSplash, setShowStandaloneSplash] = useState(() =>
-    typeof window !== 'undefined' && (
+    typeof window !== 'undefined' && !window.__trackMeDedicatedEntry && (
       window.matchMedia?.('(display-mode: standalone)')?.matches || window.navigator.standalone === true
     )
   );

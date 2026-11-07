@@ -31,9 +31,61 @@
   <meta name="twitter:title" content="Ahsan's Daily Updates · Private Family Journal" />
   <meta name="twitter:description" content="Private family updates. Password required." />
   <meta name="twitter:image" content="https://ahsannasir.runs-on.dev/track-me-preview.jpg" />
+  <!-- V25: private, lightweight entry. Preserves all portfolio SEO and OG metadata. -->
+  <meta name="color-scheme" content="light" />
+  <script>
+    window.__trackMeBootStartedAt = performance.now();
+    window.__trackMeInstallEvent = null;
+    window.addEventListener('beforeinstallprompt', function(event) {
+      event.preventDefault();
+      window.__trackMeInstallEvent = event;
+      window.dispatchEvent(new Event('trackmeinstallready'));
+    });
+  </script>
+  <style>
+    :root { color-scheme: light; background:#f5f8f6; }
+    html,body,#root { margin:0; min-height:100%; width:100%; }
+    body { font-family: Inter, system-ui, -apple-system, 'Segoe UI', sans-serif; color:#173c2f; }
+    *,*::before,*::after { box-sizing:border-box; }
+    .tm-startup-screen { min-height:100dvh; width:100%; display:grid; place-items:center; background:#f5f8f6; padding:20px; }
+    .tm-startup-overlay { position:fixed; inset:0; z-index:999999; background:#f5f8f6; }
+    .tm-startup-content { display:flex; flex-direction:column; align-items:center; text-align:center; }
+    .tm-startup-content img { display:block; height:148px; width:148px; max-width:44vw; max-height:44vw; border-radius:27px; border:4px solid white; object-fit:cover; object-position:center 24%; background:#dce6e0; box-shadow:0 14px 32px rgba(16,69,48,.15); }
+    .tm-startup-content strong { display:block; margin-top:20px; color:#183b2e; font-size:23px; letter-spacing:-.04em; font-weight:650; }
+    .tm-startup-content strong em { color:#186247; font-size:1.5em; line-height:1; letter-spacing:0; font-style:normal; font-family:'Caveat','Segoe Print',cursive; }
+    .tm-startup-content small { display:block; margin-top:8px; font-size:12px; color:#708178; }
+    .tm-startup-progress { display:block; margin-top:28px; width:77px; height:3px; border-radius:3px; background:#277857; opacity:.65; }
+    .tm-install-screen { min-height:100dvh; padding:24px 16px; background:radial-gradient(ellipse at top left,#e4f0e9,#f5f8f6 60%); display:grid; place-items:center; }
+    .tm-install-card { width:min(100%,410px); background:white; border:1px solid #dfe8e2; border-radius:22px; padding:31px 27px 24px; text-align:center; box-shadow:0 22px 70px rgba(25,75,55,.07); }
+    .tm-install-photo { width:90px; height:90px; object-fit:cover; border-radius:22px; border:3px solid #fff; box-shadow:0 8px 24px rgba(20,75,50,.13); }
+    .tm-install-kicker { margin:19px 0 8px; font-size:10px; color:#35745b; font-weight:700; letter-spacing:.14em; }
+    .tm-install-card h1 { font-size:27px; line-height:1.2; color:#17392e; margin:0 0 13px; letter-spacing:-.04em; }
+    .tm-install-card h1 em { font-family:'Caveat','Segoe Print',cursive; font-size:1.27em; font-weight:700; font-style:normal; color:#167153; }
+    .tm-install-description { color:#4a6455; font-size:14px; line-height:1.6; margin:0 0 11px; }
+    .tm-install-urdu { font-family:'Noto Naskh Arabic',Tahoma,serif; font-size:15px; line-height:1.8; color:#567568; margin:0 0 22px; }
+    .tm-install-primary,.tm-install-skip { border:0; width:100%; cursor:pointer; font:inherit; }
+    .tm-install-primary { background:#1d694e; color:white; font-weight:650; border-radius:12px; min-height:53px; font-size:14px; padding:12px; display:flex; justify-content:center; align-items:center; gap:10px; }
+    .tm-install-primary span { font-size:19px; }
+    .tm-install-skip { background:transparent; color:#3d725c; font-size:13px; font-weight:550; margin-top:14px; padding:11px 0; min-height:44px; }
+    .tm-install-secure { display:block; color:#85958b; font-size:11px; margin-top:10px; }
+    .tm-install-help { text-align:left; background:#f4f8f5; border:1px solid #dce9e0; border-radius:12px; padding:14px; margin:16px 0 0; font-size:12px; line-height:1.6; color:#36584a; }
+    .tm-install-help p { margin:7px 0 0; }
+    .tm-install-help small { display:block; margin-top:9px; color:#698076; }
+    .tm-install-primary:focus-visible,.tm-install-skip:focus-visible { outline:3px solid #77b99a; outline-offset:3px; }
+    @media (max-width:360px) { .tm-install-card {padding:23px 17px 19px;} .tm-install-card h1 {font-size:24px;} }
+  </style>
 </head>
 <body>
-  <div id="root"></div>
-  <script type="module" src="/src/main.jsx"></script>
+  <div id="root">
+    <div class="tm-startup-screen" role="status" aria-label="Opening Ahsan's Updates">
+      <div class="tm-startup-content">
+        <img src="/track-me-splash-fast.webp" alt="Ahsan" width="148" height="148" fetchpriority="high" />
+        <strong><em>Ahsan</em> Updates</strong>
+        <small>Private family journal</small>
+        <span class="tm-startup-progress" aria-hidden="true"></span>
+      </div>
+    </div>
+  </div>
+  <script type="module" src="/src/track-me-main.jsx"></script>
 </body>
 </html>
