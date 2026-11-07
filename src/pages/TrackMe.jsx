@@ -20,6 +20,19 @@ function AhsanName() {
   return <span className="tmv-handwritten-name">Ahsan</span>;
 }
 
+// Branded 2-second in-app splash for a *standalone installed* PWA launch.
+// The OS native splash is controlled by Android/iOS and may appear briefly first.
+function FamilyAppSplash() {
+  return <div className="tmv-launch-splash" role="status" aria-label="Opening Ahsan's Updates">
+    <div className="tmv-launch-splash-content">
+      <img src="/track-me-splash-photo.png" className="tmv-launch-splash-photo" alt="Ahsan" decoding="sync" fetchPriority="high" />
+      <strong className="tmv-launch-splash-name"><AhsanName/> <span>Updates</span></strong>
+      <span className="tmv-launch-splash-subtitle">Private family journal</span>
+      <span className="tmv-launch-splash-progress" aria-hidden="true" />
+    </div>
+  </div>;
+}
+
 // Optional home-screen shortcut. No offline cache and no private record storage.
 function InstallShortcut() {
   const [promptEvent, setPromptEvent] = useState(null);
@@ -49,14 +62,14 @@ function InstallShortcut() {
   }
   return <div className="tmv-install-helper">
     <button className="tmv-install-trigger" type="button" onClick={install} aria-expanded={helpOpen}>
-      <Smartphone size={16} aria-hidden="true"/> Save to phone <span lang="ur" dir="rtl">فون پر محفوظ کریں</span>
+      <Smartphone size={16} aria-hidden="true"/> Install Ahsan's Updates <span lang="ur" dir="rtl">ایپ انسٹال کریں</span>
     </button>
     {helpOpen && <div className="tmv-install-instructions" role="status">
       <p><strong>iPhone:</strong> Open in Safari → Share → Add to Home Screen.</p>
       <p lang="ur" dir="rtl">آئی فون: سفاری میں کھولیں ← شیئر ← ہوم اسکرین میں شامل کریں۔</p>
-      <p><strong>Android:</strong> Open in Chrome → menu (⋮) → Add to Home Screen / Install app.</p>
-      <p lang="ur" dir="rtl">اینڈرائیڈ: کروم میں کھولیں ← مینو (⋮) ← ہوم اسکرین پر شامل کریں۔</p>
-      <small>Opens directly at Ahsan's Updates. Internet and your family password are still required.</small>
+      <p><strong>Android:</strong> Open this page in Chrome (not inside WhatsApp) → ⋮ → Add to Home screen → <strong>Install app</strong>. Choose <strong>Install</strong> rather than Create shortcut if shown.</p>
+      <p lang="ur" dir="rtl">اینڈرائیڈ: لنک کروم میں کھولیں، پھر ⋮ ← ہوم اسکرین پر شامل کریں ← ایپ انسٹال کریں۔</p>
+      <small>Some phones/browsers only offer a Chrome shortcut. Installing as a standalone app depends on Android, Chrome and Google Play services. Private data needs internet and your family password.</small>
     </div>}
   </div>;
 }
@@ -429,19 +442,12 @@ function LoginScreen({ password, setPassword, onSubmit, busy, error }) {
 
 function CautionWelcome({ onContinue }) {
   // Family sign-in flow: sign in -> Yes / No -> automatic daily updates.
-  // Preserve the previous 4-second no-selection partner welcome.
+  // A relationship message appears ONLY after Yes or No is chosen.
+  // No timeout, guessed relationship or automatic welcome on inactivity.
   const [relationChoice, setRelationChoice] = useState(null);
 
-  useEffect(() => {
-    if (relationChoice !== null) return undefined;
-    const timer = window.setTimeout(() => {
-      setRelationChoice(current => current === null ? 'partner-auto' : current);
-    }, 4000);
-    return () => window.clearTimeout(timer);
-  }, [relationChoice]);
-
-  // After either choice, show a visible 4-second countdown on both
-  // desktop and mobile. The existing no-click partner default stays 4 seconds.
+  // After an explicit choice, show the existing 4-second countdown
+  // before opening daily updates on mobile and desktop.
   const [secondsLeft, setSecondsLeft] = useState(4);
   const continueRef = useRef(onContinue);
   useEffect(() => { continueRef.current = onContinue; }, [onContinue]);
@@ -453,7 +459,7 @@ function CautionWelcome({ onContinue }) {
     return () => { window.clearInterval(tick); window.clearTimeout(finish); };
   }, [relationChoice]);
 
-  const isPartner = relationChoice === 'partner' || relationChoice === 'partner-auto';
+  const isPartner = relationChoice === 'partner';
   return (
     <div className="tm-welcome-screen" role="dialog" aria-modal="true" aria-label="Welcome to Ahsan's daily updates">
       <section className="tm-welcome-card tmv-welcome-panel">
@@ -577,8 +583,8 @@ const CHAT_TOPICS = [
 ];
 const BOT_INTRO = {
   role: 'bot',
-  en: 'Hi! I can summarize Ahsan’s updates. Which period should I look at?',
-  ur: 'السلام علیکم! میں احسن کی اپڈیٹس کا خلاصہ بتا سکتا ہوں۔ کتنے دنوں کی سمری چاہیے؟',
+  en: 'Hi! Ask about Ahsan’s day, or choose a period below. Example: “Office on 3 Nov”.',
+  ur: 'السلام علیکم! احسن کی اپڈیٹس کے بارے میں سوال لکھیں یا نیچے دن منتخب کریں۔ مثال: ۳ نومبر کا دفتری کام۔',
 };
 
 function parseChatPeriod(raw) {
@@ -593,37 +599,54 @@ function parseChatPeriod(raw) {
 // Past dates are never sent to the API's current-day-only AI endpoint.
 function parseChatDate(raw, selectedDate) {
   const original = String(raw || '').trim();
-  const s = original.toLowerCase();
+  const digitMap = {'۰':'0','۱':'1','۲':'2','۳':'3','۴':'4','۵':'5','۶':'6','۷':'7','۸':'8','۹':'9','٠':'0','١':'1','٢':'2','٣':'3','٤':'4','٥':'5','٦':'6','٧':'7','٨':'8','٩':'9'};
+  const s = original.toLowerCase().replace(/[۰-۹٠-٩]/g, x => digitMap[x]);
   const today = dayISO();
-  if (/selected\s*(day|date)|chosen\s*(day|date)|this\s*date|selected|منتخب\s*تاریخ|یہ\s*تاریخ|is\s*date|isi\s*din|jis\s*din/i.test(s)) return { period:'selected', date:selectedDate };
-  if (/\byesterday\b|\bkal\b|\bguzishta\s*kal\b|\bpic(h)?la\s*din\b|گزشتہ\s*کل|کل\s*کی|کل\s*کا/i.test(s)) return { period:'selected', date:shiftDay(today,-1) };
-  // For a numeric calendar date, ISO is unambiguous.
+  const isValid = date => /^20\d{2}-\d{2}-\d{2}$/.test(date) && date <= today &&
+    dayISO(new Date(`${date}T12:00:00`)) === date;
+  const makeDate = (year, month, day) => {
+    const value = `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    return isValid(value) ? value : null;
+  };
+  // Named dates take priority over free-text shortcuts and chosen calendar date.
   const iso = /\b(20\d{2})-(\d{2})-(\d{2})\b/.exec(s);
-  let date = iso?.[0];
-  // English month names also allow "3 Nov 2026" and "Nov 3".
-  if (!date) {
-    const monthPattern = '(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)';
-    const wordDate = new RegExp(`\\b(?:\\d{1,2}\\s+${monthPattern}|${monthPattern}\\s+\\d{1,2})(?:\\s*,?\\s*20\\d{2})?\\b`, 'i').exec(original);
-    if (wordDate) {
-      const year = /20\d{2}/.test(wordDate[0]) ? '' : ` ${new Date().getFullYear()}`;
-      const parsed = new Date(wordDate[0]+year);
-      if (!Number.isNaN(parsed.getTime())) date = dayISO(parsed);
-    }
+  if (iso && isValid(iso[0])) return {period:'selected',date:iso[0]};
+  const monthNames = {
+    jan:1,january:1, feb:2,february:2,mar:3,march:3,apr:4,april:4,may:5,
+    jun:6,june:6,jul:7,july:7,aug:8,august:8,sep:9,sept:9,september:9,
+    oct:10,october:10,nov:11,november:11,dec:12,december:12,
+    'جنوری':1,'فروری':2,'مارچ':3,'اپریل':4,'مئی':5,'جون':6,'جولائی':7,
+    'اگست':8,'ستمبر':9,'اکتوبر':10,'نومبر':11,'دسمبر':12,
+  };
+  const mn = '(?:january|february|september|november|december|october|august|march|april|june|july|jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec|جنوری|فروری|مارچ|اپریل|مئی|جون|جولائی|اگست|ستمبر|اکتوبر|نومبر|دسمبر)';
+  const dayFirst = new RegExp(`(?:^|\\s)(\\d{1,2})(?:st|nd|rd|th)?\\s+(${mn})(?:\\s*,?\\s*(20\\d{2}))?(?=$|[\\s?!.,])`,'i').exec(s);
+  const monthFirst = !dayFirst && new RegExp(`(?:^|\\s)(${mn})\\s+(\\d{1,2})(?:st|nd|rd|th)?(?:\\s*,?\\s*(20\\d{2}))?(?=$|[\\s?!.,])`,'i').exec(s);
+  const matched = dayFirst || monthFirst;
+  if (matched) {
+    const month = monthNames[dayFirst ? matched[2].toLowerCase() : matched[1].toLowerCase()];
+    const day = Number(dayFirst ? matched[1] : matched[2]);
+    let year = Number(matched[3] || new Date().getFullYear());
+    let parsed = makeDate(year, month, day);
+    if (!matched[3] && !parsed) parsed = makeDate(year - 1, month, day);
+    if (parsed) return {period:'selected',date:parsed};
   }
-  if (date && /^20\d{2}-\d{2}-\d{2}$/.test(date) && date <= today && dayISO(new Date(`${date}T12:00:00`)) === date) return { period:'selected', date };
-  const defaultPeriod = parseChatPeriod(original);
-  return defaultPeriod ? { period:defaultPeriod, date:defaultPeriod === 'today' ? today : null } : null;
+  // Natural phrases and periods after explicit dates.
+  if (/\byesterday\b|\bkal\b|\bguzishta\s*kal\b|گزشتہ\s*کل|کل\s*کی|کل\s*کا/i.test(s))
+    return {period:'selected',date:shiftDay(today,-1)};
+  if (/selected\s*(day|date)|chosen\s*(day|date)|this\s*date|\bselected\b|منتخب\s*تاریخ|یہ\s*تاریخ|\bis\s*date\b|\bisi\s*din\b|\bjis\s*din\b/i.test(s))
+    return {period:'selected',date:selectedDate};
+  const defaultPeriod = parseChatPeriod(s);
+  return defaultPeriod ? {period:defaultPeriod,date:defaultPeriod==='today'?today:null} : null;
 }
-
 function parseChatTopic(raw) {
   const s = String(raw || '').trim().toLowerCase().replace(/\s+/g, ' ');
   if (!s) return null;
   if (/^(1|۱|١)$/.test(s) || /everything|all details|all topics|sab kuch|sari|saari|sab|puri|poori|تمام|سب کچھ|ساری|سارے|مکمل|ہر چیز|سب کی|تمام تفصیلات|^all$/.test(s)) return 'all';
   if (/^(2|۲|٢)$/.test(s) || /prayer|namaz|namaaz|salah|salat|jamaat|qaza|نماز|جماعت|قضا/.test(s)) return 'prayer';
   if (/^(3|۳|٣)$/.test(s) || /quran|quraan|qur'an|para|parah|قرآن|قران|پارہ|سپارہ|تلاوت/.test(s)) return 'quran';
-  if (/^(4|۴|٤)$/.test(s) || /office|project|job|client|kaam|kam|work|دفتر|کام|پروجیکٹ/.test(s)) return 'office';
   if (/^(5|۵|٥)$/.test(s) || /university|uni\b|college|admission|application|interview|یونیورسٹی|داخلہ|کالج|انٹرویو/.test(s)) return 'university';
   if (/^(6|۶|٦)$/.test(s) || /personal|family|life|ghar|routine|myself|ذاتی|گھر|خاندانی/.test(s)) return 'personal';
+  if (/^(4|۴|٤)$/.test(s) || /office|project|job|client|kaam|kam|work|دفتر|کام|پروجیکٹ/.test(s)) return 'office';
   return null;
 }
 
@@ -888,6 +911,7 @@ function SummaryChat({ entries, prayerDays, quranEntries, selectedDate, onClose,
   async function showReport(selectedPeriod, selectedTopic, seedMessages, exactDate = reportDate) {
     stopReading();
     setTopic(selectedTopic);
+    setPeriod(selectedPeriod);
     setReportDate(exactDate);
     setStep('done');
     setAiInsight(''); setAiError(''); setVoiceError(''); setAiRequested(false);
@@ -929,31 +953,66 @@ function SummaryChat({ entries, prayerDays, quranEntries, selectedDate, onClose,
 
   function submit(raw) {
     const value = String(raw || '').trim().slice(0, 250);
-    if (!value || busy || step === 'done') return;
+    if (!value || busy) return;
     setText('');
-    const next = [...messages, { role: 'user', text: value }];
+    const next = [...messages, {role:'user', text:value}];
+    const isSingleOption = /^[1-6۱-۶١-٦]$/.test(value);
+    const dateInfo = parseChatDate(value, selectedDate);
+    const topicInfo = parseChatTopic(value);
+
+    // At the initial period step, a *natural question* with a category
+    // goes directly to the matching dated report. It never asks for a
+    // numerical menu first (e.g. "office on 3 Nov").
     if (step === 'period') {
-      const found = parseChatDate(value, selectedDate);
-      const together = /^(?:[123۱۲۳١٢٣])$/.test(value) ? null : parseChatTopic(value);
-      // A question like "What did Ahsan do in office?" uses the day chosen on the calendar.
-      const selected = found || (together ? {period:'selected',date:selectedDate} : null);
-      if (!selected) {
-        setMessages([...next, { role: 'bot', en: 'Choose a date, Today, 7 days or 30 days. You can also ask “office on 3 Nov”.', ur: 'منتخب تاریخ، آج، ۷ دن یا ۳۰ دن کا انتخاب کریں۔' }]);
+      if (topicInfo && !isSingleOption) {
+        const chosen = dateInfo || {period:'selected',date:selectedDate};
+        showReport(chosen.period, topicInfo, next, chosen.date || selectedDate);
         return;
       }
-      setPeriod(selected.period);
-      setReportDate(selected.date || selectedDate);
-      if (together) { showReport(selected.period, together, next, selected.date || selectedDate); return; }
+      if (!dateInfo) {
+        setMessages([...next, {
+          role:'bot',
+          en:'Ask about his day, or choose Today / 7 days / 30 days. For example: “Office on 3 Nov”.',
+          ur:'آپ کوئی سوال لکھ سکتے ہیں، یا آج، ۷ دن، یا ۳۰ دن منتخب کریں۔ مثال: ۳ نومبر کا دفتری کام۔',
+        }]);
+        return;
+      }
+      setPeriod(dateInfo.period);
+      setReportDate(dateInfo.date || selectedDate);
+      if (/what|which|show|tell|kya|kia|batao|bataye|how|summary|report|updates|ہوا|کیا|بتاؤ|بتائیں|اپڈیٹ/i.test(value) && !isSingleOption) {
+        showReport(dateInfo.period, 'all', next, dateInfo.date || selectedDate);
+        return;
+      }
       setStep('topic');
-      setMessages([...next, { role: 'bot', en: 'What would you like to know about?', ur: 'آپ کس چیز کی سمری چاہتے ہیں؟' }]);
+      setMessages([...next, {role:'bot',en:'What would you like to know about?',ur:'آپ کس چیز کی سمری چاہتے ہیں؟'}]);
       return;
     }
-    const selected = parseChatTopic(value);
-    if (!selected) {
-      setMessages([...next, { role: 'bot', en: 'Choose an option below, or type its name or number.', ur: 'نیچے موجود آپشن منتخب کریں، یا نام یا نمبر لکھیں۔' }]);
+
+    // A normal chat can continue after a summary. New questions never
+    // require closing/restarting the assistant or reselecting the menus.
+    if (step === 'done') {
+      if (!topicInfo && !dateInfo) {
+        setMessages([...next, {role:'bot',en:'What would you like to know? Try “Office on 3 Nov” or “Prayer today”.',ur:'آپ کیا جاننا چاہتے ہیں؟ مثال: ۳ نومبر کا دفتری کام یا آج کی نماز۔'}]);
+        return;
+      }
+      const chosen = dateInfo || {period:period || 'selected',date:reportDate || selectedDate};
+      showReport(chosen.period, topicInfo || 'all', next, chosen.date || reportDate || selectedDate);
       return;
     }
-    showReport(period, selected, next, reportDate);
+
+    if (step === 'topic') {
+      const chosen = dateInfo || {period, date:reportDate};
+      if (!topicInfo) {
+        // A new question containing a date but no topic asks for all updates.
+        if (dateInfo && !isSingleOption && /what|show|tell|kya|kia|ہوا|کیا/i.test(value)) {
+          showReport(chosen.period, 'all', next, chosen.date || selectedDate);
+          return;
+        }
+        setMessages([...next, {role:'bot',en:'Choose an option or ask directly, e.g. “Office on 3 Nov”.',ur:'نیچے آپشن منتخب کریں یا سیدھا سوال لکھیں، مثلاً ۳ نومبر کا دفتری کام۔'}]);
+        return;
+      }
+      showReport(chosen.period, topicInfo, next, chosen.date || selectedDate);
+    }
   }
   const options = step === 'period' ? (selectedDate === dayISO() ? CHAT_PERIODS : [{id:'selected', en:`Selected: ${prettyDate(selectedDate)}`, ur:'منتخب تاریخ', days:1}, ...CHAT_PERIODS]) : step === 'topic' ? CHAT_TOPICS : [];
   return (
@@ -1002,8 +1061,8 @@ function SummaryChat({ entries, prayerDays, quranEntries, selectedDate, onClose,
         </div>
         <div className="tmv-chat-controls">
           <form className="tmv-chat-inputbar" onSubmit={event => { event.preventDefault(); submit(text); }}>
-            <input aria-label="Type in English, Urdu or Roman Urdu" value={text} onChange={event => setText(event.target.value)} placeholder={step === 'done' ? 'Start another summary above' : 'Type a message / اپنا پیغام لکھیں'} maxLength={250} disabled={step === 'done' || busy}/>
-            <button type="submit" disabled={!text.trim() || step === 'done' || busy} aria-label="Send message"><Send size={18}/></button>
+            <input aria-label="Type in English, Urdu or Roman Urdu" value={text} onChange={event => setText(event.target.value)} placeholder={step === 'done' ? 'Ask another question / مزید سوال لکھیں' : 'Type a message / اپنا پیغام لکھیں'} maxLength={250} disabled={busy}/>
+            <button type="submit" disabled={!text.trim() || busy} aria-label="Send message"><Send size={18}/></button>
           </form>
           <details className="tmv-chat-privacy"><summary>Privacy note / رازداری</summary><p>Answers use saved records. For AI insights, relevant records are sent to Groq.</p><p lang="ur" dir="rtl">جوابات محفوظ شدہ ریکارڈ سے تیار ہوتے ہیں۔ AI کے لیے متعلقہ معلومات Groq کو بھیجی جاتی ہیں۔</p></details>
         </div>
@@ -1298,6 +1357,22 @@ function WorkPanel({ ownerMode, section, entries, busy, search, setSearch, filte
 }
 
 export default function TrackMe() {
+  const [showStandaloneSplash, setShowStandaloneSplash] = useState(() =>
+    typeof window !== 'undefined' && (
+      window.matchMedia?.('(display-mode: standalone)')?.matches || window.navigator.standalone === true
+    )
+  );
+  useEffect(() => {
+    if (!showStandaloneSplash) return undefined;
+    const timer = window.setTimeout(() => setShowStandaloneSplash(false), 2000);
+    return () => window.clearTimeout(timer);
+  }, [showStandaloneSplash]);
+  // Minimal, non-caching service worker for better install compatibility on older Chrome.
+  // It never intercepts API requests and never stores private journal records.
+  useEffect(() => {
+    if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) return;
+    navigator.serviceWorker.register('/track-me-sw.js', {scope:'/track-me'}).catch(() => {});
+  }, []);
   const [loading,setLoading]=useState(true);
   const [authenticated,setAuthenticated]=useState(false);
   const [password,setPassword]=useState('');
@@ -1383,6 +1458,7 @@ export default function TrackMe() {
   async function addQuran(form){setBusy(true);try{const data=await api({action:'quran_add',...form});setQuranEntries(list=>[...list,data.entry]);setNotice('Quran reading saved.');return true;}catch(err){fail(err);return false;}finally{setBusy(false);}}
   async function deleteQuran(item){if(!window.confirm(`Delete this Para ${item.para} reading?`))return;setBusy(true);try{await api({action:'quran_delete',id:item.id});setQuranEntries(list=>list.filter(x=>x.id!==item.id));setNotice('Reading deleted.');}catch(err){fail(err);}finally{setBusy(false);}}
   function go(key){setSection(key);setExpanded(null);setNote('');setSearch('');setFilter('all');setNotice('');if(typeof window!=='undefined')window.scrollTo({top:0,behavior:'instant'});}
+  if(showStandaloneSplash)return <main className="tm-page"><FamilyAppSplash/></main>;
   if(loading)return <main className="tm-page tm-loading" role="status"><div className="tm-spinner"/><p>Opening family updates…</p></main>;
   if(!authenticated)return <main className="tm-page"><LoginScreen password={password} setPassword={setPassword} onSubmit={signIn} busy={busy} error={loginError}/></main>;
   if(welcome)return <main className="tm-page"><CautionWelcome onContinue={()=>setWelcome(false)}/></main>;

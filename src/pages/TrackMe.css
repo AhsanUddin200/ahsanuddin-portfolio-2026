@@ -1596,3 +1596,49 @@ body:has(.tm-page) {background:#f5f7f6}
 .tm-page .tmv-install-footer {display:flex;justify-content:flex-end;margin:0 0 16px}
 .tm-page .tmv-install-footer .tmv-install-helper {margin-top:0}
 @media (max-width:600px) {.tm-page .tmv-install-footer {justify-content:flex-start}}
+
+
+/* V24: Clear, 2-second standalone app welcome. No blur or alterations to existing cards. */
+.tm-page .tmv-launch-splash {
+  position:fixed;inset:0;z-index:99999;display:grid;place-items:center;
+  min-height:100dvh;padding:24px;background:#f5f8f6;
+  color:#183b2e;text-align:center;
+}
+.tm-page .tmv-launch-splash-content {
+  display:flex;flex-direction:column;align-items:center;gap:0;
+  animation:tmv-launch-appear .35s ease-out both;
+}
+.tm-page .tmv-launch-splash-photo {
+  width:154px;height:154px;max-width:42vw;max-height:42vw;
+  object-fit:cover;object-position:center 24%;border-radius:28px;
+  display:block;background:#dce5e2;border:4px solid #fff;
+  box-shadow:0 12px 38px rgba(21,65,49,.16);
+  image-rendering:auto;filter:none!important;backdrop-filter:none!important;
+}
+.tm-page .tmv-launch-splash-name {
+  display:flex;align-items:baseline;gap:6px;margin:22px 0 0;
+  font-family:'Inter',system-ui,sans-serif;font-size:23px;font-weight:650;
+  color:#183b2e;letter-spacing:-.03em;line-height:1.4;
+}
+.tm-page .tmv-launch-splash-name .tmv-handwritten-name {
+  font-family:'Caveat',cursive!important;font-size:1.6em;font-weight:700;line-height:1.05;
+  letter-spacing:0;color:#176247;
+}
+.tm-page .tmv-launch-splash-subtitle {
+  margin-top:5px;font-size:12px;letter-spacing:.035em;color:#647c70;font-weight:500;
+}
+.tm-page .tmv-launch-splash-progress {
+  margin-top:25px;width:74px;height:3px;border-radius:10px;overflow:hidden;
+  background:linear-gradient(90deg,#176247,#8dcaaa);transform-origin:left;
+  animation:tmv-launch-progress 2s linear both;
+}
+@keyframes tmv-launch-appear {from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes tmv-launch-progress {from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@media (max-width:400px) {
+  .tm-page .tmv-launch-splash-photo {width:144px;height:144px;border-radius:26px}
+  .tm-page .tmv-launch-splash-name {font-size:22px}
+}
+@media (prefers-reduced-motion:reduce) {
+  .tm-page .tmv-launch-splash-content,
+  .tm-page .tmv-launch-splash-progress {animation:none}
+}
