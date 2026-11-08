@@ -108,10 +108,23 @@ function PrivateEntry() {
     if (!installed) return;
     // Fetch actual family app while the branded splash is visible.
     import('./pages/TrackMe.jsx');
-    // 2-second total splash from first HTML paint (not 2s AFTER bundle load).
-    const elapsed = performance.now() - (window.__trackMeBootStartedAt || performance.now());
-    const timer = window.setTimeout(() => setStartDone(true), Math.max(0, 2000 - elapsed));
-    return () => window.clearTimeout(timer);
+    // Android/Chrome briefly shows its own OS-controlled PWA splash first.
+    // Show ONE consistent, branded WEB splash for three seconds after React's
+    // first painted frame, then reveal the already-loading family journal.
+    // Do not change any task, API, authentication or welcome flow.
+    let paintFrame = 0;
+    let nextFrame = 0;
+    let timer = 0;
+    paintFrame = window.requestAnimationFrame(() => {
+      nextFrame = window.requestAnimationFrame(() => {
+        timer = window.setTimeout(() => setStartDone(true), 3000);
+      });
+    });
+    return () => {
+      window.cancelAnimationFrame(paintFrame);
+      window.cancelAnimationFrame(nextFrame);
+      window.clearTimeout(timer);
+    };
   }, [installed]);
 
   if (!installed && isMobileBrowser() && !skipInstall) {

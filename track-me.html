@@ -9,6 +9,8 @@
   <link rel="canonical" href="https://ahsannasir.runs-on.dev/track-me" />
   <link rel="icon" type="image/png" href="/ahsan-favicon.png" />
   <meta name="theme-color" content="#134e3b" />
+  <!-- Paint the real-photo splash as early as possible, before the JS bundle. -->
+  <link rel="preload" href="/track-me-splash-fast.webp" as="image" type="image/webp" fetchpriority="high" />
   <!-- Home-screen shortcut (the main portfolio index is not changed). -->
   <link rel="manifest" href="/track-me.webmanifest" />
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
