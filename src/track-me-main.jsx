@@ -6,7 +6,7 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 // homepage styling or marketing widgets into the standalone family app.
 const FamilyJournal = lazy(() => import('./pages/TrackMe.jsx'));
 const PHOTO = '/track-me-splash-fast.webp';
-const APP_ICON = '/track-me-icon-maskable-512.png';
+const APP_ICON = '/track-me-icon-v29-maskable-512.png';
 
 function isInstalledMode() {
   return window.matchMedia?.('(display-mode: standalone)')?.matches ||

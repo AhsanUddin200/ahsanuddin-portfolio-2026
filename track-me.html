@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="en">
 <head>
@@ -8,16 +9,25 @@
   <meta name="robots" content="noindex, nofollow, max-image-preview:large" />
   <link rel="canonical" href="https://ahsannasir.runs-on.dev/track-me" />
   <link rel="icon" type="image/png" href="/ahsan-favicon.png" />
-  <meta name="theme-color" content="#134e3b" />
-  <!-- Preload the very same maskable photo icon used by the native Android splash. -->
-  <link rel="preload" href="/track-me-icon-maskable-512.png" as="image" type="image/png" fetchpriority="high" />
-  <!-- Home-screen shortcut (the main portfolio index is not changed). -->
+  <meta name="theme-color" content="#246c55" />
+
+  <!-- App icon -->
+  <link rel="preload"
+        href="/track-me-icon-v29-maskable-512.png"
+        as="image"
+        type="image/png"
+        fetchpriority="high" />
+
+  <!-- Home Screen App -->
   <link rel="manifest" href="/track-me.webmanifest" />
-  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+  <link rel="apple-touch-icon"
+        sizes="180x180"
+        href="/apple-touch-icon-v29.png" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-title" content="Ahsan's Updates" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  <!-- Route-specific WhatsApp/Facebook/LinkedIn preview, unchanged from V22. -->
+
+  <!-- Social preview -->
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="Ahsan's Private Family Journal" />
   <meta property="og:title" content="Ahsan's Daily Updates · Private Family Journal" />
@@ -29,114 +39,392 @@
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta property="og:image:alt" content="Preview of Ahsan's private family updates sign-in screen" />
+
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Ahsan's Daily Updates · Private Family Journal" />
   <meta name="twitter:description" content="Private family updates. Password required." />
   <meta name="twitter:image" content="https://ahsannasir.runs-on.dev/track-me-preview.jpg" />
-  <!-- V25: private, lightweight entry. Preserves all portfolio SEO and OG metadata. -->
+
   <meta name="color-scheme" content="light" />
+
+  <!-- Exact handwritten font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&display=swap"
+    rel="stylesheet"
+  />
+
   <script>
     window.__trackMeBootStartedAt = performance.now();
-    // Set before the body paints, so browser tab installs never see the app splash.
-    // On an installed PWA the splash exists outside React and is never remounted.
-    document.documentElement.classList.toggle('tm-installed-mode',
-      !!(window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
-      window.navigator.standalone === true
+
+    document.documentElement.classList.toggle(
+      'tm-installed-mode',
+      !!(
+        window.matchMedia &&
+        window.matchMedia('(display-mode: standalone)').matches
+      ) || window.navigator.standalone === true
     );
+
     window.__trackMeInstallEvent = null;
+
     window.addEventListener('beforeinstallprompt', function(event) {
       event.preventDefault();
       window.__trackMeInstallEvent = event;
       window.dispatchEvent(new Event('trackmeinstallready'));
     });
   </script>
-  <style>
-    :root { color-scheme:light; background:#f5f8f6; }
-    html,body,#root { margin:0; min-height:100%; width:100%; }
-    body { font-family:Inter,system-ui,-apple-system,'Segoe UI',sans-serif; color:#173c2f; background:#f5f8f6; }
-    *,*::before,*::after { box-sizing:border-box; }
 
-    /* V27: ONE persistent HTML splash, not a React widget that re-mounts.
-       The photo and green tile are EXACTLY the existing maskable PWA icon.
-       Android keeps control of its native first frame; the web frame matches
-       its icon, geometry and background. There is no image/scale swap. */
-    #tm-launch-cover { display:none; }
+  <style>
+    :root {
+      color-scheme: light;
+      background: #f5f7f6;
+    }
+
+    html,
+    body,
+    #root {
+      margin: 0;
+      min-height: 100%;
+      width: 100%;
+    }
+
+    body {
+      font-family: Inter, system-ui, -apple-system,
+        'Segoe UI', sans-serif;
+      color: #173c2f;
+      background: #f5f7f6;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    /* Persistent splash screen */
+
+    #tm-launch-cover {
+      display: none;
+    }
+
     html.tm-installed-mode #tm-launch-cover {
-      display:block; position:fixed; inset:0; z-index:2147483640;
-      width:100%; height:100%; height:100dvh;
-      overflow:hidden; background:#f5f8f6; color:#173c2f;
-      opacity:1; transition:opacity 180ms ease-out;
+      display: block;
+      position: fixed;
+      inset: 0;
+      z-index: 2147483640;
+      width: 100%;
+      height: 100%;
+      height: 100dvh;
+      overflow: hidden;
+      background: #f5f7f6;
+      color: #173c2f;
+      opacity: 1;
+      transition: opacity 180ms ease-out;
     }
-    html.tm-installed-mode #tm-launch-cover.tm-launch-cover--leaving {
-      opacity:0; pointer-events:none;
+
+    html.tm-installed-mode
+    #tm-launch-cover.tm-launch-cover--leaving {
+      opacity: 0;
+      pointer-events: none;
     }
+
+    /* Original photo artwork */
+
     #tm-launch-cover .tm-launch-native-icon {
-      position:absolute; left:50%; top:50%;
-      transform:translate(-50%,-50%);
-      width:min(240px,66.66667vw); height:min(240px,66.66667vw);
-      display:block; object-fit:cover;
-      /* Android masks the original green icon with rounded-square corners. */
-      border-radius:22.5%;
-      padding:0; margin:0; box-shadow:none; border:none; background:#124234;
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: min(300px, 78vw);
+      height: min(300px, 78vw);
+      display: block;
+      object-fit: contain;
+      border: 0;
+      border-radius: 0;
+      padding: 0;
+      margin: 0;
+      box-shadow: none;
+      background: transparent;
     }
+
+    /* Exact Caveat handwritten title */
+
     #tm-launch-cover .tm-launch-caption {
-      position:absolute; left:12px; right:12px;
-      top:calc(50% + min(120px,33.33333vw) + 21px);
-      text-align:center; display:flex; flex-direction:column; align-items:center;
-      gap:5px; opacity:0; animation:tm-launch-caption-enter 300ms ease-out 120ms forwards;
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: calc(50% + min(31px, 8.06vw));
+      z-index: 1;
+      padding: 13px 12px 12px;
+      background: #f5f7f6;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 9px;
+      opacity: 1;
     }
+
     #tm-launch-cover .tm-launch-caption strong {
-      display:block; color:#173e30; font-size:22px; line-height:1.25;
-      font-weight:700; letter-spacing:-.04em; white-space:nowrap;
+      font-family: 'Caveat', 'Segoe Print', cursive;
+      font-size: 40.95px;
+      font-weight: 700;
+      line-height: 34.8075px;
+      color: rgb(23, 42, 39);
+      font-style: normal;
+      white-space: nowrap;
     }
-    #tm-launch-cover .tm-launch-caption em {
-      font-family:'Caveat','Segoe Print',cursive; font-size:1.42em;
-      color:#17664b; font-style:normal; font-weight:700; letter-spacing:0;
-    }
+
     #tm-launch-cover .tm-launch-caption small {
-      color:#6a7e72; font-weight:500; font-size:12px; letter-spacing:.005em;
+      color: #6a7e72;
+      font-weight: 500;
+      font-size: 12px;
+      letter-spacing: .005em;
     }
-    @keyframes tm-launch-caption-enter {from{opacity:0}to{opacity:1}}
-    @media (prefers-reduced-motion:reduce) {
-      html.tm-installed-mode #tm-launch-cover {transition:none}
-      #tm-launch-cover .tm-launch-caption {animation:none;opacity:1}
+
+    #tm-launch-cover .tm-launch-caption::after {
+      content: "";
+      display: block;
+      margin-top: 11px;
+      width: 65px;
+      height: 2px;
+      border-radius: 10px;
+      background: linear-gradient(
+        90deg,
+        #1c664c,
+        #8abfa3
+      );
     }
-    /* The fallback stays below the persistent cover while JS/data loads. */
-    .tm-startup-screen {min-height:100dvh;display:grid;place-items:center;background:#f5f8f6;padding:20px}
-    .tm-startup-content {display:flex;align-items:center;flex-direction:column;gap:14px;text-align:center}
-    .tm-startup-content img {width:110px;height:110px;border-radius:22.5%;object-fit:cover}
-    .tm-startup-content small {font-size:13px;color:#6a7e72}
-    .tm-install-screen { min-height:100dvh; padding:24px 16px; background:radial-gradient(ellipse at top left,#e4f0e9,#f5f8f6 60%); display:grid; place-items:center; }
-    .tm-install-card { width:min(100%,410px); background:white; border:1px solid #dfe8e2; border-radius:22px; padding:31px 27px 24px; text-align:center; box-shadow:0 22px 70px rgba(25,75,55,.07); }
-    .tm-install-photo { width:90px; height:90px; object-fit:cover; border-radius:22px; border:3px solid #fff; box-shadow:0 8px 24px rgba(20,75,50,.13); }
-    .tm-install-kicker { margin:19px 0 8px; font-size:10px; color:#35745b; font-weight:700; letter-spacing:.14em; }
-    .tm-install-card h1 { font-size:27px; line-height:1.2; color:#17392e; margin:0 0 13px; letter-spacing:-.04em; }
-    .tm-install-card h1 em { font-family:'Caveat','Segoe Print',cursive; font-size:1.27em; font-weight:700; font-style:normal; color:#167153; }
-    .tm-install-description { color:#4a6455; font-size:14px; line-height:1.6; margin:0 0 11px; }
-    .tm-install-urdu { font-family:'Noto Naskh Arabic',Tahoma,serif; font-size:15px; line-height:1.8; color:#567568; margin:0 0 22px; }
-    .tm-install-primary,.tm-install-skip { border:0; width:100%; cursor:pointer; font:inherit; }
-    .tm-install-primary { background:#1d694e; color:white; font-weight:650; border-radius:12px; min-height:53px; font-size:14px; padding:12px; display:flex; justify-content:center; align-items:center; gap:10px; }
-    .tm-install-primary span { font-size:19px; }
-    .tm-install-skip { background:transparent; color:#3d725c; font-size:13px; font-weight:550; margin-top:14px; padding:11px 0; min-height:44px; }
-    .tm-install-secure { display:block; color:#85958b; font-size:11px; margin-top:10px; }
-    .tm-install-help { text-align:left; background:#f4f8f5; border:1px solid #dce9e0; border-radius:12px; padding:14px; margin:16px 0 0; font-size:12px; line-height:1.6; color:#36584a; }
-    .tm-install-help p { margin:7px 0 0; }
-    .tm-install-help small { display:block; margin-top:9px; color:#698076; }
-    .tm-install-primary:focus-visible,.tm-install-skip:focus-visible { outline:3px solid #77b99a; outline-offset:3px; }
-    @media (max-width:360px) { .tm-install-card {padding:23px 17px 19px;} .tm-install-card h1 {font-size:24px;} }
+
+    @media (prefers-reduced-motion: reduce) {
+      html.tm-installed-mode #tm-launch-cover {
+        transition: none;
+      }
+    }
+
+    /* Loading fallback */
+
+    .tm-startup-screen {
+      min-height: 100dvh;
+      display: grid;
+      place-items: center;
+      background: #f5f7f6;
+      padding: 20px;
+    }
+
+    .tm-startup-content {
+      display: flex;
+      align-items: center;
+      flex-direction: column;
+      gap: 14px;
+      text-align: center;
+    }
+
+    .tm-startup-content img {
+      width: 110px;
+      height: 110px;
+      border-radius: 22.5%;
+      object-fit: cover;
+    }
+
+    .tm-startup-content small {
+      font-size: 13px;
+      color: #6a7e72;
+    }
+
+    /* Existing app installation screen */
+
+    .tm-install-screen {
+      min-height: 100dvh;
+      padding: 24px 16px;
+      background: radial-gradient(
+        ellipse at top left,
+        #e4f0e9,
+        #f5f7f6 60%
+      );
+      display: grid;
+      place-items: center;
+    }
+
+    .tm-install-card {
+      width: min(100%, 410px);
+      background: white;
+      border: 1px solid #dfe8e2;
+      border-radius: 22px;
+      padding: 31px 27px 24px;
+      text-align: center;
+      box-shadow: 0 22px 70px rgba(25, 75, 55, .07);
+    }
+
+    .tm-install-photo {
+      width: 90px;
+      height: 90px;
+      object-fit: cover;
+      border-radius: 22px;
+      border: 3px solid #fff;
+      box-shadow: 0 8px 24px rgba(20, 75, 50, .13);
+    }
+
+    .tm-install-kicker {
+      margin: 19px 0 8px;
+      font-size: 10px;
+      color: #35745b;
+      font-weight: 700;
+      letter-spacing: .14em;
+    }
+
+    .tm-install-card h1 {
+      font-size: 27px;
+      line-height: 1.2;
+      color: #17392e;
+      margin: 0 0 13px;
+      letter-spacing: -.04em;
+    }
+
+    .tm-install-card h1 em {
+      font-family: 'Caveat', 'Segoe Print', cursive;
+      font-size: 1.27em;
+      font-weight: 700;
+      font-style: normal;
+      color: #167153;
+    }
+
+    .tm-install-description {
+      color: #4a6455;
+      font-size: 14px;
+      line-height: 1.6;
+      margin: 0 0 11px;
+    }
+
+    .tm-install-urdu {
+      font-family: 'Noto Naskh Arabic', Tahoma, serif;
+      font-size: 15px;
+      line-height: 1.8;
+      color: #567568;
+      margin: 0 0 22px;
+    }
+
+    .tm-install-primary,
+    .tm-install-skip {
+      border: 0;
+      width: 100%;
+      cursor: pointer;
+      font: inherit;
+    }
+
+    .tm-install-primary {
+      background: #1d694e;
+      color: white;
+      font-weight: 650;
+      border-radius: 12px;
+      min-height: 53px;
+      font-size: 14px;
+      padding: 12px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .tm-install-primary span {
+      font-size: 19px;
+    }
+
+    .tm-install-skip {
+      background: transparent;
+      color: #3d725c;
+      font-size: 13px;
+      font-weight: 550;
+      margin-top: 14px;
+      padding: 11px 0;
+      min-height: 44px;
+    }
+
+    .tm-install-secure {
+      display: block;
+      color: #85958b;
+      font-size: 11px;
+      margin-top: 10px;
+    }
+
+    .tm-install-help {
+      text-align: left;
+      background: #f4f8f5;
+      border: 1px solid #dce9e0;
+      border-radius: 12px;
+      padding: 14px;
+      margin: 16px 0 0;
+      font-size: 12px;
+      line-height: 1.6;
+      color: #36584a;
+    }
+
+    .tm-install-help p {
+      margin: 7px 0 0;
+    }
+
+    .tm-install-help small {
+      display: block;
+      margin-top: 9px;
+      color: #698076;
+    }
+
+    .tm-install-primary:focus-visible,
+    .tm-install-skip:focus-visible {
+      outline: 3px solid #77b99a;
+      outline-offset: 3px;
+    }
+
+    @media (max-width: 360px) {
+      .tm-install-card {
+        padding: 23px 17px 19px;
+      }
+
+      .tm-install-card h1 {
+        font-size: 24px;
+      }
+    }
   </style>
 </head>
+
 <body>
-  <div id="tm-launch-cover" role="status" aria-label="Opening Ahsan's Updates">
-    <img class="tm-launch-native-icon" src="/track-me-icon-maskable-512.png"
-         width="240" height="240" alt="Ahsan" fetchpriority="high" decoding="sync" />
+
+  <!-- Standalone app splash -->
+
+  <div
+    id="tm-launch-cover"
+    role="status"
+    aria-label="Opening Ahsan's Updates"
+  >
+    <img
+      class="tm-launch-native-icon"
+      src="/track-me-icon-v29-maskable-512.png"
+      width="300"
+      height="300"
+      alt="Ahsan Updates"
+      fetchpriority="high"
+      decoding="sync"
+    />
+
     <div class="tm-launch-caption">
-      <strong><em>Ahsan</em> Updates</strong>
+      <strong>Ahsan Updates</strong>
       <small>Private family journal</small>
     </div>
   </div>
+
+  <!-- React app -->
+
   <div id="root"></div>
-  <script>window.__tmSplashVisibleSince = performance.now();</script>
-  <script type="module" src="/src/track-me-main.jsx"></script>
+
+  <script>
+    window.__tmSplashVisibleSince = performance.now();
+  </script>
+
+  <script
+    type="module"
+    src="/src/track-me-main.jsx"
+  ></script>
+
 </body>
 </html>
