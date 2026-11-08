@@ -6,6 +6,7 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 // homepage styling or marketing widgets into the standalone family app.
 const FamilyJournal = lazy(() => import('./pages/TrackMe.jsx'));
 const PHOTO = '/track-me-splash-fast.webp';
+const APP_ICON = '/track-me-icon-maskable-512.png';
 
 function isInstalledMode() {
   return window.matchMedia?.('(display-mode: standalone)')?.matches ||
@@ -15,17 +16,6 @@ function isInstalledMode() {
 function isMobileBrowser() {
   return window.navigator.userAgentData?.mobile ??
     /Android|iPhone|iPad|iPod|Mobile/i.test(window.navigator.userAgent);
-}
-
-function StartupSplash() {
-  return <div className="tm-startup-screen" role="status" aria-label="Opening Ahsan's Updates">
-    <div className="tm-startup-content">
-      <img src={PHOTO} alt="Ahsan" width="148" height="148" decoding="async" fetchPriority="high" />
-      <strong><em>Ahsan</em> Updates</strong>
-      <small>Private family journal</small>
-      <span className="tm-startup-progress" aria-hidden="true" />
-    </div>
-  </div>;
 }
 
 function InstallFirst({ onContinue }) {
@@ -91,39 +81,71 @@ function InstallFirst({ onContinue }) {
 }
 
 function JournalFallback() {
-  return <div className="tm-startup-screen" role="status">
-    <div className="tm-startup-content"><img src={PHOTO} width="148" height="148" alt="Ahsan"/><small>Opening family updates…</small></div>
+  return <div className="tm-startup-screen" role="status" aria-label="Loading family updates">
+    <div className="tm-startup-content">
+      <img src={APP_ICON} width="110" height="110" alt="Ahsan" />
+      <small>Opening family updates…</small>
+    </div>
   </div>;
 }
 
 function PrivateEntry() {
   const installed = isInstalledMode();
-  const [startDone, setStartDone] = useState(() => !installed);
   const [skipInstall, setSkipInstall] = useState(() => {
     try { return sessionStorage.getItem('tm-install-skipped') === 'yes'; }
     catch { return false; }
   });
 
   useEffect(() => {
-    if (!installed) return;
-    // Fetch actual family app while the branded splash is visible.
-    import('./pages/TrackMe.jsx');
-    // Android/Chrome briefly shows its own OS-controlled PWA splash first.
-    // Show ONE consistent, branded WEB splash for three seconds after React's
-    // first painted frame, then reveal the already-loading family journal.
-    // Do not change any task, API, authentication or welcome flow.
-    let paintFrame = 0;
-    let nextFrame = 0;
-    let timer = 0;
-    paintFrame = window.requestAnimationFrame(() => {
-      nextFrame = window.requestAnimationFrame(() => {
-        timer = window.setTimeout(() => setStartDone(true), 3000);
-      });
-    });
+    const cover = document.getElementById('tm-launch-cover');
+    if (!cover) return undefined;
+    if (!installed) {
+      // Browser visitors see the existing install-first experience, not a splash.
+      cover.remove();
+      return undefined;
+    }
+
+    // React mounts *behind* the original static splash, rather than replacing it.
+    // Minimum of 3 seconds of web splash; retain cover if private session load
+    // takes longer, so no loading-spinner flash is exposed to family members.
+    void import('./pages/TrackMe.jsx').catch(() => {});
+    const root = document.getElementById('root');
+    let appReady = false;
+    let threeSecondsPassed = false;
+    let closing = false;
+    let exitTimer = 0;
+
+    const finishIfReady = () => {
+      if (!appReady || !threeSecondsPassed || closing) return;
+      closing = true;
+      cover.classList.add('tm-launch-cover--leaving');
+      exitTimer = window.setTimeout(() => cover.remove(), 220);
+    };
+    const checkAppReady = () => {
+      // TrackMe's initial API request shows .tm-loading. Do not reveal it.
+      appReady = Boolean(root?.querySelector('main.tm-page:not(.tm-loading)'));
+      finishIfReady();
+    };
+    const observer = new MutationObserver(checkAppReady);
+    if (root) observer.observe(root, {childList:true,subtree:true,attributes:true,attributeFilter:['class']});
+    checkAppReady();
+
+    const elapsed = performance.now() - (window.__tmSplashVisibleSince || performance.now());
+    const minTimer = window.setTimeout(() => {
+      threeSecondsPassed = true;
+      finishIfReady();
+    }, Math.max(0, 3000 - elapsed));
+    // Avoid a permanent splash if the private app fails to initialize.
+    const failSafe = window.setTimeout(() => {
+      threeSecondsPassed = true;
+      appReady = true;
+      finishIfReady();
+    }, 9000);
     return () => {
-      window.cancelAnimationFrame(paintFrame);
-      window.cancelAnimationFrame(nextFrame);
-      window.clearTimeout(timer);
+      observer.disconnect();
+      window.clearTimeout(minTimer);
+      window.clearTimeout(failSafe);
+      window.clearTimeout(exitTimer);
     };
   }, [installed]);
 
@@ -134,12 +156,8 @@ function PrivateEntry() {
       setSkipInstall(true);
     }} />;
   }
-  // Mount the family app BEHIND the 2s splash so private-data loading starts
-  // during the splash instead of only after it disappears.
-  return <>
-    <Suspense fallback={<JournalFallback/>}><FamilyJournal/></Suspense>
-    {installed && !startDone && <div className="tm-startup-overlay"><StartupSplash/></div>}
-  </>;
+
+  return <Suspense fallback={<JournalFallback/>}><FamilyJournal/></Suspense>;
 }
 
 function OpenPortfolio() {
