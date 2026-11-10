@@ -444,7 +444,7 @@ function LoginScreen({ password, setPassword, onSubmit, busy, error }) {
 const FAMILY_WELCOME_MESSAGES = {
   nasir: ["You are Ahsan's father.", 'You are tracking your son.'],
   talat: ["You are Ahsan's mother.", 'You are tracking your son.'],
-  happa: ["You are Ahsan's favorite person and, InshaAllah, life partner. ❤️", 'You are tracking your man.'],
+  happa: ["You are Happa Ahsan's favorite person and future life partner, InshaAllah ", 'You are tracking your man.'],
   yamna: ["You are Ahsan's sister.", 'You are tracking your brother.'],
   family: ["Welcome to Ahsan's private family journal.", "You are following Ahsan's updates."],
 };
