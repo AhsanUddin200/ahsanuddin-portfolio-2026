@@ -440,26 +440,24 @@ function LoginScreen({ password, setPassword, onSubmit, busy, error }) {
   );
 }
 
-function CautionWelcome({ onContinue }) {
-  // Family sign-in flow: sign in -> Yes / No -> automatic daily updates.
-  // A relationship message appears ONLY after Yes or No is chosen.
-  // No timeout, guessed relationship or automatic welcome on inactivity.
-  const [relationChoice, setRelationChoice] = useState(null);
-
-  // After an explicit choice, show the existing 4-second countdown
-  // before opening daily updates on mobile and desktop.
+/* V30 PERSONALIZED FAMILY WELCOME */
+const FAMILY_WELCOME_MESSAGES = {
+  nasir: ["You are Ahsan's father.", 'You are tracking your son.'],
+  talat: ["You are Ahsan's mother.", 'You are tracking your son.'],
+  happa: ["You are Ahsan's favorite person and, InshaAllah, life partner. ❤️", 'You are tracking your man.'],
+  yamna: ["You are Ahsan's sister.", 'You are tracking your brother.'],
+  family: ["Welcome to Ahsan's private family journal.", "You are following Ahsan's updates."],
+};
+function CautionWelcome({ viewer = 'family', onContinue }) {
   const [secondsLeft, setSecondsLeft] = useState(4);
   const continueRef = useRef(onContinue);
   useEffect(() => { continueRef.current = onContinue; }, [onContinue]);
   useEffect(() => {
-    if (relationChoice === null) return undefined;
-    setSecondsLeft(4);
     const tick = window.setInterval(() => setSecondsLeft(n => Math.max(0, n - 1)), 1000);
     const finish = window.setTimeout(() => continueRef.current(), 4000);
     return () => { window.clearInterval(tick); window.clearTimeout(finish); };
-  }, [relationChoice]);
-
-  const isPartner = relationChoice === 'partner';
+  }, []);
+  const lines = FAMILY_WELCOME_MESSAGES[viewer] || FAMILY_WELCOME_MESSAGES.family;
   return (
     <div className="tm-welcome-screen" role="dialog" aria-modal="true" aria-label="Welcome to Ahsan's daily updates">
       <section className="tm-welcome-card tmv-welcome-panel">
@@ -472,33 +470,14 @@ function CautionWelcome({ onContinue }) {
         <div className="tmv-welcome-body">
           <span className="tmv-welcome-kicker">A PERSONAL REMINDER</span>
           <h1>Every day tells a story.</h1>
-          {relationChoice === null && (
-            <div className="tmv-relation-prompt">
-              <p className="tmv-relation-question">Are you <AhsanName/>’s parents?</p>
-              <div className="tmv-relation-actions" role="group" aria-label="Are you Ahsan's parents?">
-                <button type="button" className="tmv-relation-option"
-                  onClick={() => setRelationChoice('parents')}>Yes</button>
-                <button type="button" className="tmv-relation-option"
-                  onClick={() => setRelationChoice('partner')}>No</button>
-              </div>
-            </div>
-          )}
-          {relationChoice !== null && (
-            <div className="tm-typing tmv-relation-message" role="status" aria-live="polite">
-              {relationChoice === 'parents'
-                ? 'You are tracking your son.'
-                : isPartner && <>
-                    <span>You are Ahsan's favorite woman and life partner happa❤️</span>
-                    <span className="tmv-partner-followup">You are tracking your man.</span>
-                  </>}
-            </div>
-          )}
-          {relationChoice !== null && (
-            <p className="tmv-welcome-auto-status" role="status" aria-live="polite">
-              Opening daily updates in <strong>{secondsLeft}s</strong>…
-              <span>آپ کی اپڈیٹس {secondsLeft} سیکنڈ میں کھل جائیں گی۔</span>
-            </p>
-          )}
+          <div className="tm-typing tmv-relation-message" role="status" aria-live="polite">
+            <span>{lines[0]}</span>
+            <span className="tmv-partner-followup">{lines[1]}</span>
+          </div>
+          <p className="tmv-welcome-auto-status" role="status" aria-live="polite">
+            Opening daily updates in <strong>{secondsLeft}s</strong>…
+            <span>آپ کی اپڈیٹس {secondsLeft} سیکنڈ میں کھل جائیں گی۔</span>
+          </p>
           <p>A private look into the moments, effort and progress <AhsanName/> shares with you.</p>
         </div>
         <div className="tmv-welcome-footer">PRIVATE FAMILY JOURNAL <span>·</span> MADE TO KEEP YOU CONNECTED</div>
@@ -1383,6 +1362,7 @@ export default function TrackMe() {
   const latestPasswordRef = useRef('');
   latestPasswordRef.current = password;
   const [welcome,setWelcome]=useState(false);
+  const [familyViewer,setFamilyViewer]=useState('family');
   const [entries,setEntries]=useState([]);
   const [prayerDays,setPrayerDays]=useState({});
   const [quranEntries,setQuranEntries]=useState([]);
@@ -1403,7 +1383,7 @@ export default function TrackMe() {
   const [summaryOpen,setSummaryOpen]=useState(false);
   useEffect(()=>{
     let mounted=true;
-    api().then(data=>{if(mounted){setAuthenticated(Boolean(data.authenticated));setEntries(data.entries||[]);setPrayerDays(data.prayerDays||{});setQuranEntries(data.quranEntries||[]);}})
+    api().then(data=>{if(mounted){setAuthenticated(Boolean(data.authenticated));setFamilyViewer(data.viewer||'family');setEntries(data.entries||[]);setPrayerDays(data.prayerDays||{});setQuranEntries(data.quranEntries||[]);}})
       .catch(err=>{if(mounted)setLoginError(err.message);}).finally(()=>{if(mounted)setLoading(false);});
     return ()=>{mounted=false;};
   },[]);
@@ -1423,7 +1403,7 @@ export default function TrackMe() {
   function fail(err){
     setNotice(err.message||'Request failed.');
     if(err.status===401&&err.message?.toLowerCase().includes('session')){
-      setAuthenticated(false);setOwnerMode(false);setCreationPin('');setEntries([]);setPrayerDays({});setQuranEntries([]);setLoginError('Please sign in again.');
+      setAuthenticated(false);setFamilyViewer('family');setOwnerMode(false);setCreationPin('');setEntries([]);setPrayerDays({});setQuranEntries([]);setLoginError('Please sign in again.');
     }
   }
   async function signIn(e, suppliedPassword = password){
@@ -1436,7 +1416,7 @@ export default function TrackMe() {
       await api({action:'login',password:suppliedPassword});
       const data=await api();
       setEntries(data.entries||[]);setPrayerDays(data.prayerDays||{});setQuranEntries(data.quranEntries||[]);
-      setAuthenticated(true);setPassword('');setWelcome(true);
+      setAuthenticated(true);setFamilyViewer(data.viewer||'family');setPassword('');setWelcome(true);
     } catch(err) {
       // Do not show an error for an older, incomplete input if typing resumed.
       if (latestPasswordRef.current === suppliedPassword) setLoginError(err.message);
@@ -1445,7 +1425,7 @@ export default function TrackMe() {
       setBusy(false);
     }
   }
-  async function signOut(){try{await api({action:'logout'});loginAttemptRef.current.last='';setAuthenticated(false);setOwnerMode(false);setCreationPin('');setEntries([]);setPrayerDays({});setQuranEntries([]);setWelcome(false);setEditor(null);setNotice('');setSection('overview');}catch(err){fail(err);}}
+  async function signOut(){try{await api({action:'logout'});loginAttemptRef.current.last='';setAuthenticated(false);setFamilyViewer('family');setOwnerMode(false);setCreationPin('');setEntries([]);setPrayerDays({});setQuranEntries([]);setWelcome(false);setEditor(null);setNotice('');setSection('overview');}catch(err){fail(err);}}
   function openOwner(){if(ownerMode)return;setPinError('');setPinOpen(true);}
   async function verifyPin(pin){setBusy(true);setPinError('');try{await api({action:'verify_create_pin',pin});setCreationPin(pin);setOwnerMode(true);setPinOpen(false);setNotice('Owner mode is on. You can update every section without entering the code again. Select Finish editing when done.');}catch(err){setPinError(err.message);}finally{setBusy(false);}}
   function lockOwner(){setOwnerMode(false);setCreationPin('');setEditor(null);setExpanded(null);setNotice('Owner editing is off.');}
@@ -1461,7 +1441,7 @@ export default function TrackMe() {
   if(showStandaloneSplash)return <main className="tm-page"><FamilyAppSplash/></main>;
   if(loading)return <main className="tm-page tm-loading" role="status"><div className="tm-spinner"/><p>Opening family updates…</p></main>;
   if(!authenticated)return <main className="tm-page"><LoginScreen password={password} setPassword={setPassword} onSubmit={signIn} busy={busy} error={loginError}/></main>;
-  if(welcome)return <main className="tm-page"><CautionWelcome onContinue={()=>setWelcome(false)}/></main>;
+  if(welcome)return <main className="tm-page"><CautionWelcome viewer={familyViewer} onContinue={()=>setWelcome(false)}/></main>;
   return <main className="tm-page tmv-family"><div className="tm-shell tmv-shell">
     <header className="tmv-header"><button type="button" className="tmv-brand" onClick={()=>go('overview')} aria-label="Go to Ahsan's daily updates"><AhsanAvatar className="tmv-avatar-header"/><span><strong><AhsanName/>’s Updates</strong><small>Family journal</small></span></button><button type="button" className="tmv-logout" onClick={signOut}><LogOut size={18}/><span>Log out</span></button></header>
     {section!=='overview'&&<button type="button" className="tmv-back" onClick={()=>go('overview')}><ArrowLeft size={20}/> Back to daily updates</button>}

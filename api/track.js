@@ -34,6 +34,18 @@ const QURAN_KEY = "ahsan:private-track:quran:v1";
 
 const COOKIE = "ahsan_track_session";
 
+/* V30 FAMILY VIEWER PASSWORDS */
+// Passwords come ONLY from server-side environment variables (never JS shipped to users).
+// The existing TRACK_ME_PASSWORD remains a legacy family login for compatibility.
+const familyLoginAccounts = () => [
+  { viewer: 'nasir', password: process.env.TRACK_NASIR_PASSWORD },
+  { viewer: 'talat', password: process.env.TRACK_TALAT_PASSWORD },
+  { viewer: 'happa', password: process.env.TRACK_HAPPA_PASSWORD },
+  { viewer: 'yamna', password: process.env.TRACK_YAMNA_PASSWORD },
+  { viewer: 'family', password: process.env.TRACK_ME_PASSWORD },
+].filter(account => typeof account.password === 'string' && account.password.length >= 1);
+const familyViewerNames = new Set(['nasir','talat','happa','yamna','family']);
+
 const SESSION_SECONDS = 7 * 24 * 60 * 60;
 
 const PRAYERS = new Set([
@@ -177,10 +189,11 @@ function signature(value) {
     .digest("base64url");
 }
 
-function makeSession() {
+function makeSession(viewer = "family") {
   const payload = Buffer.from(
     JSON.stringify({
       exp: Date.now() + SESSION_SECONDS * 1000,
+      viewer,
     })
   ).toString("base64url");
 
@@ -245,6 +258,19 @@ function authenticated(req) {
   } catch {
     return false;
   }
+}
+
+/* V30: Retrieve the signed viewer from an already authenticated session. */
+function authenticatedViewer(req) {
+  if (!authenticated(req)) return null;
+  const pair = String(req.headers.cookie || '').split(';').map(x => x.trim())
+    .find(x => x.startsWith(COOKIE + '='));
+  if (!pair) return null;
+  try {
+    const payload = pair.slice(COOKIE.length + 1).split('.')[0];
+    const session = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'));
+    return familyViewerNames.has(session.viewer) ? session.viewer : 'family';
+  } catch { return 'family'; }
 }
 
 /* =========================================================
@@ -965,37 +991,18 @@ export default async function handler(
     ===================================================== */
 
     if (action === "login") {
-      const check = await checkSecret(
-        req,
-        "login",
+      const supplied = typeof body.password === 'string' ? body.password : '';
+      // Constant-time digests are used for every configured candidate.
+      const matches = familyLoginAccounts().filter(account => equals(supplied, account.password));
+      // Duplicate passwords must never select an arbitrary family member.
+      const account = matches.length === 1 ? matches[0] : null;
+      const invalidPlaceholder = 'invalid:' + process.env.TRACK_SESSION_SECRET;
+      const check = await checkSecret(req, 'login', supplied,
+        account ? account.password : invalidPlaceholder);
+      if (!check.ok) return error(res, check.status, check.error);
 
-        typeof body.password === "string"
-          ? body.password
-          : "",
-
-        process.env.TRACK_ME_PASSWORD
-      );
-
-      if (!check.ok) {
-        return error(
-          res,
-          check.status,
-          check.error
-        );
-      }
-
-      res.setHeader(
-        "Set-Cookie",
-        cookieValue(
-          makeSession(),
-          req,
-          SESSION_SECONDS
-        )
-      );
-
-      return res.status(200).json({
-        authenticated: true,
-      });
+      res.setHeader('Set-Cookie',cookieValue(makeSession(account.viewer),req,SESSION_SECONDS));
+      return res.status(200).json({ authenticated: true, viewer: account.viewer });
     }
 
     /* =====================================================
@@ -1060,6 +1067,7 @@ export default async function handler(
 
       return res.status(200).json({
         authenticated: true,
+        viewer: authenticatedViewer(req),
 
         entries,
 
