@@ -554,6 +554,15 @@ async function checkSecret(
     purpose
   );
 
+  // A correctly authenticated family member must not be locked out by
+  // previous failed attempts from this IP (including premature auto-login).
+  // Incorrect attempts still retain the existing eight-attempt limit.
+  const validFamilyLoginPassword = equals(supplied, secret);
+  if (purpose === "login" && validFamilyLoginPassword) {
+    await redis("DEL", key);
+    return { ok: true };
+  }
+
   const attempts = Number(
     (await redis("GET", key)) || 0
   );
@@ -567,7 +576,7 @@ async function checkSecret(
     };
   }
 
-  if (!equals(supplied, secret)) {
+  if (!validFamilyLoginPassword) {
     const count = Number(
       await redis(
         "INCR",
