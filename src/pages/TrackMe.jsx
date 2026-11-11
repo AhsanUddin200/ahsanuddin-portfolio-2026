@@ -403,7 +403,7 @@ async function api(body) {
 
 
 /* V31: Friendly opt-in reminder. No automatic notification prompt. */
-function FamilySevenDayReminder() {
+function FamilySevenDayReminder({ viewer = 'family' }) {
   const [supported, setSupported] = useState(false);
   const [enabled, setEnabled] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -447,11 +447,13 @@ function FamilySevenDayReminder() {
     } catch (err) { setMessage(err?.message || 'Could not update notifications.'); }
     finally { setBusy(false); }
   }
-  if (!supported) return null;
+  const isIndividual = ['nasir','talat','happa','yamna'].includes(viewer);
   return <aside className="tmv-reminder-settings" aria-label="Family reminder settings">
     <div className="tmv-reminder-setting-copy"><strong>7-day family reminder</strong>
-      <small>If you haven't opened Ahsan's Updates for 7 days, get a gentle notification. No daily spam.</small></div>
-    <button type="button" onClick={toggleReminder} disabled={busy} className="tmv-reminder-setting-button">
+      <small>If you haven't opened Ahsan's Updates for 7 days, get a gentle notification. No daily spam.</small>
+       {!isIndividual && <small role="status">Log out and sign in with Nasir, Talat, Happa or Yamna's individual password to enable reminders.</small>}
+       {isIndividual && !supported && <small role="status">Notifications are not supported in this browser. Open the installed app on Android, or add the web app to your iPhone Home Screen.</small>}</div>
+    <button type="button" onClick={toggleReminder} disabled={busy || !supported || !isIndividual} className="tmv-reminder-setting-button">
       {busy?'Please wait…':enabled?'Turn off reminders':'Enable reminders'}
     </button>
     {message && <p className="tmv-reminder-setting-message" role="status">{message}</p>}
@@ -1518,12 +1520,12 @@ export default function TrackMe() {
     {section!=='overview'&&<button type="button" className="tmv-back" onClick={()=>go('overview')}><ArrowLeft size={20}/> Back to daily updates</button>}
     {notice&&<div className="tmv-notice" role="status"><CheckCircle2 size={19}/><span>{notice}</span><button type="button" onClick={()=>setNotice('')} aria-label="Dismiss"><X size={17}/></button></div>}
     {ownerMode&&<div className="tmv-owner-banner"><span><LockKeyhole size={16}/> Owner mode · all sections unlocked</span><button type="button" onClick={lockOwner}>Finish editing</button></div>}
+    {section==='overview'&&<FamilySevenDayReminder viewer={familyViewer}/>}
     {section==='overview'&&<FamilyToday entries={entries} days={prayerDays} quran={quranEntries} viewDate={viewDate} setViewDate={setViewDate} onOpen={go} ownerMode={ownerMode} onNew={newTask} onOpenSummary={()=>setSummaryOpen(true)}/>}
     {['office','personal','university'].includes(section)&&<WorkPanel section={section} ownerMode={ownerMode} entries={entries} busy={busy} search={search} setSearch={setSearch} filter={filter} setFilter={setFilter} expanded={expanded} setExpanded={setExpanded} note={note} setNote={setNote} onNew={newTask} onNote={addNote} onEdit={item=>setEditor({...item})} onDelete={deleteTask} onStatus={updateTask}/>}
     {section==='prayer'&&<PrayerPanel ownerMode={ownerMode} date={prayerDate} setDate={setPrayerDate} days={prayerDays} busy={busy} onToggle={togglePrayer}/>}
     {section==='quran'&&<QuranPanel ownerMode={ownerMode} quran={quranEntries} busy={busy} onAdd={addQuran} onDelete={deleteQuran}/>}
     <div className="tmv-bottom"><button type="button" className="tmv-owner-link" onClick={ownerMode?lockOwner:openOwner}><LockKeyhole size={16}/>{ownerMode?'Finish owner updates':'Owner updates (private code)'}</button><p>Only for <AhsanName/>’s family.</p></div>
-    {['nasir','talat','happa','yamna'].includes(familyViewer)&&<FamilySevenDayReminder/>}
     <div className="tmv-install-footer"><InstallShortcut/></div>
   </div>
   {pinOpen&&<PinModal busy={busy} onVerify={verifyPin} onClose={()=>setPinOpen(false)} error={pinError}/>}
