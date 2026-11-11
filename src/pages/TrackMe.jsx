@@ -401,6 +401,63 @@ async function api(body) {
   return data;
 }
 
+
+/* V31: Friendly opt-in reminder. No automatic notification prompt. */
+function FamilySevenDayReminder() {
+  const [supported, setSupported] = useState(false);
+  const [enabled, setEnabled] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState('');
+  useEffect(() => {
+    if (typeof window === 'undefined' || !('Notification' in window) || !('PushManager' in window) || !('serviceWorker' in navigator)) return;
+    setSupported(true);
+    let active = true;
+    navigator.serviceWorker.ready.then(reg => reg.pushManager.getSubscription()).then(sub => {
+      if(active) setEnabled(Boolean(sub));
+    }).catch(() => {});
+    return () => { active = false; };
+  }, []);
+  async function toggleReminder() {
+    setBusy(true); setMessage('');
+    try {
+      // Request permission immediately from this user gesture, before any awaits.
+      let permission = Notification.permission;
+      if (!enabled) {
+        if (permission === 'denied') throw Error('Notifications are blocked in phone settings. Please allow them to enable reminders.');
+        if (permission !== 'granted') permission = await Notification.requestPermission();
+        if (permission !== 'granted') throw Error('Please allow notifications to receive reminders.');
+      }
+      const reg = await navigator.serviceWorker.register('/track-me-sw.js', {scope:'/track-me'});
+      const existing = await reg.pushManager.getSubscription();
+      if (enabled && existing) {
+        await api({action:'reminder_unsubscribe',endpoint:existing.endpoint});
+        await existing.unsubscribe();
+        setEnabled(false); setMessage('7-day reminders are off on this device.');
+      } else {
+        const config = await api({action:'reminder_config'});
+        if (!config.publicKey) throw Error('Reminder notifications have not been configured yet.');
+        const base64 = config.publicKey.replace(/-/g,'+').replace(/_/g,'/');
+        const padded = base64.padEnd(Math.ceil(base64.length / 4) * 4, '=');
+        const key = Uint8Array.from(atob(padded), c => c.charCodeAt(0));
+        const subscription = existing || await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:key});
+        try { await api({action:'reminder_subscribe',subscription:subscription.toJSON()}); }
+        catch (err) { if(!existing) await subscription.unsubscribe().catch(()=>{}); throw err; }
+        setEnabled(true); setMessage('Enabled! If you do not open the app for 7 days, you will get a friendly reminder.');
+      }
+    } catch (err) { setMessage(err?.message || 'Could not update notifications.'); }
+    finally { setBusy(false); }
+  }
+  if (!supported) return null;
+  return <aside className="tmv-reminder-settings" aria-label="Family reminder settings">
+    <div className="tmv-reminder-setting-copy"><strong>7-day family reminder</strong>
+      <small>If you haven't opened Ahsan's Updates for 7 days, get a gentle notification. No daily spam.</small></div>
+    <button type="button" onClick={toggleReminder} disabled={busy} className="tmv-reminder-setting-button">
+      {busy?'Please wait…':enabled?'Turn off reminders':'Enable reminders'}
+    </button>
+    {message && <p className="tmv-reminder-setting-message" role="status">{message}</p>}
+  </aside>;
+}
+
 function LoginScreen({ password, setPassword, onSubmit, busy, error }) {
   const [show, setShow] = useState(false);
   return (
@@ -1381,6 +1438,20 @@ export default function TrackMe() {
   const [search,setSearch]=useState('');
   const [filter,setFilter]=useState('all');
   const [summaryOpen,setSummaryOpen]=useState(false);
+  /* V31: Update this person's last-open timestamp only after consent has been saved. */
+  useEffect(() => {
+    if (loading || !authenticated || !['nasir','talat','happa','yamna'].includes(familyViewer)) return undefined;
+    let lastSent = 0;
+    const touch = () => {
+      if (document.visibilityState === 'hidden' || Date.now() - lastSent < 60 * 60 * 1000) return;
+      lastSent = Date.now();
+      api({action:'reminder_touch'}).catch(() => {});
+    };
+    touch();
+    document.addEventListener('visibilitychange', touch);
+    window.addEventListener('focus', touch);
+    return () => { document.removeEventListener('visibilitychange', touch); window.removeEventListener('focus', touch); };
+  }, [loading,authenticated,familyViewer]);
   useEffect(()=>{
     let mounted=true;
     api().then(data=>{if(mounted){setAuthenticated(Boolean(data.authenticated));setFamilyViewer(data.viewer||'family');setEntries(data.entries||[]);setPrayerDays(data.prayerDays||{});setQuranEntries(data.quranEntries||[]);}})
@@ -1452,6 +1523,7 @@ export default function TrackMe() {
     {section==='prayer'&&<PrayerPanel ownerMode={ownerMode} date={prayerDate} setDate={setPrayerDate} days={prayerDays} busy={busy} onToggle={togglePrayer}/>}
     {section==='quran'&&<QuranPanel ownerMode={ownerMode} quran={quranEntries} busy={busy} onAdd={addQuran} onDelete={deleteQuran}/>}
     <div className="tmv-bottom"><button type="button" className="tmv-owner-link" onClick={ownerMode?lockOwner:openOwner}><LockKeyhole size={16}/>{ownerMode?'Finish owner updates':'Owner updates (private code)'}</button><p>Only for <AhsanName/>’s family.</p></div>
+    {['nasir','talat','happa','yamna'].includes(familyViewer)&&<FamilySevenDayReminder/>}
     <div className="tmv-install-footer"><InstallShortcut/></div>
   </div>
   {pinOpen&&<PinModal busy={busy} onVerify={verifyPin} onClose={()=>setPinOpen(false)} error={pinError}/>}

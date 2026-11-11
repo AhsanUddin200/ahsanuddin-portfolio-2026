@@ -1642,3 +1642,15 @@ body:has(.tm-page) {background:#f5f7f6}
   .tm-page .tmv-launch-splash-content,
   .tm-page .tmv-launch-splash-progress {animation:none}
 }
+
+/* V31: Optional, minimal family 7-day reminder setting. */
+.tmv-reminder-settings{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;padding:16px 18px;margin:12px 0 18px;border:1px solid #dce7df;border-radius:14px;background:#f8fbf9;color:#172a27}
+.tmv-reminder-setting-copy{display:flex;flex-direction:column;gap:4px;flex:1;min-width:190px}
+.tmv-reminder-setting-copy strong{font:650 14px/1.5 Inter,system-ui,sans-serif;color:#173c2f}
+.tmv-reminder-setting-copy small{font:400 12px/1.55 Inter,system-ui,sans-serif;color:#62796b}
+.tmv-reminder-setting-button{min-height:44px;padding:10px 15px;border:1px solid #246c55;border-radius:10px;background:#246c55;color:#fff;font:650 12px/1.3 Inter,system-ui,sans-serif;cursor:pointer}
+.tmv-reminder-setting-button:hover:not(:disabled){background:#194c3a}
+.tmv-reminder-setting-button:disabled{opacity:.6;cursor:default}
+.tmv-reminder-setting-button:focus-visible{outline:3px solid #80bda3;outline-offset:2px}
+.tmv-reminder-setting-message{flex-basis:100%;margin:0;color:#345e48;font:400 12px/1.6 Inter,system-ui,sans-serif}
+@media(max-width:460px){.tmv-reminder-settings{padding:13px}.tmv-reminder-setting-button{width:100%}}

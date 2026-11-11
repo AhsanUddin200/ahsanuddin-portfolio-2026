@@ -46,6 +46,19 @@ const familyLoginAccounts = () => [
 ].filter(account => typeof account.password === 'string' && account.password.length >= 1);
 const familyViewerNames = new Set(['nasir','talat','happa','yamna','family']);
 
+/* V31: Separate reminder records; no existing task/prayer/Quran keys change. */
+const REMINDER_PREFIX = 'ahsan:track:family-reminders:v1:';
+const REMINDER_VIEWERS = new Set(['nasir','talat','happa','yamna']);
+function reminderKey(viewer) { return REMINDER_PREFIX + viewer; }
+function validatePushSubscription(sub) {
+  if (!sub || typeof sub !== 'object' || Array.isArray(sub)) return false;
+  if (typeof sub.endpoint !== 'string' || sub.endpoint.length > 2000) return false;
+  try { const url = new URL(sub.endpoint); if (url.protocol !== 'https:' || url.username || url.password) return false; }
+  catch { return false; }
+  return Boolean(sub.keys && typeof sub.keys.p256dh === 'string' && sub.keys.p256dh.length > 20
+    && typeof sub.keys.auth === 'string' && sub.keys.auth.length > 8);
+}
+
 const SESSION_SECONDS = 7 * 24 * 60 * 60;
 
 const PRAYERS = new Set([
@@ -1060,6 +1073,44 @@ export default async function handler(
     /* =====================================================
        LOAD ALL TRACKING DATA
     ===================================================== */
+
+    /* V31 reminder actions: authenticated signed family session is the only identity source. */
+    if (['reminder_config','reminder_touch','reminder_subscribe','reminder_unsubscribe'].includes(action)) {
+      const viewer = authenticatedViewer(req);
+      if (!REMINDER_VIEWERS.has(viewer)) {
+        return error(res, 403, 'Enable reminders using an individual family password.');
+      }
+      const key = reminderKey(viewer);
+      const state = await readJSON(key, {});
+      const subscriptions = Array.isArray(state.subscriptions) ? state.subscriptions : [];
+
+      if (action === 'reminder_config') {
+        return res.status(200).json({ publicKey: process.env.TRACK_PUSH_PUBLIC_KEY || '', available: Boolean(process.env.TRACK_PUSH_PUBLIC_KEY) });
+      }
+      if (action === 'reminder_touch') {
+        // A real authenticated app open/foreground visit resets this person's 7-day timer.
+        if (subscriptions.length) {
+          const lastSeenAt = new Date().toISOString();
+          await writeJSON(key, { ...state, lastSeenAt });
+        }
+        return res.status(200).json({ ok: true });
+      }
+      if (action === 'reminder_subscribe') {
+        const sub = body.subscription;
+        if (!validatePushSubscription(sub)) return error(res, 400, 'Invalid push subscription.');
+        const filtered = subscriptions.filter(item => item.endpoint !== sub.endpoint);
+        const updated = [...filtered, {endpoint: sub.endpoint, keys: {p256dh: sub.keys.p256dh, auth: sub.keys.auth}}].slice(-5);
+        await writeJSON(key, { ...state, subscriptions: updated, lastSeenAt: new Date().toISOString(), lastReminderAt: null });
+        return res.status(200).json({ enabled: true });
+      }
+      if (action === 'reminder_unsubscribe') {
+        const endpoint = typeof body.endpoint === 'string' ? body.endpoint : '';
+        if (!endpoint || endpoint.length > 2000) return error(res, 400, 'Invalid subscription.');
+        const updated = subscriptions.filter(item => item.endpoint !== endpoint);
+        await writeJSON(key, { ...state, subscriptions: updated });
+        return res.status(200).json({ enabled: false });
+      }
+    }
 
     if (action === "load") {
       const [
