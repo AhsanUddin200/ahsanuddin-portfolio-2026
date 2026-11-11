@@ -4,7 +4,7 @@ import {
   ArrowLeft, ArrowRight, BookOpen, BriefcaseBusiness, CalendarDays, Check,
   CheckCircle2, ChevronLeft, ChevronRight, Clock3, Edit3, Eye, EyeOff,
   GraduationCap, Heart, KeyRound, LockKeyhole, LogOut, Plus, Search,
-  Send, ShieldAlert, ShieldCheck, Sparkles, Trash2, TrendingUp, X, Home, Menu, MessageSquareText, Sun, Moon, Volume2, VolumeX, Smartphone,
+  Bell, Send, ShieldAlert, ShieldCheck, Sparkles, Trash2, TrendingUp, X, Home, Menu, MessageSquareText, Sun, Moon, Volume2, VolumeX, Smartphone,
 } from 'lucide-react';
 import './TrackMe.css';
 
@@ -403,61 +403,94 @@ async function api(body) {
 
 
 /* V31: Friendly opt-in reminder. No automatic notification prompt. */
+/* Track Me V31.5 - one-tap mini bell */
 function FamilySevenDayReminder({ viewer = 'family' }) {
-  const [supported, setSupported] = useState(false);
   const [enabled, setEnabled] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [message, setMessage] = useState('');
+  const [toast, setToast] = useState('');
+  const toastTimer = useRef(null);
+  const isIndividual = ['nasir', 'talat', 'happa', 'yamna'].includes(viewer);
+
+  function flash(message) {
+    window.clearTimeout(toastTimer.current);
+    setToast(message);
+    toastTimer.current = window.setTimeout(() => setToast(''), 2000);
+  }
+  useEffect(() => () => window.clearTimeout(toastTimer.current), []);
+
   useEffect(() => {
-    if (typeof window === 'undefined' || !('Notification' in window) || !('PushManager' in window) || !('serviceWorker' in navigator)) return;
-    setSupported(true);
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return undefined;
     let active = true;
-    navigator.serviceWorker.ready.then(reg => reg.pushManager.getSubscription()).then(sub => {
-      if(active) setEnabled(Boolean(sub));
-    }).catch(() => {});
+    navigator.serviceWorker.getRegistration('/track-me')
+      .then(reg => reg ? reg.pushManager.getSubscription() : null)
+      .then(sub => { if (active) setEnabled(Boolean(sub)); })
+      .catch(() => { if (active) setEnabled(false); });
     return () => { active = false; };
-  }, []);
-  async function toggleReminder() {
-    setBusy(true); setMessage('');
+  }, [viewer]);
+
+  async function handleBell() {
+    if (busy) return;
+    if (!isIndividual) {
+      flash('Sign in with your individual family password.');
+      return;
+    }
+    if (!('Notification' in window) || !('PushManager' in window) || !('serviceWorker' in navigator)) {
+      flash('Notifications are not available on this device.');
+      return;
+    }
+    setBusy(true);
     try {
-      // Request permission immediately from this user gesture, before any awaits.
-      let permission = Notification.permission;
+      // Must happen directly after a real tap, before another asynchronous operation.
       if (!enabled) {
-        if (permission === 'denied') throw Error('Notifications are blocked in phone settings. Please allow them to enable reminders.');
-        if (permission !== 'granted') permission = await Notification.requestPermission();
-        if (permission !== 'granted') throw Error('Please allow notifications to receive reminders.');
+        if (Notification.permission === 'denied') throw Error('Allow notifications in phone settings first.');
+        if (Notification.permission !== 'granted') {
+          const permission = await Notification.requestPermission();
+          if (permission !== 'granted') throw Error('Notification permission not allowed.');
+        }
       }
-      const reg = await navigator.serviceWorker.register('/track-me-sw.js', {scope:'/track-me'});
+      const reg = await navigator.serviceWorker.register('/track-me-sw.js', { scope: '/track-me' });
       const existing = await reg.pushManager.getSubscription();
-      if (enabled && existing) {
-        await api({action:'reminder_unsubscribe',endpoint:existing.endpoint});
-        await existing.unsubscribe();
-        setEnabled(false); setMessage('7-day reminders are off on this device.');
+      if (enabled) {
+        if (existing) {
+          await api({ action: 'reminder_unsubscribe', endpoint: existing.endpoint });
+          await existing.unsubscribe();
+        }
+        setEnabled(false);
+        flash('7-day reminders turned off.');
       } else {
-        const config = await api({action:'reminder_config'});
-        if (!config.publicKey) throw Error('Reminder notifications have not been configured yet.');
-        const base64 = config.publicKey.replace(/-/g,'+').replace(/_/g,'/');
+        const config = await api({ action: 'reminder_config' });
+        if (!config.publicKey) throw Error('Notifications are not configured yet.');
+        const base64 = config.publicKey.replace(/-/g, '+').replace(/_/g, '/');
         const padded = base64.padEnd(Math.ceil(base64.length / 4) * 4, '=');
         const key = Uint8Array.from(atob(padded), c => c.charCodeAt(0));
-        const subscription = existing || await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:key});
-        try { await api({action:'reminder_subscribe',subscription:subscription.toJSON()}); }
-        catch (err) { if(!existing) await subscription.unsubscribe().catch(()=>{}); throw err; }
-        setEnabled(true); setMessage('Enabled! If you do not open the app for 7 days, you will get a friendly reminder.');
+        const subscription = existing || await reg.pushManager.subscribe({
+          userVisibleOnly: true, applicationServerKey: key,
+        });
+        try {
+          await api({ action: 'reminder_subscribe', subscription: subscription.toJSON() });
+        } catch (err) {
+          if (!existing) await subscription.unsubscribe().catch(() => {});
+          throw err;
+        }
+        setEnabled(true);
+        flash("Get a gentle notification if you haven't opened Ahsan's Updates for 7 days.");
       }
-    } catch (err) { setMessage(err?.message || 'Could not update notifications.'); }
-    finally { setBusy(false); }
+    } catch (err) {
+      flash(err?.message || 'Could not update notifications.');
+    } finally {
+      setBusy(false);
+    }
   }
-  const isIndividual = ['nasir','talat','happa','yamna'].includes(viewer);
-  return <aside className="tmv-reminder-settings" aria-label="Family reminder settings">
-    <div className="tmv-reminder-setting-copy"><strong>7-day family reminder</strong>
-      <small>If you haven't opened Ahsan's Updates for 7 days, get a gentle notification. No daily spam.</small>
-       {!isIndividual && <small role="status">Log out and sign in with Nasir, Talat, Happa or Yamna's individual password to enable reminders.</small>}
-       {isIndividual && !supported && <small role="status">Notifications are not supported in this browser. Open the installed app on Android, or add the web app to your iPhone Home Screen.</small>}</div>
-    <button type="button" onClick={toggleReminder} disabled={busy || !supported || !isIndividual} className="tmv-reminder-setting-button">
-      {busy?'Please wait…':enabled?'Turn off reminders':'Enable reminders'}
+
+  return <>
+    <button type="button" className="tmv-mini-bell" aria-label="Toggle 7-day notifications"
+      title={enabled ? 'Turn off 7-day reminders' : 'Turn on 7-day reminders'}
+      aria-pressed={enabled} aria-busy={busy} disabled={busy} onClick={handleBell}>
+      <Bell size={17} strokeWidth={1.8} aria-hidden="true" />
+      {enabled && isIndividual && <span className="tmv-mini-bell-dot" aria-hidden="true" />}
     </button>
-    {message && <p className="tmv-reminder-setting-message" role="status">{message}</p>}
-  </aside>;
+    {toast && <div className="tmv-mini-toast" role="status" aria-live="polite">{toast}</div>}
+  </>;
 }
 
 function LoginScreen({ password, setPassword, onSubmit, busy, error }) {
@@ -1516,11 +1549,10 @@ export default function TrackMe() {
   if(!authenticated)return <main className="tm-page"><LoginScreen password={password} setPassword={setPassword} onSubmit={signIn} busy={busy} error={loginError}/></main>;
   if(welcome)return <main className="tm-page"><CautionWelcome viewer={familyViewer} onContinue={()=>setWelcome(false)}/></main>;
   return <main className="tm-page tmv-family"><div className="tm-shell tmv-shell">
-    <header className="tmv-header"><button type="button" className="tmv-brand" onClick={()=>go('overview')} aria-label="Go to Ahsan's daily updates"><AhsanAvatar className="tmv-avatar-header"/><span><strong><AhsanName/>’s Updates</strong><small>Family journal</small></span></button><button type="button" className="tmv-logout" onClick={signOut}><LogOut size={18}/><span>Log out</span></button></header>
+    <header className="tmv-header"><button type="button" className="tmv-brand" onClick={()=>go('overview')} aria-label="Go to Ahsan's daily updates"><AhsanAvatar className="tmv-avatar-header"/><span><strong><AhsanName/>’s Updates</strong><small>Family journal</small></span></button><div className="tmv-mini-header-actions"><FamilySevenDayReminder viewer={familyViewer}/><button type="button" className="tmv-logout" onClick={signOut}><LogOut size={18}/><span>Log out</span></button></div></header>
     {section!=='overview'&&<button type="button" className="tmv-back" onClick={()=>go('overview')}><ArrowLeft size={20}/> Back to daily updates</button>}
     {notice&&<div className="tmv-notice" role="status"><CheckCircle2 size={19}/><span>{notice}</span><button type="button" onClick={()=>setNotice('')} aria-label="Dismiss"><X size={17}/></button></div>}
     {ownerMode&&<div className="tmv-owner-banner"><span><LockKeyhole size={16}/> Owner mode · all sections unlocked</span><button type="button" onClick={lockOwner}>Finish editing</button></div>}
-    {section==='overview'&&<FamilySevenDayReminder viewer={familyViewer}/>}
     {section==='overview'&&<FamilyToday entries={entries} days={prayerDays} quran={quranEntries} viewDate={viewDate} setViewDate={setViewDate} onOpen={go} ownerMode={ownerMode} onNew={newTask} onOpenSummary={()=>setSummaryOpen(true)}/>}
     {['office','personal','university'].includes(section)&&<WorkPanel section={section} ownerMode={ownerMode} entries={entries} busy={busy} search={search} setSearch={setSearch} filter={filter} setFilter={setFilter} expanded={expanded} setExpanded={setExpanded} note={note} setNote={setNote} onNew={newTask} onNote={addNote} onEdit={item=>setEditor({...item})} onDelete={deleteTask} onStatus={updateTask}/>}
     {section==='prayer'&&<PrayerPanel ownerMode={ownerMode} date={prayerDate} setDate={setPrayerDate} days={prayerDays} busy={busy} onToggle={togglePrayer}/>}

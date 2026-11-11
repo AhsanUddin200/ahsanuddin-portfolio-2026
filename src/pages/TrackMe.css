@@ -1654,3 +1654,16 @@ body:has(.tm-page) {background:#f5f7f6}
 .tmv-reminder-setting-button:focus-visible{outline:3px solid #80bda3;outline-offset:2px}
 .tmv-reminder-setting-message{flex-basis:100%;margin:0;color:#345e48;font:400 12px/1.6 Inter,system-ui,sans-serif}
 @media(max-width:460px){.tmv-reminder-settings{padding:13px}.tmv-reminder-setting-button{width:100%}}
+
+
+/* Track Me V31.5 - one-tap mini bell and 2-second bottom toast */
+.tm-page .tmv-mini-header-actions{display:flex;align-items:center;gap:4px;flex-shrink:0}
+.tm-page .tmv-mini-bell{position:relative;display:grid;place-items:center;width:34px;height:34px;flex:0 0 34px;padding:0;border:0;border-radius:50%;background:transparent;color:#486656;cursor:pointer}
+.tm-page .tmv-mini-bell:hover{background:#eef4ef;color:#1d6245}
+.tm-page .tmv-mini-bell:focus-visible{outline:2px solid #246c55;outline-offset:2px}
+.tm-page .tmv-mini-bell:disabled{cursor:wait;opacity:.55}
+.tm-page .tmv-mini-bell-dot{position:absolute;right:6px;top:5px;width:5px;height:5px;border-radius:50%;background:#248660;box-shadow:0 0 0 2px #f7f9f7}
+.tm-page .tmv-mini-toast{position:fixed;z-index:2147483000;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);width:max-content;max-width:calc(100vw - 28px);padding:9px 13px;border-radius:9px;background:#193f30;color:#fff;font:500 12px/1.5 Inter,system-ui,sans-serif;text-align:center;box-shadow:0 6px 20px rgba(0,0,0,.14);pointer-events:none;animation:tmv-mini-toast-enter .18s ease-out both}
+@keyframes tmv-mini-toast-enter{from{opacity:0;transform:translate(-50%,6px)}to{opacity:1;transform:translate(-50%,0)}}
+@media(max-width:400px){.tm-page .tmv-mini-header-actions{gap:3px}.tm-page .tmv-mini-header-actions .tmv-logout{width:43px;min-width:43px;padding:0;justify-content:center}.tm-page .tmv-mini-header-actions .tmv-logout span{display:none}}
+@media(prefers-reduced-motion:reduce){.tm-page .tmv-mini-toast{animation:none}}
