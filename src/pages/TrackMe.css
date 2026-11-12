@@ -1937,3 +1937,156 @@ body:has(.tm-page) {background:#f5f7f6}
   .tm-page .tmv-v34-date-slot .tmv-v33-datebar { height: 61px; }
   .tm-page .tmv-v34-date-slot .tmv-v32-datecenter>strong { font-size: 11px; }
 }
+
+
+/* ================================================================
+   V35 — Same-height date + Prayer cards; elegant local day/night sky.
+   Day: sun, slow clouds and decorative animated traffic.
+   Night: moon and faint twinkling stars. These are illustrations, NOT
+   real-world traffic indicators. Data/date navigation remains unchanged.
+   ================================================================ */
+@media (min-width: 721px) {
+  .tm-page .tmv-v34-day-prayer {
+    align-items: stretch;
+    grid-template-columns: minmax(220px, .31fr) minmax(0, 1fr);
+  }
+  .tm-page .tmv-v34-date-slot {
+    display: flex;
+    align-items: stretch;
+    min-width: 0;
+  }
+  .tm-page .tmv-v34-date-slot .tmv-v35-datebar {
+    width: 100%;
+    height: 100%;
+    min-height: 224px;
+    padding: 13px 8px;
+  }
+  .tm-page .tmv-v34-day-prayer .tmv-prayer-card {
+    height: 100%;
+    min-height: 224px;
+    padding-top: 9px;
+    gap: 5px;
+    justify-content: space-between;
+  }
+  .tm-page .tmv-v34-day-prayer .tmv-prayer-card .tmv-card-icon { height: 30px; }
+  .tm-page .tmv-v34-day-prayer .tmv-prayer-card .tmv-prayer-readout { gap: 6px; }
+  .tm-page .tmv-v34-day-prayer .tmv-prayer-card .tmv-prayer-mark { width: 27px; height: 27px; }
+  .tm-page .tmv-v34-day-prayer .tmv-prayer-card .tmv-read-more {
+    min-height: 33px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+  }
+}
+/* Theme remains neutral and readable even when the little sky moves. */
+.tm-page .tmv-v35-datebar {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  transition: background .35s ease, border-color .35s ease;
+}
+.tm-page .tmv-v35-datebar.tmv-v35-day {
+  background: linear-gradient(150deg, #fffdf6 0%, #f8fcef 47%, #eff7ed 100%);
+  border-color: #dfe7d8;
+}
+.tm-page .tmv-v35-datebar.tmv-v35-night {
+  background: linear-gradient(155deg, #173936 0%, #224449 100%);
+  border-color: #274b46;
+}
+.tm-page .tmv-v35-datebar .tmv-v32-datearrow,
+.tm-page .tmv-v35-datebar .tmv-v32-datecenter {
+  position: relative;
+  z-index: 2;
+}
+.tm-page .tmv-v35-datebar.tmv-v35-night .tmv-v32-datecenter > span,
+.tm-page .tmv-v35-datebar.tmv-v35-night .tmv-v32-datecenter > strong,
+.tm-page .tmv-v35-datebar.tmv-v35-night .tmv-v33-date-meta {
+  color: #f2f9f5;
+}
+.tm-page .tmv-v35-datebar.tmv-v35-night .tmv-v32-datecenter > span { color: #bce4c6; }
+.tm-page .tmv-v35-datebar.tmv-v35-night .tmv-v33-date-meta { color: #d7e8da; }
+.tm-page .tmv-v35-datebar.tmv-v35-night .tmv-v32-datearrow {
+  background: rgba(255,255,255,.12);
+  color: #e4f4e9;
+}
+.tm-page .tmv-v35-datebar.tmv-v35-night .tmv-v32-datearrow:hover:not(:disabled) { background: rgba(255,255,255,.22); }
+.tm-page .tmv-v35-datebar .tmv-v35-ambient {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.tm-page .tmv-v35-sky-symbol {
+  position: absolute;
+  top: 12px;
+  right: 13px;
+  opacity: .60;
+}
+.tm-page .tmv-v35-day .tmv-v35-sky-symbol { color: #d7a64c; animation: tmv-v35-sunlight 8s ease-in-out infinite; }
+.tm-page .tmv-v35-night .tmv-v35-sky-symbol { color: #f7e9c0; opacity: .84; }
+.tm-page .tmv-v35-cloud {
+  position: absolute;
+  left: -45px;
+  top: 28px;
+  width: 47px;
+  height: 10px;
+  border-radius: 22px;
+  background: rgba(178,204,186,.25);
+  box-shadow: 13px -5px 0 2px rgba(178,204,186,.20);
+  animation: tmv-v35-cloud-cross 29s linear infinite;
+}
+.tm-page .tmv-v35-cloud-second { top: 61px; opacity: .6; animation-delay: -15s; animation-duration: 35s; }
+.tm-page .tmv-v35-star {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: #e5f5e7;
+  box-shadow: 0 0 7px rgba(242,251,231,.65);
+  animation: tmv-v35-starlight 2.8s ease-in-out infinite alternate;
+}
+.tm-page .tmv-v35-star-one{top:23px;left:20px}
+.tm-page .tmv-v35-star-two{top:48px;right:66px;animation-delay:-1.3s}
+.tm-page .tmv-v35-star-three{top:78%;right:30px;animation-delay:-2s}
+.tm-page .tmv-v35-star-four{top:65%;left:28px;animation-delay:-.7s}
+.tm-page .tmv-v35-traffic {
+  position: absolute;
+  inset: auto 13px 12px;
+  height: 20px;
+  opacity: .32;
+  overflow: hidden;
+}
+.tm-page .tmv-v35-road-line {
+  position: absolute;
+  bottom: 1px;
+  width: 100%;
+  border-bottom: 1px dashed #92b7a1;
+}
+.tm-page .tmv-v35-car {
+  position: absolute;
+  bottom: 0;
+  left: -42px;
+  width: 29px;
+  height: 14px;
+  color: #497960;
+  animation: tmv-v35-traffic-pass 17s linear infinite;
+}
+.tm-page .tmv-v35-car-second { animation-delay: -8s; animation-duration: 23s; opacity: .8; }
+@keyframes tmv-v35-sunlight { 50% {opacity:.84;transform:rotate(12deg)} }
+@keyframes tmv-v35-cloud-cross { to {left:calc(100% + 50px)} }
+@keyframes tmv-v35-starlight { from {opacity:.25;transform:scale(.8)} to {opacity:.9;transform:scale(1.5)} }
+@keyframes tmv-v35-traffic-pass { to {left:calc(100% + 35px)} }
+@media (max-width: 720px) {
+  /* Keep the compact mobile DATE STRIP; do not force tall equal-height cards. */
+  .tm-page .tmv-v34-date-slot .tmv-v35-datebar { min-height: 0; height: 61px; }
+  .tm-page .tmv-v35-sky-symbol { top: 10px; right: 17px; width: 20px; height: 20px; }
+  .tm-page .tmv-v35-traffic {display:none}
+  .tm-page .tmv-v35-cloud-second {display:none}
+}
+@media(prefers-reduced-motion:reduce) {
+  .tm-page .tmv-v35-sky-symbol,
+  .tm-page .tmv-v35-cloud,
+  .tm-page .tmv-v35-star,
+  .tm-page .tmv-v35-car {animation:none!important}
+  .tm-page .tmv-v35-datebar {transition:none}
+}

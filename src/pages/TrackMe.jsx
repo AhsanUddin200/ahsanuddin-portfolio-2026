@@ -1313,7 +1313,24 @@ function V32DateNavigator({ value, setValue }) {
   const readable = selectedDate.toLocaleDateString('en-US', {
     weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
   });
-  return <div className="tmv-v32-datebar tmv-v33-datebar" aria-label="Daily updates date selection">
+  return <div className={`tmv-v32-datebar tmv-v33-datebar tmv-v35-datebar ${isDay ? 'tmv-v35-day' : 'tmv-v35-night'}`} aria-label="Daily updates date selection">
+    {/* Purely decorative local-time sky: no external services, no real traffic data. */}
+    <div className="tmv-v35-ambient" aria-hidden="true">
+      {isDay ? <>
+        <Sun className="tmv-v35-sky-symbol" size={30} strokeWidth={1.35}/>
+        <span className="tmv-v35-cloud tmv-v35-cloud-first"/>
+        <span className="tmv-v35-cloud tmv-v35-cloud-second"/>
+        <div className="tmv-v35-traffic">
+          <span className="tmv-v35-road-line"/>
+          <svg className="tmv-v35-car tmv-v35-car-first" viewBox="0 0 44 19" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 13h37l-2-5H29l-5-5H14l-6 7H3v3Z"/><circle cx="12" cy="15" r="2.6"/><circle cx="34" cy="15" r="2.6"/></svg>
+          <svg className="tmv-v35-car tmv-v35-car-second" viewBox="0 0 44 19" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 13h37l-2-5H29l-5-5H14l-6 7H3v3Z"/><circle cx="12" cy="15" r="2.6"/><circle cx="34" cy="15" r="2.6"/></svg>
+        </div>
+      </> : <>
+        <Moon className="tmv-v35-sky-symbol" size={29} strokeWidth={1.4}/>
+        <i className="tmv-v35-star tmv-v35-star-one"/><i className="tmv-v35-star tmv-v35-star-two"/>
+        <i className="tmv-v35-star tmv-v35-star-three"/><i className="tmv-v35-star tmv-v35-star-four"/>
+      </>}
+    </div>
     <button type="button" className="tmv-v32-datearrow" onClick={() => setValue(shiftDay(value, -1))} aria-label="Previous day"><ChevronLeft size={20}/></button>
     <label className="tmv-v32-datecenter">
       <span>{value === today ? 'TODAY' : 'SELECTED DATE · TAP TO CHANGE'}</span>
