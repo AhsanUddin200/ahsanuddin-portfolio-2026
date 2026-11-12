@@ -7,6 +7,7 @@ import {
   Bell, Send, ShieldAlert, ShieldCheck, Sparkles, Trash2, TrendingUp, X, Home, Menu, MessageSquareText, Sun, Moon, Volume2, VolumeX, Smartphone,
 } from 'lucide-react';
 import './TrackMe.css';
+import './TrackMeV33.css';
 
 // Real family photo supplied by the owner (stored in /public).
 const PROFILE_PHOTO = '/ahsan-family-photo.png';
@@ -1299,15 +1300,32 @@ function xDate(x) { return x.meta?.upcomingDate || x.dueDate || ''; }
 /* Track Me V32: Compact family home. Existing detail panels and backend are unchanged. */
 function V32DateNavigator({ value, setValue }) {
   const today = dayISO();
+  // Clock is always the viewer's *current local time*, not the selected historical date.
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(new Date()), 30000);
+    return () => window.clearInterval(timer);
+  }, []);
+  const hour = now.getHours();
+  const isDay = hour >= 6 && hour < 18;
+  const PartIcon = isDay ? Sun : Moon;
+  const timeText = now.toLocaleTimeString(undefined, {hour:'numeric', minute:'2-digit'});
   const selectedDate = new Date(`${value}T12:00:00`);
   const readable = selectedDate.toLocaleDateString('en-US', {
     weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
   });
-  return <div className="tmv-v32-datebar" aria-label="Daily updates date selection">
+  return <div className="tmv-v32-datebar tmv-v33-datebar" aria-label="Daily updates date selection">
     <button type="button" className="tmv-v32-datearrow" onClick={() => setValue(shiftDay(value, -1))} aria-label="Previous day"><ChevronLeft size={20}/></button>
     <label className="tmv-v32-datecenter">
       <span>{value === today ? 'TODAY' : 'SELECTED DATE · TAP TO CHANGE'}</span>
       <strong>{readable}</strong>
+      <small className="tmv-v33-date-meta" aria-label={`Current local time ${timeText}, ${isDay ? 'day' : 'night'}`}>
+        <Clock3 size={12} strokeWidth={1.8} aria-hidden="true" />
+        <span>{timeText}</span>
+        <span className="tmv-v33-date-separator" aria-hidden="true">·</span>
+        <PartIcon size={13} strokeWidth={1.8} aria-hidden="true" />
+        <span>{isDay ? 'Day' : 'Night'}</span>
+      </small>
       <input type="date" value={value} max={today} onChange={e => {
         if (e.target.value && e.target.value <= today) setValue(e.target.value);
       }} aria-label="Choose a day to see its saved updates" />
@@ -1418,17 +1436,21 @@ function FamilyToday({ entries, days, quran, viewDate, setViewDate, onOpen, onOp
     return () => clearTimeout(timer);
   }, [viewDate, hasAny]);
   const toggle = key => setExpanded(value => value === key ? null : key);
+  // Always show the saved Para number(s), even for multiple Quran sessions.
+  // Never invent Para information when no number is recorded.
+  const paraNumbers = [...new Set(read.map(item => String(item.para ?? '').trim()).filter(Boolean))];
+  const paraSummary = paraNumbers.length ? `Para ${paraNumbers.join(', ')}` : `${read.length} reading${read.length === 1 ? '' : 's'}`;
   const quranSummary = read.length
-    ? `${read.length === 1 ? `Para ${read[0].para} · ` : `${read.length} sessions · `}${pages} ${pages === 1 ? 'page' : 'pages'} read`
+    ? `${paraSummary} · ${pages} ${pages === 1 ? 'page' : 'pages'} read`
     : `No Quran reading recorded ${viewDate === dayISO() ? 'today' : 'for this date'}`;
   const quranExtra = !read.length && lastQuranReading
-    ? `Last reading: Para ${lastQuranReading.para} · ${prettyDate(lastQuranReading.date)}` : '';
+    ? `Last reading: Para ${lastQuranReading.para} · ${lastQuranReading.pagesRead} ${Number(lastQuranReading.pagesRead) === 1 ? 'page' : 'pages'} · ${prettyDate(lastQuranReading.date)}` : '';
   return <div className="tmv-family-view tmv-v32-home">
     <div className="tmv-v32-intro">
       <span className="tmv-v32-kicker">THE DAILY JOURNAL</span>
       <div className="tmv-v32-titleline">
-        <div><h1><AhsanName/>’s day<span className="tmv-v32-dot">.</span></h1><p>Just the important moments, in one place.</p></div>
-        <button type="button" className="tmv-v32-summarybtn" onClick={onOpenSummary} aria-label="Open daily summary assistant"><Sparkles size={17}/><span>Quick summary</span></button>
+        <div><h1 className="tmv-v33-script-title">Ahsan’s day<span className="tmv-v32-dot">.</span></h1><p>Just the important moments, in one place.</p></div>
+        <button type="button" className="tmv-v32-summarybtn" onClick={onOpenSummary} aria-label="Open daily summary assistant"><Sparkles size={17}/><span>Quick AI summary</span></button>
       </div>
     </div>
     <V32DateNavigator value={viewDate} setValue={setViewDate}/>
