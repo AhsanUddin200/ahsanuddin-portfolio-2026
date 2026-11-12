@@ -1748,142 +1748,100 @@ body:has(.tm-page) {background:#f5f7f6}
 }
 @media(prefers-reduced-motion:reduce){.tm-page .tmv-v32-chevron{transition:none}}
 
+/* V33: UI refinements, merged directly into TrackMe.css. */
 
-
-
-/* ===== V33: Prayer card compact ===== */
-.tm-prayer-card {
+/* (1) Compact the original Prayer card while keeping all five prayer markers,
+   background video, text readability and prayer history button. */
+.tm-page .tmv-v32-home .tmv-prayer-card {
   min-height: 0;
-}
-
-.tm-prayer-card .tm-category-card__body {
-  padding: 18px 20px 14px;
-}
-
-.tm-prayer-card .tm-category-card__footer {
-  padding: 12px 20px;
-}
-
-.tm-prayer-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 14px;
-}
-
-.tm-prayer-title-wrap {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.tm-prayer-title-wrap h3 {
-  margin: 0;
-  font-size: 18px;
-  line-height: 1.2;
-  font-weight: 700;
-  color: #173c2f;
-}
-
-.tm-prayer-recorded {
-  font-size: 13px;
-  font-weight: 700;
-  color: #246c55;
-}
-
-.tm-prayer-grid {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 12px;
-  align-items: start;
-}
-
-.tm-prayer-item {
-  text-align: center;
-  padding: 8px 4px;
-}
-
-.tm-prayer-item-icon {
-  width: 46px;
-  height: 46px;
-  margin: 0 auto 8px;
-  border-radius: 999px;
-  display: grid;
-  place-items: center;
-  border: 1px solid #d7e5dc;
-  background: rgba(255,255,255,.72);
-  color: #6d877a;
-  font-size: 24px;
-  font-weight: 700;
-}
-
-.tm-prayer-item-name {
-  font-size: 15px;
-  line-height: 1.2;
-  font-weight: 700;
-  color: #173c2f;
-  margin-bottom: 4px;
-}
-
-.tm-prayer-item-status {
-  font-size: 13px;
-  line-height: 1.3;
-  color: #6d7f76;
-}
-
-@media (max-width: 900px) {
-  .tm-prayer-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 640px) {
-  .tm-prayer-card .tm-category-card__body {
-    padding: 16px 14px 12px;
-  }
-
-  .tm-prayer-card .tm-category-card__footer {
-    padding: 12px 14px;
-  }
-
-  .tm-prayer-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
-  }
-
-  .tm-prayer-item-icon {
-    width: 42px;
-    height: 42px;
-    font-size: 22px;
-  }
-
-  .tm-prayer-title-wrap h3 {
-    font-size: 17px;
-  }
-}
-
-
-/* ===== V33: Date card meta ===== */
-.tm-date-card__meta {
-  margin-top: 8px;
-  display: flex;
-  justify-content: center;
+  padding: 12px 18px 0;
   gap: 8px;
-  flex-wrap: wrap;
+}
+.tm-page .tmv-v32-home .tmv-prayer-card .tmv-card-heading { gap: 8px; }
+.tm-page .tmv-v32-home .tmv-prayer-card .tmv-card-icon {
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+}
+.tm-page .tmv-v32-home .tmv-prayer-card .tmv-card-heading h2 {
+  font-size: 17px;
+  line-height: 1.3;
+}
+.tm-page .tmv-v32-home .tmv-prayer-card .tmv-prayer-readout { gap: 9px; }
+.tm-page .tmv-v32-home .tmv-prayer-card .tmv-prayer-head { gap: 8px; }
+.tm-page .tmv-v32-home .tmv-prayer-card .tmv-prayer-five {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 3px;
+}
+.tm-page .tmv-v32-home .tmv-prayer-card .tmv-prayer-one { gap: 1px; }
+.tm-page .tmv-v32-home .tmv-prayer-card .tmv-prayer-mark {
+  width: 28px;
+  height: 28px;
+}
+.tm-page .tmv-v32-home .tmv-prayer-card .tmv-prayer-mark svg { width: 17px; height: 17px; }
+.tm-page .tmv-v32-home .tmv-prayer-card .tmv-prayer-one strong { margin-top: 2px; }
+.tm-page .tmv-v32-home .tmv-prayer-card .tmv-read-more {
+  min-height: 38px;
+  padding: 8px 0;
+  margin-top: 0;
 }
 
-.tm-date-chip {
+/* (2) Small current local clock + sun/moon in the existing date card.
+   The date remains selectable and the selected date's saved data is unchanged. */
+.tm-page .tmv-v33-datebar { height: 74px; }
+.tm-page .tmv-v33-datebar .tmv-v32-datecenter { gap: 2px; }
+.tm-page .tmv-v33-date-meta {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  min-height: 28px;
-  padding: 6px 10px;
-  border-radius: 999px;
-  background: #f4f8f5;
-  border: 1px solid #dce8e0;
-  color: #315848;
-  font-size: 12px;
+  justify-content: center;
+  gap: 5px;
+  margin-top: 1px;
+  color: #557b65;
+  font-family: Inter, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-size: 10.5px;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.tm-page .tmv-v33-date-meta svg { flex-shrink: 0; }
+.tm-page .tmv-v33-date-separator { margin: 0 2px; opacity: .6; }
+
+/* (3) Quick AI summary keeps the same working chatbot — only its label changes. */
+
+/* (4) The ENTIRE heading uses Ahsan's existing Caveat handwriting font. */
+.tm-page .tmv-v32-home .tmv-v32-titleline h1.tmv-v33-script-title {
+  font-family: 'Caveat', 'Segoe Print', cursive !important;
+  font-size: clamp(37px, 5vw, 45px);
   font-weight: 700;
   line-height: 1;
+  letter-spacing: 0;
+  color: #172a27;
+}
+.tm-page .tmv-v33-script-title .tmv-v32-dot { color: #38825d; }
+
+/* (5) Quran Para number is populated by the existing saved reading records.
+   Existing V32 row typography is retained for clarity. */
+
+@media (max-width: 600px) {
+  .tm-page .tmv-v32-home .tmv-prayer-card {
+    padding: 11px 13px 0;
+    gap: 7px;
+  }
+  .tm-page .tmv-v32-home .tmv-prayer-card .tmv-prayer-readout { gap: 8px; }
+  .tm-page .tmv-v32-home .tmv-prayer-card .tmv-prayer-head strong { font-size: 12px; }
+  .tm-page .tmv-v32-home .tmv-prayer-card .tmv-prayer-head span { font-size: 11px; }
+  .tm-page .tmv-v32-home .tmv-prayer-card .tmv-prayer-one strong { font-size: 11px; }
+  .tm-page .tmv-v32-home .tmv-prayer-card .tmv-prayer-one small { font-size: 10px; }
+  .tm-page .tmv-v32-home .tmv-prayer-card .tmv-read-more { min-height: 36px; }
+  .tm-page .tmv-v33-datebar { height: 71px; }
+  .tm-page .tmv-v33-date-meta { font-size: 10px; }
+  .tm-page .tmv-v32-home .tmv-v32-titleline h1.tmv-v33-script-title { font-size: 37px; }
+}
+@media (max-width: 360px) {
+  .tm-page .tmv-v32-home .tmv-prayer-card { padding-left: 10px; padding-right: 10px; }
+  .tm-page .tmv-v32-home .tmv-prayer-card .tmv-prayer-five { gap: 0; }
+  .tm-page .tmv-v32-home .tmv-prayer-card .tmv-prayer-mark { width: 26px; height: 26px; }
+  .tm-page .tmv-v32-home .tmv-prayer-card .tmv-prayer-one strong { font-size: 10.5px; }
+  .tm-page .tmv-v32-home .tmv-prayer-card .tmv-prayer-one small { font-size: 9.5px; }
+  .tm-page .tmv-v32-home .tmv-v32-titleline h1.tmv-v33-script-title { font-size: 33px; }
 }
