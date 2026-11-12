@@ -1667,3 +1667,83 @@ body:has(.tm-page) {background:#f5f7f6}
 @keyframes tmv-mini-toast-enter{from{opacity:0;transform:translate(-50%,6px)}to{opacity:1;transform:translate(-50%,0)}}
 @media(max-width:400px){.tm-page .tmv-mini-header-actions{gap:3px}.tm-page .tmv-mini-header-actions .tmv-logout{width:43px;min-width:43px;padding:0;justify-content:center}.tm-page .tmv-mini-header-actions .tmv-logout span{display:none}}
 @media(prefers-reduced-motion:reduce){.tm-page .tmv-mini-toast{animation:none}}
+
+/* Track Me V32 — new, compact family home only. All detail-page styles stay intact. */
+.tm-page .tmv-v32-home{display:flex;flex-direction:column;gap:0;padding-top:28px}
+.tm-page .tmv-v32-intro{padding:0 2px}
+.tm-page .tmv-v32-kicker{display:block;color:#497d60;font-size:10px;font-weight:800;letter-spacing:.15em;margin-bottom:9px}
+.tm-page .tmv-v32-titleline{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-bottom:23px}
+.tm-page .tmv-v32-titleline h1{margin:0;color:#173028;font-size:clamp(28px,4.6vw,36px);font-weight:750;letter-spacing:-.04em;line-height:1.22}
+.tm-page .tmv-v32-titleline h1 .tmv-handwritten-name{font-size:1.18em;line-height:1;font-weight:700}
+.tm-page .tmv-v32-dot{color:#38825d}
+.tm-page .tmv-v32-titleline p{margin:7px 0 0;font-size:13px;line-height:1.5;color:#778d7e}
+.tm-page .tmv-v32-summarybtn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:42px;white-space:nowrap;border:1px solid #d3e5d7;border-radius:10px;padding:10px 13px;background:#edf6f0;color:#266148;font-size:12px;font-weight:650;cursor:pointer}
+.tm-page .tmv-v32-summarybtn:hover{background:#e4f1e8}
+.tm-page .tmv-v32-summarybtn:focus-visible,.tm-page .tmv-v32-datearrow:focus-visible,.tm-page .tmv-v32-row:focus-visible,.tm-page .tmv-v32-full-link:focus-visible{outline:2px solid #378461;outline-offset:2px}
+.tm-page .tmv-v32-datebar{display:flex;align-items:center;justify-content:space-between;gap:10px;height:65px;border-radius:13px;background:#fff;border:1px solid #e1e9e3;padding:7px 9px}
+.tm-page .tmv-v32-datearrow{width:40px;height:40px;display:grid;place-items:center;flex-shrink:0;border:0;border-radius:9px;background:#f2f7f3;color:#447153;cursor:pointer}
+.tm-page .tmv-v32-datearrow:hover:not(:disabled){background:#e5efe8}
+.tm-page .tmv-v32-datearrow:disabled{opacity:.35;cursor:default}
+.tm-page .tmv-v32-datecenter{position:relative;min-width:0;flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;text-align:center;cursor:pointer}
+.tm-page .tmv-v32-datecenter>span{color:#49825f;font-weight:800;letter-spacing:.12em;font-size:9px;line-height:1.4}
+.tm-page .tmv-v32-datecenter>strong{font-size:13px;line-height:1.45;color:#263d2e;font-weight:700}
+.tm-page .tmv-v32-datecenter>input[type=date]{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:16px}
+.tm-page .tmv-v32-datecenter:focus-within{outline:2px solid #39835d;outline-offset:3px;border-radius:4px}
+.tm-page .tmv-v32-sectiontitle{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:27px 0 12px}
+.tm-page .tmv-v32-sectiontitle h2{margin:0;font-size:15px;font-weight:750;line-height:1.35;letter-spacing:-.025em;color:#192e27}
+.tm-page .tmv-v32-sectiontitle>span{font-size:11px;color:#90a195;white-space:nowrap}
+.tm-page .tmv-v32-life-title{margin-top:27px}
+/* Keep original five-prayer card and its seven-day background video untouched. */
+.tm-page .tmv-v32-home .tmv-prayer-card{margin:0}
+.tm-page .tmv-v32-life{border:1px solid #e2ebe4;background:#fff;border-radius:14px;overflow:hidden}
+.tm-page .tmv-v32-item:not(:last-child){border-bottom:1px solid #eaf0eb}
+.tm-page .tmv-v32-row{width:100%;min-height:83px;display:flex;align-items:center;gap:13px;padding:13px 17px;background:#fff;border:0;text-align:left;color:inherit;cursor:pointer}
+.tm-page .tmv-v32-row:hover,.tm-page .tmv-v32-row[aria-expanded=true]{background:#f7fbf8}
+.tm-page .tmv-v32-icon{display:grid;place-items:center;width:40px;height:40px;flex-shrink:0;border:1px solid #dfebe1;border-radius:12px;background:#f3f8f4;color:#276c50}
+.tm-page .tmv-v32-icon>svg{width:22px;height:22px;max-width:22px;max-height:22px}
+.tm-page .tmv-v32-rowcopy{min-width:0;flex:1;display:flex;flex-direction:column;gap:4px}
+.tm-page .tmv-v32-rowcopy>strong{font-size:14px;line-height:1.35;font-weight:750;color:#1d362b;letter-spacing:-.013em}
+.tm-page .tmv-v32-summarytext{font-size:12px;line-height:1.5;font-weight:450;color:#526d5c;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
+.tm-page .tmv-v32-extra{font-size:10.5px;line-height:1.45;color:#648673;font-weight:550;overflow-wrap:anywhere}
+.tm-page .tmv-v32-state{max-width:126px;flex-shrink:0;padding:5px 8px;border-radius:6px;background:#eaf4ed;color:#33724e;font-size:10px;font-weight:700;line-height:1.35;text-align:center;overflow-wrap:anywhere}
+.tm-page .tmv-v32-state-muted{background:#f2f5f2;color:#7b8e80}
+.tm-page .tmv-v32-chevron{flex-shrink:0;color:#9cad9e;transition:transform .15s ease}
+.tm-page .tmv-v32-chevron-open{transform:rotate(90deg)}
+.tm-page .tmv-v32-expanded{position:relative;isolation:isolate;overflow:hidden;padding:0;background:#f5faf6;border-top:1px solid #e4ece5}
+.tm-page .tmv-v32-expanded .tmv-card-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.19;z-index:0;pointer-events:none}
+.tm-page .tmv-v32-expanded:before{content:'';position:absolute;inset:0;z-index:1;background:rgba(248,252,248,.82);pointer-events:none}
+.tm-page .tmv-v32-expanded-content{position:relative;z-index:2;padding:16px 20px 17px 70px;display:flex;flex-direction:column;gap:7px}
+.tm-page .tmv-v32-expanded-content strong{font-size:12px;font-weight:700;color:#214d34}
+.tm-page .tmv-v32-expanded-content p{margin:0;font-size:12px;line-height:1.65;color:#425e4b;overflow-wrap:anywhere}
+.tm-page .tmv-v32-expanded-content p b{font-weight:700;color:#2d694b}
+.tm-page .tmv-v32-expanded-content .tmv-v32-muted{color:#72877a}
+.tm-page .tmv-v32-full-link{display:flex;align-items:center;justify-content:space-between;gap:9px;align-self:stretch;margin:8px 0 0;padding:11px 0 0;background:none;border:0;border-top:1px solid #dae6dd;color:#206444;font-size:12px;font-weight:700;cursor:pointer}
+.tm-page .tmv-v32-home .tmv-end-note{margin:20px 0 5px;text-align:center;font-size:11px;color:#869c8b}
+@media(max-width:600px){
+  .tm-page .tmv-v32-home{padding-top:22px}
+  .tm-page .tmv-v32-titleline{margin-bottom:19px}
+  .tm-page .tmv-v32-titleline h1{font-size:29px}
+  .tm-page .tmv-v32-titleline p{font-size:11.5px;max-width:235px}
+  .tm-page .tmv-v32-summarybtn{width:42px;height:42px;min-height:42px;padding:0;flex-shrink:0}
+  .tm-page .tmv-v32-summarybtn span{display:none}
+  .tm-page .tmv-v32-sectiontitle{margin:23px 0 11px}
+  .tm-page .tmv-v32-datebar{height:61px}
+  .tm-page .tmv-v32-datecenter>strong{font-size:12px}
+  .tm-page .tmv-v32-row{min-height:75px;gap:9px;padding:11px 12px}
+  .tm-page .tmv-v32-icon{width:36px;height:36px;border-radius:10px}
+  .tm-page .tmv-v32-icon>svg{max-width:20px;max-height:20px}
+  .tm-page .tmv-v32-rowcopy>strong{font-size:13px}
+  .tm-page .tmv-v32-summarytext{font-size:11.5px}
+  .tm-page .tmv-v32-extra{font-size:10px}
+  .tm-page .tmv-v32-state{max-width:84px;font-size:9px;padding:5px 6px}
+  .tm-page .tmv-v32-expanded-content{padding:13px 14px 16px 57px}
+}
+@media(max-width:360px){
+  .tm-page .tmv-v32-datecenter>strong{font-size:11px}
+  .tm-page .tmv-v32-titleline h1{font-size:26px}
+  .tm-page .tmv-v32-summarytext{-webkit-line-clamp:2}
+  .tm-page .tmv-v32-row{gap:7px;padding:10px}
+  .tm-page .tmv-v32-icon{width:34px;height:34px}
+  .tm-page .tmv-v32-state{max-width:72px}
+}
+@media(prefers-reduced-motion:reduce){.tm-page .tmv-v32-chevron{transition:none}}

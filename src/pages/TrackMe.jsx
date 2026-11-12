@@ -1296,34 +1296,142 @@ function DailyEntries({ entries, date, section, onOpen }) {
 }
 function xDate(x) { return x.meta?.upcomingDate || x.dueDate || ''; }
 
+/* Track Me V32: Compact family home. Existing detail panels and backend are unchanged. */
+function V32DateNavigator({ value, setValue }) {
+  const today = dayISO();
+  const selectedDate = new Date(`${value}T12:00:00`);
+  const readable = selectedDate.toLocaleDateString('en-US', {
+    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+  });
+  return <div className="tmv-v32-datebar" aria-label="Daily updates date selection">
+    <button type="button" className="tmv-v32-datearrow" onClick={() => setValue(shiftDay(value, -1))} aria-label="Previous day"><ChevronLeft size={20}/></button>
+    <label className="tmv-v32-datecenter">
+      <span>{value === today ? 'TODAY' : 'SELECTED DATE · TAP TO CHANGE'}</span>
+      <strong>{readable}</strong>
+      <input type="date" value={value} max={today} onChange={e => {
+        if (e.target.value && e.target.value <= today) setValue(e.target.value);
+      }} aria-label="Choose a day to see its saved updates" />
+    </label>
+    <button type="button" className="tmv-v32-datearrow" onClick={() => setValue(shiftDay(value, 1))} disabled={value >= today} aria-label="Next day"><ChevronRight size={20}/></button>
+  </div>;
+}
+
+function V32LifeItem({ type, date, title, summary, status, extra, expanded, onToggle, onOpen, children }) {
+  const label = {quran:'See reading history',office:'See all projects',university:'See all applications',personal:'See all activities'}[type];
+  const displayStatus = String(status || 'No update');
+  return <div className={`tmv-v32-item tmv-v32-item-${type}`}>
+    <button type="button" className="tmv-v32-row" onClick={onToggle} aria-expanded={expanded} aria-controls={`tmv-v32-detail-${type}`}>
+      <span className="tmv-v32-icon"><CategoryArtwork type={type}/></span>
+      <span className="tmv-v32-rowcopy">
+        <strong>{title}</strong>
+        <span className="tmv-v32-summarytext">{summary}</span>
+        {extra && <small className="tmv-v32-extra">{extra}</small>}
+      </span>
+      <span className={`tmv-v32-state${displayStatus === 'No update' ? ' tmv-v32-state-muted' : ''}`}>{displayStatus}</span>
+      <ChevronRight className={`tmv-v32-chevron${expanded ? ' tmv-v32-chevron-open' : ''}`} size={19} aria-hidden="true" />
+    </button>
+    {expanded && <div id={`tmv-v32-detail-${type}`} className="tmv-v32-expanded">
+      <FamilyCardVideo key={`${type}-${date}`} category={type} date={date}/>
+      <div className="tmv-v32-expanded-content">
+        {children}
+        <button type="button" className="tmv-v32-full-link" onClick={() => onOpen(type)}>{label}<ArrowRight size={16}/></button>
+      </div>
+    </div>}
+  </div>;
+}
+
+function V32WorkItem({ section, entries, date, expanded, onToggle, onOpen }) {
+  const title = section === 'office' ? 'Office Work' : section === 'university' ? 'University' : 'Personal Life';
+  const items = entries.filter(item => item.section === section &&
+    (!item.createdAt && !item.updatedAt || dayISO(item.createdAt || item.updatedAt) <= date));
+  const notes = items.flatMap(item => (item.logs || [])
+    .filter(log => log?.createdAt && dayISO(log.createdAt) <= date)
+    .map(log => ({item, log})))
+    .sort((a,b) => String(b.log.createdAt).localeCompare(String(a.log.createdAt)));
+  const todayNotes = notes.filter(x => dayISO(x.log.createdAt) === date);
+  const lastNote = notes[0] || null;
+  const sortedItems = [...items].sort((a,b) =>
+    String(b.updatedAt || b.createdAt || '').localeCompare(String(a.updatedAt || a.createdAt || '')));
+  // University should show its saved application stage even if there is no fresh note.
+  const item = todayNotes[0]?.item || lastNote?.item || sortedItems[0] || null;
+  const meta = item?.meta || {};
+  const statusName = !item ? 'No update' : section === 'university'
+    ? (APP_STATUS[meta.applicationStatus] || STATUS[item.status] || 'Saved')
+    : (STATUS[item.status] || 'Saved');
+  const mainName = item ? (section === 'university' ? (meta.university || item.title)
+    : section === 'office' ? (meta.project || item.title) : item.title) : '';
+  const todayLabel = date === dayISO() ? 'today' : 'on this date';
+  const savedAt = lastNote?.log.createdAt ||
+    (item?.updatedAt && dayISO(item.updatedAt) <= date ? item.updatedAt : item?.createdAt) || '';
+  const sourceDate = savedAt ? prettyDate(savedAt) : '';
+  let summary;
+  if (!item) summary = section === 'university' ? 'No applications recorded yet' : `No ${section === 'office' ? 'work' : 'personal'} updates recorded`;
+  else if (todayNotes.length) summary = section === 'university'
+    ? [meta.university || item.title, meta.program].filter(Boolean).join(' · ')
+    : [mainName, section === 'office' && meta.project ? item.title : ''].filter(Boolean).join(' · ');
+  else summary = `No new daily note ${todayLabel} · Last: ${mainName}`;
+  const extra = section === 'university' && item
+    ? [meta.program && !todayNotes.length ? meta.program : '', meta.upcomingDate ? `Important date: ${prettyDate(meta.upcomingDate)}` : ''].filter(Boolean).join(' · ')
+    : (!todayNotes.length && sourceDate ? `Last saved: ${sourceDate}` : '');
+  // On historical dates, statuses are today's saved statuses; the old stage cannot be reconstructed.
+  const detail = item ? <>
+      {!todayNotes.length && <p className="tmv-v32-muted">No new {title.toLowerCase()} update was recorded {todayLabel}.</p>}
+      <strong>{mainName}</strong>
+      {section === 'university' && meta.program && <p>{meta.program}</p>}
+      {section === 'university' && <p>Application status: <b>{statusName}</b>{date !== dayISO() ? ' (current saved status)' : ''}</p>}
+      {section === 'university' && meta.upcomingDate && <p>Important date: {prettyDate(meta.upcomingDate)}</p>}
+      {section !== 'university' && <p>Current status: <b>{statusName}</b></p>}
+      {todayNotes.length ? todayNotes.slice(0,3).map(({item:noteItem, log}) => <p key={log.id || log.createdAt}>
+        {todayNotes.length > 1 ? <b>{noteItem.meta?.project || noteItem.meta?.university || noteItem.title}: </b> : null}{log.note}
+      </p>) : lastNote ? <p><b>Last recorded note · {prettyDate(lastNote.log.createdAt)}:</b> {lastNote.log.note}</p>
+        : item.detail ? <p>{item.detail}</p> : null}
+      {todayNotes.length > 3 && <p>+{todayNotes.length - 3} more saved updates in the full section.</p>}
+    </> : <p className="tmv-v32-muted">There are no saved records for this section yet.</p>;
+  return <V32LifeItem type={section} date={date} title={title}
+    summary={summary} extra={extra} status={statusName}
+    expanded={expanded} onToggle={onToggle} onOpen={onOpen}>{detail}</V32LifeItem>;
+}
+
 function FamilyToday({ entries, days, quran, viewDate, setViewDate, onOpen, onOpenSummary, ownerMode, onNew }) {
-  const read = quran.filter(item => item.date === viewDate).sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt)));
+  const [expanded, setExpanded] = useState(null);
+  useEffect(() => { setExpanded(null); }, [viewDate]);
+  const read = quran.filter(item => item.date === viewDate)
+    .sort((a,b) => String(b.createdAt).localeCompare(String(a.createdAt)));
   const lastQuranReading = read.length ? null : [...quran]
     .filter(item => item.date && item.date < viewDate)
-    .sort((a,b) => String(b.date).localeCompare(String(a.date)) || String(b.createdAt).localeCompare(String(a.createdAt)))[0];
-  const pages = read.reduce((n,item)=>n+Number(item.pagesRead||0),0);
-  const noteCount = entries.reduce((sum,item)=>sum+(item.logs||[]).filter(log=>dayISO(log.createdAt)===viewDate).length,0);
+    .sort((a,b) => String(b.date).localeCompare(String(a.date)) ||
+      String(b.createdAt).localeCompare(String(a.createdAt)))[0];
+  const pages = read.reduce((sum, item) => sum + Number(item.pagesRead || 0), 0);
+  const noteCount = entries.reduce((sum, item) => sum + (item.logs || [])
+    .filter(log => dayISO(log.createdAt) === viewDate).length, 0);
   const prayer = days[viewDate] || {};
-  const recorded = PRAYERS.filter(([key])=>prayer.group?.[key]||prayer.makeup?.[key]).length;
+  const recorded = PRAYERS.filter(([key]) => prayer.group?.[key] || prayer.makeup?.[key]).length;
   const recentlyChangedTask = entries.some(item =>
     (item.createdAt && dayISO(item.createdAt) === viewDate) ||
-    (item.updatedAt && dayISO(item.updatedAt) === viewDate)
-  );
+    (item.updatedAt && dayISO(item.updatedAt) === viewDate));
   const hasAny = Boolean(noteCount || pages || recorded || recentlyChangedTask);
   const [showEmptyDayToast, setShowEmptyDayToast] = useState(false);
   useEffect(() => {
-    if (hasAny) { setShowEmptyDayToast(false); return; }
+    if (hasAny) { setShowEmptyDayToast(false); return undefined; }
     setShowEmptyDayToast(true);
     const timer = setTimeout(() => setShowEmptyDayToast(false), 4800);
     return () => clearTimeout(timer);
   }, [viewDate, hasAny]);
-  return <div className="tmv-family-view">
-    <div className="tmv-intro"><span className="tmv-intro-kicker">THE DAILY JOURNAL</span><h1><AhsanName/>’s daily updates.</h1><p>His day, his progress, and everything he has shared with you.</p></div>
-    <DayNavigator value={viewDate} setValue={setViewDate}/>
-    <section className="tmv-summary-entry" aria-label="Ask for a summary">
-      <div className="tmv-summary-entry-text"><span className="tmv-summary-symbol"><MessageSquareText size={20} strokeWidth={1.9}/></span><div><h2>Understand his day in seconds.</h2><p lang="ur" dir="rtl">احسن کی روزانہ کی تفصیلات آسانی سے جانیں۔</p></div></div>
-      <button type="button" onClick={onOpenSummary}><span>Summarize all details</span><span lang="ur" dir="rtl">تمام تفصیلات کی سمری</span><ArrowRight size={18}/></button>
-    </section>
+  const toggle = key => setExpanded(value => value === key ? null : key);
+  const quranSummary = read.length
+    ? `${read.length === 1 ? `Para ${read[0].para} · ` : `${read.length} sessions · `}${pages} ${pages === 1 ? 'page' : 'pages'} read`
+    : `No Quran reading recorded ${viewDate === dayISO() ? 'today' : 'for this date'}`;
+  const quranExtra = !read.length && lastQuranReading
+    ? `Last reading: Para ${lastQuranReading.para} · ${prettyDate(lastQuranReading.date)}` : '';
+  return <div className="tmv-family-view tmv-v32-home">
+    <div className="tmv-v32-intro">
+      <span className="tmv-v32-kicker">THE DAILY JOURNAL</span>
+      <div className="tmv-v32-titleline">
+        <div><h1><AhsanName/>’s day<span className="tmv-v32-dot">.</span></h1><p>Just the important moments, in one place.</p></div>
+        <button type="button" className="tmv-v32-summarybtn" onClick={onOpenSummary} aria-label="Open daily summary assistant"><Sparkles size={17}/><span>Quick summary</span></button>
+      </div>
+    </div>
+    <V32DateNavigator value={viewDate} setValue={setViewDate}/>
     {showEmptyDayToast && !hasAny && <div className="tmv-day-toast" role="status" aria-live="polite">
       <span className="tmv-day-toast-icon"><Clock3 size={19}/></span>
       <span className="tmv-day-toast-copy"><strong>{viewDate === dayISO() ? 'No updates yet today' : 'No updates recorded for this date'}</strong>
@@ -1331,33 +1439,32 @@ function FamilyToday({ entries, days, quran, viewDate, setViewDate, onOpen, onOp
       </span>
       <button type="button" onClick={() => setShowEmptyDayToast(false)} aria-label="Dismiss notification"><X size={17}/></button>
     </div>}
-    <div className="tmv-group-title"><h2>Daily Life</h2><span>Actual saved updates</span></div>
-    <section className="tmv-story-card tmv-prayer-card">
-      <FamilyCardVideo key={`prayer-${viewDate}`} category="prayer" date={viewDate} />
+    <div className="tmv-v32-sectiontitle"><h2>Daily Life</h2><span>Simple daily overview</span></div>
+    <section className="tmv-story-card tmv-prayer-card" aria-label="Prayer">
+      <FamilyCardVideo key={`prayer-${viewDate}`} category="prayer" date={viewDate}/>
       <div className="tmv-card-heading"><span className="tmv-card-icon"><CategoryArtwork type="prayer"/></span><h2>Prayer</h2></div>
       <PrayerReadout date={viewDate} days={days}/>
       <button type="button" className="tmv-read-more" onClick={() => onOpen('prayer')}>See prayer history <ArrowRight size={17}/></button>
     </section>
-    <section className="tmv-story-card tmv-quran-card">
-      <FamilyCardVideo key={`quran-${viewDate}`} category="quran" date={viewDate} />
-      <div className="tmv-card-heading"><span className="tmv-card-icon"><CategoryArtwork type="quran"/></span><h2>Quran Reading</h2></div>
-      {read.length ? <><div className="tmv-reading-number"><strong>{pages}</strong><span>{pages === 1 ? 'page' : 'pages'} read</span></div>
-        <div className="tmv-reading-list">{read.map(item=><div className="tmv-reading-line" key={item.id}><BookOpen size={16}/><span>Para {item.para} · {item.pagesRead} {Number(item.pagesRead)===1?'page':'pages'}{item.note?` · ${item.note}`:''}</span></div>)}</div></>
-        : <div className="tmv-quran-last-update">
-          <p className="tmv-current-caption">{viewDate === dayISO() ? 'No Quran reading today yet' : 'No reading recorded for this date'}</p>
-          {lastQuranReading ? <>
-            <p className="tmv-last-update-date">Last reading · {prettyDate(lastQuranReading.date)}</p>
-            <strong>Para {lastQuranReading.para} · {lastQuranReading.pagesRead} {Number(lastQuranReading.pagesRead) === 1 ? 'page' : 'pages'} read</strong>
-            {lastQuranReading.note && <p>{lastQuranReading.note}</p>}
-          </> : <p className="tmv-empty-note">No earlier reading recorded yet.</p>}
-        </div>}
-      <button type="button" className="tmv-read-more" onClick={() => onOpen('quran')}>See reading history <ArrowRight size={17}/></button>
+    <div className="tmv-v32-sectiontitle tmv-v32-life-title"><h2>Life &amp; Progress</h2><span>Only what matters</span></div>
+    <section className="tmv-v32-life" aria-label="Life and progress">
+      <V32LifeItem type="quran" date={viewDate} title="Quran Reading" summary={quranSummary}
+        status={read.length ? 'Recorded' : 'No update'} extra={quranExtra}
+        expanded={expanded === 'quran'} onToggle={() => toggle('quran')} onOpen={onOpen}>
+        {read.length ? read.map(item => <p key={item.id || item.createdAt}>
+          <strong>Para {item.para} · {item.pagesRead} {Number(item.pagesRead) === 1 ? 'page' : 'pages'}</strong>
+          {item.note ? ` — ${item.note}` : ''}
+        </p>) : lastQuranReading ? <p>No reading was recorded for this selected day. Last reading: <strong>Para {lastQuranReading.para}, {lastQuranReading.pagesRead} pages</strong> on {prettyDate(lastQuranReading.date)}.</p>
+          : <p>No Quran readings recorded for this day yet.</p>}
+      </V32LifeItem>
+      <V32WorkItem section="office" entries={entries} date={viewDate}
+        expanded={expanded === 'office'} onToggle={() => toggle('office')} onOpen={onOpen}/>
+      <V32WorkItem section="university" entries={entries} date={viewDate}
+        expanded={expanded === 'university'} onToggle={() => toggle('university')} onOpen={onOpen}/>
+      <V32WorkItem section="personal" entries={entries} date={viewDate}
+        expanded={expanded === 'personal'} onToggle={() => toggle('personal')} onOpen={onOpen}/>
     </section>
-    <div className="tmv-group-title"><h2>Work & Plans</h2><span>In <AhsanName/>’s own words</span></div>
-    <DailyEntries entries={entries} date={viewDate} section="office" onOpen={onOpen}/>
-    <DailyEntries entries={entries} date={viewDate} section="university" onOpen={onOpen}/>
-    <DailyEntries entries={entries} date={viewDate} section="personal" onOpen={onOpen}/>
-    {ownerMode && <button className="tmv-owner-quick" type="button" onClick={()=>onNew('office')}><Plus size={18}/> Add a new work task</button>}
+    {ownerMode && <button className="tmv-owner-quick" type="button" onClick={() => onNew('office')}><Plus size={18}/> Add a new work task</button>}
     <p className="tmv-end-note">A family connection, one day at a time. <Heart size={14}/></p>
   </div>;
 }
