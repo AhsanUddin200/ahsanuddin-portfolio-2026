@@ -1452,7 +1452,18 @@ function FamilyToday({ entries, days, quran, viewDate, setViewDate, onOpen, onOp
         <button type="button" className="tmv-v32-summarybtn" onClick={onOpenSummary} aria-label="Open daily summary assistant"><Sparkles size={17}/><span>Quick AI summary</span></button>
       </div>
     </div>
-    <V32DateNavigator value={viewDate} setValue={setViewDate}/>
+    <div className="tmv-v32-sectiontitle tmv-v34-sectiontitle"><h2>Daily Life</h2><span>Simple daily overview</span></div>
+    <div className="tmv-v34-day-prayer">
+      <div className="tmv-v34-date-slot">
+        <V32DateNavigator value={viewDate} setValue={setViewDate}/>
+      </div>
+      <section className="tmv-story-card tmv-prayer-card" aria-label="Prayer">
+        <FamilyCardVideo key={`prayer-${viewDate}`} category="prayer" date={viewDate}/>
+        <div className="tmv-card-heading"><span className="tmv-card-icon"><CategoryArtwork type="prayer"/></span><h2>Prayer</h2></div>
+        <PrayerReadout date={viewDate} days={days}/>
+        <button type="button" className="tmv-read-more" onClick={() => onOpen('prayer')}>See prayer history <ArrowRight size={17}/></button>
+      </section>
+    </div>
     {showEmptyDayToast && !hasAny && <div className="tmv-day-toast" role="status" aria-live="polite">
       <span className="tmv-day-toast-icon"><Clock3 size={19}/></span>
       <span className="tmv-day-toast-copy"><strong>{viewDate === dayISO() ? 'No updates yet today' : 'No updates recorded for this date'}</strong>
@@ -1460,13 +1471,6 @@ function FamilyToday({ entries, days, quran, viewDate, setViewDate, onOpen, onOp
       </span>
       <button type="button" onClick={() => setShowEmptyDayToast(false)} aria-label="Dismiss notification"><X size={17}/></button>
     </div>}
-    <div className="tmv-v32-sectiontitle"><h2>Daily Life</h2><span>Simple daily overview</span></div>
-    <section className="tmv-story-card tmv-prayer-card" aria-label="Prayer">
-      <FamilyCardVideo key={`prayer-${viewDate}`} category="prayer" date={viewDate}/>
-      <div className="tmv-card-heading"><span className="tmv-card-icon"><CategoryArtwork type="prayer"/></span><h2>Prayer</h2></div>
-      <PrayerReadout date={viewDate} days={days}/>
-      <button type="button" className="tmv-read-more" onClick={() => onOpen('prayer')}>See prayer history <ArrowRight size={17}/></button>
-    </section>
     <div className="tmv-v32-sectiontitle tmv-v32-life-title"><h2>Life &amp; Progress</h2><span>Only what matters</span></div>
     <section className="tmv-v32-life" aria-label="Life and progress">
       <V32LifeItem type="quran" date={viewDate} title="Quran Reading" summary={quranSummary}

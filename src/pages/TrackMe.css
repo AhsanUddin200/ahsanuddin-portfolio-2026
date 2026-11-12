@@ -1845,3 +1845,95 @@ body:has(.tm-page) {background:#f5f7f6}
   .tm-page .tmv-v32-home .tmv-prayer-card .tmv-prayer-one small { font-size: 9.5px; }
   .tm-page .tmv-v32-home .tmv-v32-titleline h1.tmv-v33-script-title { font-size: 33px; }
 }
+
+
+/* ================================================================
+   V34 — compact DATE + PRAYER side by side (home screen only)
+   Existing prayer data, video, history, date selection and all other
+   pages are unchanged. No separate CSS file is required.
+   ================================================================ */
+.tm-page .tmv-v32-home .tmv-v34-sectiontitle {
+  margin-top: 19px;
+  margin-bottom: 10px;
+}
+.tm-page .tmv-v34-day-prayer {
+  display: grid;
+  grid-template-columns: minmax(192px, 0.31fr) minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  min-width: 0;
+}
+.tm-page .tmv-v34-date-slot { min-width: 0; }
+.tm-page .tmv-v34-date-slot .tmv-v33-datebar {
+  min-height: 111px;
+  height: auto;
+  padding: 11px 7px;
+  gap: 4px;
+  border-radius: 12px;
+}
+.tm-page .tmv-v34-date-slot .tmv-v32-datearrow {
+  width: 29px;
+  height: 34px;
+  border-radius: 8px;
+  flex: 0 0 29px;
+}
+.tm-page .tmv-v34-date-slot .tmv-v32-datearrow svg { width: 17px; height: 17px; }
+.tm-page .tmv-v34-date-slot .tmv-v32-datecenter { gap: 4px; }
+.tm-page .tmv-v34-date-slot .tmv-v32-datecenter>span {
+  font-size: 9px;
+  letter-spacing: .05em;
+  overflow-wrap: anywhere;
+}
+.tm-page .tmv-v34-date-slot .tmv-v32-datecenter>strong {
+  font-size: 12px;
+  line-height: 1.35;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.tm-page .tmv-v34-date-slot .tmv-v33-date-meta {
+  white-space: normal;
+  flex-wrap: wrap;
+  gap: 4px;
+  font-size: 10px;
+}
+.tm-page .tmv-v34-day-prayer .tmv-prayer-card {
+  min-width: 0;
+  width: 100%;
+  padding: 10px 13px 0;
+  gap: 7px;
+}
+.tm-page .tmv-v34-day-prayer .tmv-prayer-card .tmv-prayer-five {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 2px;
+}
+.tm-page .tmv-v34-day-prayer .tmv-prayer-card .tmv-prayer-head { gap: 5px; }
+.tm-page .tmv-v34-day-prayer .tmv-prayer-card .tmv-prayer-one strong { font-size: 11px; }
+.tm-page .tmv-v34-day-prayer .tmv-prayer-card .tmv-prayer-one small { font-size: 10px; }
+.tm-page .tmv-v34-day-prayer .tmv-prayer-card .tmv-read-more { min-height: 34px; }
+.tm-page .tmv-v34-day-prayer + .tmv-v32-life-title { margin-top: 21px; }
+
+/* At phone widths, date stays a small horizontal strip on top: keeping
+   five prayer columns beside a second card would make names unreadable. */
+@media (max-width: 720px) {
+  .tm-page .tmv-v34-day-prayer { grid-template-columns: minmax(0, 1fr); gap: 9px; }
+  .tm-page .tmv-v34-date-slot .tmv-v33-datebar {
+    min-height: 0;
+    height: 57px;
+    padding: 5px 9px;
+    gap: 7px;
+  }
+  .tm-page .tmv-v34-date-slot .tmv-v32-datearrow {
+    width: 34px;
+    height: 38px;
+    flex-basis: 34px;
+  }
+  .tm-page .tmv-v34-date-slot .tmv-v32-datecenter { gap: 1px; }
+  .tm-page .tmv-v34-date-slot .tmv-v32-datecenter>strong { font-size: 12px; }
+  .tm-page .tmv-v34-date-slot .tmv-v33-date-meta { margin-top: 0; }
+  .tm-page .tmv-v34-day-prayer .tmv-prayer-card { padding: 11px 12px 0; }
+  .tm-page .tmv-v34-day-prayer + .tmv-v32-life-title { margin-top: 19px; }
+}
+@media (max-width: 370px) {
+  .tm-page .tmv-v34-date-slot .tmv-v33-datebar { height: 61px; }
+  .tm-page .tmv-v34-date-slot .tmv-v32-datecenter>strong { font-size: 11px; }
+}
