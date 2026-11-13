@@ -2175,69 +2175,191 @@ body:has(.tm-page) {background:#f5f7f6}
 }
 
 
-/* V39 — compact month progress. No libraries/assets; original sections untouched. */
-.tm-page .tmv-v39-month-progress{
-  border:1px solid #dce9df;background:linear-gradient(160deg,#fff 0%,#f8fbf8 66%,#f0f6f1 100%);
-  border-radius:13px;box-shadow:0 3px 16px rgba(22,62,43,.035);
-  padding:12px 15px 11px;display:flex;flex-direction:column;gap:9px;min-width:0;
+/* V40 — Monthly graph moved to the old family-caption slot. 3D visual only.
+   Existing month/day scoring, statuses, API, all other cards remain unchanged. */
+.tm-page .tmv-v39-month-progress {
+  position:relative;
+  isolation:isolate;
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  padding:16px 18px 13px;
+  border:1px solid #d3e3d8;
+  border-radius:17px;
+  background:
+    radial-gradient(ellipse 90% 120% at -10% -30%,rgba(136,201,161,.18),transparent 60%),
+    linear-gradient(165deg,#fff 0%,#fbfdfb 53%,#f3f8f4 100%);
+  box-shadow:0 10px 32px rgba(18,65,39,.07),inset 0 1px 0 rgba(255,255,255,.98);
 }
-.tm-page .tmv-v39-month-header,.tm-page .tmv-v39-month-title{display:flex;align-items:center;gap:7px;min-width:0}
-.tm-page .tmv-v39-month-header{justify-content:space-between;gap:9px}
-.tm-page .tmv-v39-month-title{color:#2b7855}
-.tm-page .tmv-v39-month-title svg{width:15px;height:15px}
-.tm-page .tmv-v39-month-title h2{font-size:13px!important;line-height:1.4;font-weight:700!important;white-space:nowrap;letter-spacing:-.02em!important}
-.tm-page .tmv-v39-month-title>span{font-size:10px;color:#8d9f92;white-space:nowrap}
-.tm-page .tmv-v39-month-recorded{color:#668673;font-size:10px;white-space:nowrap}
-.tm-page .tmv-v39-month-graph{
-  /* Automatic CSS grid allows 28/29/30/31 columns without overflow. */
-  display:grid;grid-auto-columns:minmax(0,1fr);grid-auto-flow:column;gap:2px;align-items:stretch;
-  height:107px;padding:6px 1px 0;border-bottom:1px solid #dce7df;
-  background:repeating-linear-gradient(to top,transparent 0,transparent 24px,rgba(29,86,52,.045) 25px,transparent 26px);
+.tm-page .tmv-v39-month-header,
+.tm-page .tmv-v39-month-title {display:flex;align-items:center;gap:7px;min-width:0}
+.tm-page .tmv-v39-month-header {justify-content:space-between;gap:9px}
+.tm-page .tmv-v39-month-title {color:#22764d}
+.tm-page .tmv-v39-month-title svg {width:16px;height:16px}
+.tm-page .tmv-v39-month-title h2 {
+  font-size:14px!important;
+  font-weight:750!important;
+  line-height:1.4;
+  white-space:nowrap;
+  letter-spacing:-.02em!important;
 }
-.tm-page .tmv-v39-month-day{
-  width:100%;min-width:0;height:100%;background:transparent;border:0;border-radius:3px;
-  padding:0;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-end;gap:4px;
-  cursor:pointer;color:#7e9886;position:relative;
+.tm-page .tmv-v39-month-title>span {font-size:10px;color:#7c9b88;white-space:nowrap}
+.tm-page .tmv-v39-month-recorded {font-size:10px;color:#537d63;white-space:nowrap}
+/* A shallow raised plotting surface, intentionally lightweight (no canvas/WebGL). */
+.tm-page .tmv-v39-month-graph {
+  display:grid;
+  grid-auto-flow:column;
+  grid-auto-columns:minmax(0,1fr);
+  align-items:stretch;
+  position:relative;
+  isolation:isolate;
+  min-width:0;
+  height:139px;
+  gap:2px;
+  padding:14px 10px 7px;
+  border:1px solid #e0eae2;
+  border-bottom-color:#cbdccf;
+  border-radius:12px;
+  background:
+    repeating-linear-gradient(to top,transparent 0,transparent 24px,rgba(27,91,58,.055) 25px,transparent 26px),
+    linear-gradient(175deg,#fff 0%,#f7fbf8 58%,#eaf3ec 100%);
+  box-shadow:inset 0 3px 9px rgba(24,76,47,.035),0 4px 0 #e5eee7,0 8px 15px rgba(26,65,43,.06);
+  perspective:480px;
 }
-.tm-page .tmv-v39-month-day:hover:not(:disabled),.tm-page .tmv-v39-month-day.is-selected{background:rgba(27,109,71,.085)}
-.tm-page .tmv-v39-month-day:focus-visible{outline:2px solid #256e4f;outline-offset:1px;z-index:3}
-.tm-page .tmv-v39-month-day:disabled{opacity:.5;cursor:default}
-.tm-page .tmv-v39-month-bar-track{height:82px;width:100%;position:relative;display:flex;align-items:flex-end;justify-content:center}
-.tm-page .tmv-v39-month-bar{width:72%;max-width:19px;position:relative;display:block;min-height:6px;
-  background:linear-gradient(90deg,#154b39 0%,#32845c 50%,#69ad7c 83%,#307a53 100%);
-  border-radius:3px 3px 1px 1px;box-shadow:1.3px 0 0 #235e44,2.5px 1px 2px rgba(19,73,48,.14);
-  transition:height .18s ease;
+.tm-page .tmv-v39-month-graph::after {
+  content:"";
+  position:absolute;
+  left:8px;right:8px;bottom:27px;
+  height:11px;
+  border-radius:50%;
+  background:linear-gradient(90deg,transparent,rgba(27,75,43,.07),transparent);
+  filter:blur(3px);
+  pointer-events:none;
+  z-index:0;
 }
-.tm-page .tmv-v39-month-bar::before{content:"";position:absolute;top:-2px;left:1px;right:-1px;height:3px;
-  transform:skewX(-26deg);background:#96c7a0;border-radius:2px 2px 0 0}
-.tm-page .tmv-v39-month-day.is-selected .tmv-v39-month-bar{background:linear-gradient(90deg,#133c32,#1e6a51 55%,#99c6aa);box-shadow:0 0 0 1px #2a7457,1px 0 5px #3c8c5b36}
-.tm-page .tmv-v39-month-empty{width:55%;height:3px;background:#d6e1d9;border-radius:3px;display:block;margin-bottom:1px}
-.tm-page .tmv-v39-month-due{position:absolute;top:3px;left:50%;width:5px;height:5px;margin-left:-2.5px;border-radius:50%;background:#a5854c;box-shadow:0 0 0 1px #fff}
-.tm-page .tmv-v39-month-daynum{font-variant-numeric:tabular-nums;text-align:center;line-height:1.25;font-size:9px;color:#718e7a;min-width:0}
-.tm-page .tmv-v39-month-day.is-selected .tmv-v39-month-daynum{font-weight:800;color:#175940}
-.tm-page .tmv-v39-month-info{display:flex;flex-direction:column;gap:3px}
-.tm-page .tmv-v39-month-metrics{display:flex;flex-wrap:wrap;gap:7px 17px;color:#3a6750;font-size:10.5px;line-height:1.4}
-.tm-page .tmv-v39-month-metrics b{font-weight:750;color:#214b37}
-.tm-page .tmv-v39-month-info p{color:#4f6b59;font-size:11px;line-height:1.45;min-height:15px}
-.tm-page .tmv-v39-month-info small{color:#829586;font-size:9.5px;line-height:1.5}
-.tm-page .tmv-v32-home:has(.tmv-v39-month-progress) .tmv-v34-sectiontitle{margin-top:9px}
-.tm-page .tmv-v32-home:has(.tmv-v39-month-progress) .tmv-end-note{margin:5px auto 0}
-.tm-page .tmv-bottom{margin-top:4px;padding:12px 0 9px}
-.tm-page .tmv-install-footer{margin-top:0;padding-top:5px;padding-bottom:6px}
-@media(max-width:600px){
-  .tm-page .tmv-v39-month-progress{padding:11px 10px 10px;gap:7px}
-  .tm-page .tmv-v39-month-header{gap:6px}
-  .tm-page .tmv-v39-month-title h2{font-size:12px!important}
-  .tm-page .tmv-v39-month-title>span{font-size:9px}
-  .tm-page .tmv-v39-month-recorded{font-size:9px}
-  .tm-page .tmv-v39-month-graph{gap:1px;height:92px;padding:4px 0 0}
-  .tm-page .tmv-v39-month-bar-track{height:70px}
-  .tm-page .tmv-v39-month-day{gap:3px}
-  .tm-page .tmv-v39-month-daynum{font-size:7px;letter-spacing:-.035em}
-  .tm-page .tmv-v39-month-bar{width:82%;box-shadow:1px 0 0 #235e44,1.5px 1px 1px rgba(19,73,48,.12)}
-  .tm-page .tmv-v39-month-metrics{gap:4px 11px;font-size:10px}
-  .tm-page .tmv-v39-month-info p{font-size:10px}
-  .tm-page .tmv-v39-month-info small{font-size:9px}
+.tm-page .tmv-v39-month-day {
+  position:relative;
+  z-index:1;
+  display:flex;
+  flex-direction:column;
+  align-items:stretch;
+  justify-content:flex-end;
+  gap:4px;
+  width:100%;height:100%;min-width:0;
+  padding:0;
+  border:0;
+  border-radius:3px;
+  color:#6b8b79;
+  background:transparent;
+  cursor:pointer;
 }
-@media(max-width:370px){.tm-page .tmv-v39-month-title>span{display:none}}
-@media(prefers-reduced-motion:reduce){.tm-page .tmv-v39-month-bar{transition:none}}
+.tm-page .tmv-v39-month-day:hover:not(:disabled),
+.tm-page .tmv-v39-month-day.is-selected {background:linear-gradient(180deg,transparent,rgba(40,127,80,.10))}
+.tm-page .tmv-v39-month-day:focus-visible {outline:2px solid #256e4f;outline-offset:1px;z-index:3}
+.tm-page .tmv-v39-month-day:disabled {opacity:.50;cursor:default}
+.tm-page .tmv-v39-month-bar-track {
+  position:relative;
+  width:100%;height:98px;
+  display:flex;
+  align-items:flex-end;
+  justify-content:center;
+  perspective:350px;
+}
+.tm-page .tmv-v39-month-bar {
+  display:block;
+  position:relative;
+  width:68%;max-width:19px;min-width:3px;min-height:6px;
+  border-radius:3px 3px 1px 1px;
+  background:linear-gradient(90deg,#194d39 0%,#2b8157 26%,#80c697 57%,#34845d 87%,#235d43 100%);
+  box-shadow:
+    inset 1px 0 1px rgba(255,255,255,.23),
+    inset -1px 0 2px rgba(6,56,29,.35),
+    3px 4px 5px rgba(18,75,39,.19),
+    5px 7px 9px rgba(20,73,39,.09);
+  transform:translateZ(0);
+  transition:filter .18s ease,transform .18s ease;
+}
+/* Faceted top & shaded right side: visible 3D depth even on small mobile bars. */
+.tm-page .tmv-v39-month-bar::before {
+  content:"";
+  position:absolute;
+  top:-5px;left:1px;right:-3px;
+  height:6px;
+  border-radius:3px 3px 1px 1px;
+  background:linear-gradient(180deg,#dff4e3 0%,#a5d7af 100%);
+  transform:skewX(-42deg);
+  transform-origin:bottom left;
+  box-shadow:0 -1px 0 rgba(255,255,255,.55);
+}
+.tm-page .tmv-v39-month-bar::after {
+  content:"";
+  position:absolute;
+  top:-2px;right:-4px;bottom:0;
+  width:4px;
+  border-radius:0 2px 2px 0;
+  background:linear-gradient(180deg,#1d6245 0%,#11442f 100%);
+  transform:skewY(-34deg);
+  transform-origin:top left;
+  box-shadow:1px 1px 2px rgba(12,57,32,.11);
+}
+.tm-page .tmv-v39-month-day.has-data:hover .tmv-v39-month-bar,
+.tm-page .tmv-v39-month-day.is-selected .tmv-v39-month-bar {
+  transform:translateY(-2px);
+  filter:saturate(1.13) brightness(1.07);
+}
+.tm-page .tmv-v39-month-day.is-selected .tmv-v39-month-bar {
+  background:linear-gradient(90deg,#11432c,#188354 35%,#9cdeb0 68%,#256945);
+  box-shadow:inset 0 1px 2px rgba(255,255,255,.25),3px 4px 9px rgba(25,106,60,.23),0 0 0 1px rgba(37,119,69,.36);
+}
+.tm-page .tmv-v39-month-empty {
+  display:block;
+  width:60%;height:3px;margin-bottom:1px;
+  border-radius:3px;
+  background:linear-gradient(90deg,#dce9dd,#a7beac);
+}
+.tm-page .tmv-v39-month-due {
+  position:absolute;
+  left:50%;top:3px;
+  width:6px;height:6px;margin-left:-3px;
+  border-radius:50%;
+  background:#aa8954;
+  box-shadow:0 0 0 1.5px #fff,0 2px 3px rgba(100,76,30,.16);
+}
+.tm-page .tmv-v39-month-daynum {
+  text-align:center;
+  font-size:9px;
+  line-height:1.25;
+  color:#698872;
+  font-variant-numeric:tabular-nums;
+  min-width:0;
+}
+.tm-page .tmv-v39-month-day.is-selected .tmv-v39-month-daynum {font-weight:800;color:#145840}
+.tm-page .tmv-v39-month-info {display:flex;flex-direction:column;gap:4px}
+.tm-page .tmv-v39-month-metrics {display:flex;gap:6px 17px;flex-wrap:wrap;color:#3a6750;font-size:10.5px;line-height:1.4}
+.tm-page .tmv-v39-month-metrics b {font-weight:750;color:#214b37}
+.tm-page .tmv-v39-month-info p {font-size:11px;color:#4f6b59;line-height:1.45;min-height:15px}
+.tm-page .tmv-v39-month-info small {font-size:9.5px;color:#829586;line-height:1.5}
+/* Footer alignment only: the graph now sits directly above owner controls. */
+.tm-page .tmv-v32-home>.tmv-v39-month-progress {margin-top:4px;margin-bottom:0}
+.tm-page .tmv-bottom {margin-top:4px;padding:12px 0 9px}
+.tm-page .tmv-install-footer {margin-top:0;padding-top:5px;padding-bottom:6px}
+@media(max-width:600px) {
+  .tm-page .tmv-v39-month-progress {padding:12px 10px 11px;gap:8px;border-radius:14px}
+  .tm-page .tmv-v39-month-header {gap:5px}
+  .tm-page .tmv-v39-month-title h2 {font-size:12px!important}
+  .tm-page .tmv-v39-month-title>span {font-size:9px}
+  .tm-page .tmv-v39-month-recorded {font-size:9px}
+  .tm-page .tmv-v39-month-graph {height:114px;gap:1px;padding:10px 5px 6px;border-radius:9px}
+  .tm-page .tmv-v39-month-bar-track {height:78px}
+  .tm-page .tmv-v39-month-day {gap:3px}
+  .tm-page .tmv-v39-month-daynum {font-size:7px;letter-spacing:-.035em}
+  .tm-page .tmv-v39-month-bar {width:70%;max-width:10px;min-width:2px}
+  .tm-page .tmv-v39-month-bar::before {top:-3px;right:-2px;height:4px}
+  .tm-page .tmv-v39-month-bar::after {right:-2px;top:-1px;width:2px}
+  .tm-page .tmv-v39-month-metrics {gap:4px 11px;font-size:10px}
+  .tm-page .tmv-v39-month-info p {font-size:10px}
+  .tm-page .tmv-v39-month-info small {font-size:9px}
+}
+@media(max-width:370px) {.tm-page .tmv-v39-month-title>span {display:none}}
+@media(prefers-reduced-motion:reduce) {.tm-page .tmv-v39-month-bar {transition:none}}

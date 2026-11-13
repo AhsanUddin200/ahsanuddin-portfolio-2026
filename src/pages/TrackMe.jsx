@@ -1696,7 +1696,6 @@ function FamilyToday({ entries, days, quran, viewDate, setViewDate, onOpen, onOp
     </div>
     {listenError && <div className="tmv-mini-toast" role="status">{listenError}</div>}
     {ownerMode && love?.names?.length > 0 && <small className="tmv-v37-owner-love">❤️ Loved by {love.names.map(name => FAMILY_IDENTITY[name]?.name || name).join(', ')}</small>}
-    <MonthlyProgress entries={entries} days={days} quran={quran} selectedDate={viewDate} onSelectDate={setViewDate}/>
     <div className="tmv-v32-sectiontitle tmv-v34-sectiontitle"><h2>Daily Life</h2><span>Simple daily overview</span></div>
     <div className="tmv-v34-day-prayer">
       <div className="tmv-v34-date-slot">
@@ -1735,7 +1734,7 @@ function FamilyToday({ entries, days, quran, viewDate, setViewDate, onOpen, onOp
         expanded={expanded === 'personal'} onToggle={() => toggle('personal')} onOpen={onOpen}/>
     </section>
     {ownerMode && <button className="tmv-owner-quick" type="button" onClick={() => onNew('office')}><Plus size={18}/> Add a new work task</button>}
-    <p className="tmv-end-note">A family connection, one day at a time. <Heart size={14}/></p>
+    <MonthlyProgress entries={entries} days={days} quran={quran} selectedDate={viewDate} onSelectDate={setViewDate}/>
   </div>;
 }
 
