@@ -1448,6 +1448,144 @@ function V32WorkItem({ section, entries, date, expanded, onToggle, onOpen }) {
     expanded={expanded} onToggle={onToggle} onOpen={onOpen}>{detail}</V32LifeItem>;
 }
 
+
+/* V39 — Read-only, lightweight progress from REAL saved entries; no extra API/data. */
+function buildMonthlyProgress({ entries, days, quran, selectedDate }) {
+  const [yearText, monthText] = String(selectedDate || dayISO()).slice(0, 7).split('-');
+  const year = Number(yearText);
+  const month = Number(monthText);
+  const numDays = new Date(year, month, 0).getDate();
+  const today = dayISO();
+  const prefix = `${yearText}-${monthText}`;
+  const validEventDate = raw => {
+    if (!raw) return '';
+    const value = String(raw);
+    if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? '' : dayISO(date);
+  };
+  const calendar = Array.from({ length: numDays }, (_, i) => {
+    const d = i + 1;
+    const date = `${prefix}-${String(d).padStart(2, '0')}`;
+    return {
+      date, day: d, future: date > today, jamaat: 0, qaza: 0,
+      quranPages: 0, quranEntries: 0, officeEvents: 0,
+      universityEvents: 0, universityDates: 0, personalEvents: 0,
+      score: null, notes: [],
+    };
+  });
+  const byDate = new Map(calendar.map(item => [item.date, item]));
+  for (const [date, record] of Object.entries(days || {})) {
+    const day = byDate.get(date);
+    if (!day || day.future || !record) continue;
+    for (const [key] of PRAYERS) {
+      if (record.group?.[key]) day.jamaat += 1;
+      else if (record.makeup?.[key]) day.qaza += 1;
+    }
+  }
+  for (const reading of quran || []) {
+    const day = byDate.get(validEventDate(reading.date));
+    if (!day || day.future) continue;
+    day.quranEntries++;
+    day.quranPages += Math.max(0, Number(reading.pagesRead) || 0);
+  }
+  for (const task of entries || []) {
+    const section = task?.section;
+    if (!['office','university','personal'].includes(section)) continue;
+    // Count a task at most once per date. Status is NOT retroactively inferred.
+    const eventDates = new Set([
+      validEventDate(task.createdAt), validEventDate(task.updatedAt),
+      ...(task.logs || []).map(log => validEventDate(log.createdAt)),
+    ].filter(Boolean));
+    for (const eventDate of eventDates) {
+      const day = byDate.get(eventDate);
+      if (!day || day.future) continue;
+      if (section === 'office') day.officeEvents++;
+      if (section === 'university') day.universityEvents++;
+      if (section === 'personal') day.personalEvents++;
+    }
+    if (section === 'university') {
+      const scheduled = validEventDate(task.meta?.upcomingDate || task.dueDate);
+      const day = byDate.get(scheduled);
+      if (day) day.universityDates++;
+    }
+  }
+  for (const d of calendar) {
+    // "No entry" is unknown, NOT "missed prayer" or "failed university application".
+    const hasEntries = d.jamaat + d.qaza + d.quranEntries + d.officeEvents + d.universityEvents + d.personalEvents > 0;
+    if (d.future || !hasEntries) continue;
+    // Transparent logged-activity indicator, not a grade of Ahsan as a person.
+    // Prayer 40, Quran 25, Office 20, University up to 15, Personal bonus up to 3.
+    const prayer = Math.min(40, d.jamaat * 8 + d.qaza * 4);
+    const reading = d.quranEntries ? 10 + Math.min(15, d.quranPages * 2.5) : 0;
+    const office = d.officeEvents ? Math.min(20, 8 + d.officeEvents * 6) : 0;
+    const university = d.universityEvents ? 15 : 0;
+    const personal = d.personalEvents ? 3 : 0;
+    // No university action is expected on ordinary days. Its weight is
+    // included only on days with a dated university update.
+    const possible = d.universityEvents ? 100 : 85;
+    d.score = Math.min(100, Math.round(100 * (prayer + reading + office + university + personal) / possible));
+  }
+  // Exclude today (an unfinished day) from weakest-day comparisons.
+  const finished = calendar.filter(d => d.date < today && d.score !== null);
+  const best = [...finished].sort((a,b) => b.score - a.score || a.day - b.day)[0] || null;
+  const least = finished.length > 1 ? [...finished].sort((a,b) => a.score - b.score || a.day - b.day)[0] : null;
+  const recorded = calendar.filter(d => d.score !== null).length;
+  const monthName = new Date(year, month - 1, 1).toLocaleDateString('en-US', { month:'long', year:'numeric' });
+  const isMonthComplete = `${prefix}-${String(numDays).padStart(2, '0')}` < today;
+  return { calendar, best, least, recorded, monthName, numDays, isMonthComplete };
+}
+
+function MonthlyProgress({ entries, days, quran, selectedDate, onSelectDate }) {
+  const model = useMemo(() => buildMonthlyProgress({entries, days, quran, selectedDate}),
+    [entries, days, quran, selectedDate.slice(0,7)]);
+  const chosen = model.calendar.find(d => d.date === selectedDate);
+  const active = chosen?.score !== null && !chosen?.future ? chosen : null;
+  return <section className="tmv-v39-month-progress" aria-label={`Monthly recorded progress for ${model.monthName}`}>
+    <div className="tmv-v39-month-header">
+      <div className="tmv-v39-month-title"><TrendingUp size={16} aria-hidden="true"/>
+        <h2>{model.monthName} Progress</h2>
+        <span>Day 1–{model.numDays}</span>
+      </div>
+      <span className="tmv-v39-month-recorded">{model.recorded} days recorded</span>
+    </div>
+    <div className="tmv-v39-month-graph" role="group" aria-label="Tap a day to view its saved daily updates">
+      {model.calendar.map(d => {
+        const score = d.score;
+        const recorded = score !== null;
+        const selected = d.date === selectedDate;
+        const label = d.future ? 'upcoming' : recorded ? `${score}% recorded progress` : 'no saved entries';
+        return <button key={d.date} type="button"
+          className={`tmv-v39-month-day${selected ? ' is-selected' : ''}${recorded ? ' has-data' : ''}${d.future ? ' is-future' : ''}`}
+          onClick={() => { if (!d.future) onSelectDate(d.date); }}
+          disabled={d.future}
+          aria-current={selected ? 'date' : undefined}
+          aria-label={`${prettyDate(d.date)}: ${label}${d.universityDates ? ', university important date' : ''}`}
+          title={`${prettyDate(d.date)} · ${label}${d.universityDates ? ' · University date' : ''}`}>
+          <span className="tmv-v39-month-bar-track">
+            {recorded && <span className="tmv-v39-month-bar" style={{ height:`${Math.max(7,score)}%` }}/>}
+            {!recorded && <span className="tmv-v39-month-empty" />}
+            {d.universityDates > 0 && <span className="tmv-v39-month-due" aria-hidden="true"/>}
+          </span>
+          <span className="tmv-v39-month-daynum">{d.day}</span>
+        </button>;
+      })}
+    </div>
+    <div className="tmv-v39-month-info">
+      <div className="tmv-v39-month-metrics">
+        <span><b>Best</b> {model.best ? `${model.best.day} · ${model.best.score}%` : '—'}</span>
+        <span><b>Lowest</b> {model.least ? `${model.least.day} · ${model.least.score}%` : '—'}</span>
+        <span><b>Selected</b> {active ? `${active.day} · ${active.score}%` : 'No data'}</span>
+      </div>
+      <p>{active
+        ? `${active.jamaat} Jamaat · ${active.qaza} Qaza · ${active.quranPages} Quran pages · ${active.officeEvents} office updates${active.universityEvents ? ` · ${active.universityEvents} university updates` : ''}${active.universityDates ? ' · University date' : ''}`
+        : chosen?.universityDates ? 'University important date saved; action not confirmed by a daily update.'
+          : 'Select a recorded day to see its progress.'}</p>
+      <small>{model.isMonthComplete ? 'Monthly comparison' : 'Month in progress'} · Scores reflect saved records, not unrecorded or missed activities.</small>
+    </div>
+  </section>;
+}
+
 function FamilyToday({ entries, days, quran, viewDate, setViewDate, onOpen, onOpenSummary, ownerMode, onNew, love, loveBusy, onLove }) {
   const [expanded, setExpanded] = useState(null);
   useEffect(() => { setExpanded(null); }, [viewDate]);
@@ -1558,6 +1696,7 @@ function FamilyToday({ entries, days, quran, viewDate, setViewDate, onOpen, onOp
     </div>
     {listenError && <div className="tmv-mini-toast" role="status">{listenError}</div>}
     {ownerMode && love?.names?.length > 0 && <small className="tmv-v37-owner-love">❤️ Loved by {love.names.map(name => FAMILY_IDENTITY[name]?.name || name).join(', ')}</small>}
+    <MonthlyProgress entries={entries} days={days} quran={quran} selectedDate={viewDate} onSelectDate={setViewDate}/>
     <div className="tmv-v32-sectiontitle tmv-v34-sectiontitle"><h2>Daily Life</h2><span>Simple daily overview</span></div>
     <div className="tmv-v34-day-prayer">
       <div className="tmv-v34-date-slot">
