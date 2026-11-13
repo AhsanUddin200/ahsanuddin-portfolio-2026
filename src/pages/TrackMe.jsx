@@ -4,7 +4,7 @@ import {
   ArrowLeft, ArrowRight, BookOpen, BriefcaseBusiness, CalendarDays, Check,
   CheckCircle2, ChevronLeft, ChevronRight, Clock3, Edit3, Eye, EyeOff,
   GraduationCap, Heart, KeyRound, LockKeyhole, LogOut, Plus, Search,
-  Bell, Send, ShieldAlert, ShieldCheck, Sparkles, Trash2, TrendingUp, X, Home, Menu, MessageSquareText, Sun, Moon, Volume2, VolumeX, Smartphone,
+  Bell, Send, ShieldAlert, ShieldCheck, Sparkles, Trash2, TrendingUp, X, Home, Menu, MessageSquareText, Sun, Moon, Volume2, VolumeX, Smartphone, Mars, Venus, UserRound,
 } from 'lucide-react';
 import './TrackMe.css';
 
@@ -491,6 +491,21 @@ function FamilySevenDayReminder({ viewer = 'family' }) {
     </button>
     {toast && <div className="tmv-mini-toast" role="status" aria-live="polite">{toast}</div>}
   </>;
+}
+
+/* V37: Small authenticated family identity in the existing header. */
+const FAMILY_IDENTITY = {
+  nasir: {name: 'Nasir', Icon: Mars},
+  talat: {name: 'Talat', Icon: Venus},
+  happa: {name: 'Happa', Icon: Venus},
+  yamna: {name: 'Yamna', Icon: Venus},
+};
+function FamilyIdentity({ viewer }) {
+  const person = FAMILY_IDENTITY[viewer] || {name: 'Family', Icon: UserRound};
+  const PersonIcon = person.Icon;
+  return <span className="tmv-v37-identity" title={`Signed in: ${person.name}`} aria-label={`Signed in as ${person.name}`}>
+    <PersonIcon size={13} strokeWidth={1.8} aria-hidden="true"/><span>{person.name}</span>
+  </span>;
 }
 
 function LoginScreen({ password, setPassword, onSubmit, busy, error }) {
@@ -1419,7 +1434,7 @@ function V32WorkItem({ section, entries, date, expanded, onToggle, onOpen }) {
     expanded={expanded} onToggle={onToggle} onOpen={onOpen}>{detail}</V32LifeItem>;
 }
 
-function FamilyToday({ entries, days, quran, viewDate, setViewDate, onOpen, onOpenSummary, ownerMode, onNew }) {
+function FamilyToday({ entries, days, quran, viewDate, setViewDate, onOpen, onOpenSummary, ownerMode, onNew, love, loveBusy, onLove }) {
   const [expanded, setExpanded] = useState(null);
   useEffect(() => { setExpanded(null); }, [viewDate]);
   const read = quran.filter(item => item.date === viewDate)
@@ -1454,14 +1469,81 @@ function FamilyToday({ entries, days, quran, viewDate, setViewDate, onOpen, onOp
     : `No Quran reading recorded ${viewDate === dayISO() ? 'today' : 'for this date'}`;
   const quranExtra = !read.length && lastQuranReading
     ? `Last reading: Para ${lastQuranReading.para} · ${lastQuranReading.pagesRead} ${Number(lastQuranReading.pagesRead) === 1 ? 'page' : 'pages'} · ${prettyDate(lastQuranReading.date)}` : '';
+  /* V37: Listen to the saved updates for the SELECTED date, not older task statuses. */
+  const [readingDay, setReadingDay] = useState(false);
+  const [listenError, setListenError] = useState('');
+  const listenTimer = useRef(null);
+  const activeSpeech = useRef(null);
+  useEffect(() => {
+    setReadingDay(false);
+    return () => {
+    window.clearTimeout(listenTimer.current);
+    if (activeSpeech.current && 'speechSynthesis' in window) window.speechSynthesis.cancel();
+    activeSpeech.current = null;
+    };
+  }, [viewDate]);
+  function readSelectedDay() {
+    if (!('speechSynthesis' in window) || typeof window.SpeechSynthesisUtterance === 'undefined') {
+      setListenError('Read aloud is not available on this device.');
+      window.clearTimeout(listenTimer.current);
+      listenTimer.current = window.setTimeout(() => setListenError(''), 2500);
+      return;
+    }
+    if (activeSpeech.current) {
+      window.speechSynthesis.cancel();
+      activeSpeech.current = null;
+      setReadingDay(false);
+      return;
+    }
+    const lines = buildFamilyReport({entries, prayerDays: days, quranEntries: quran,
+      period:'selected', topic:'everything', selectedDate:viewDate});
+    const content = [`Ahsan's updates for ${prettyDate(viewDate)}.`, ...lines.map(line => line.en)].join(' ');
+    const utter = new window.SpeechSynthesisUtterance(content);
+    utter.lang = 'en-US';
+    utter.rate = 0.93;
+    const voice = window.speechSynthesis.getVoices().find(item => /^en(?:-|$)/i.test(item.lang));
+    if (voice) utter.voice = voice;
+    utter.onend = () => { if (activeSpeech.current === utter) { activeSpeech.current = null; setReadingDay(false); } };
+    utter.onerror = event => {
+      if (activeSpeech.current !== utter) return;
+      activeSpeech.current = null;
+      setReadingDay(false);
+      if (event.error !== 'canceled' && event.error !== 'interrupted') {
+        setListenError('Audio is unavailable. Please try again.');
+        window.clearTimeout(listenTimer.current);
+        listenTimer.current = window.setTimeout(() => setListenError(''), 2500);
+      }
+    };
+    activeSpeech.current = utter;
+    setReadingDay(true);
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(utter);
+  }
   return <div className="tmv-family-view tmv-v32-home">
     <div className="tmv-v32-intro">
       <span className="tmv-v32-kicker">THE DAILY JOURNAL</span>
       <div className="tmv-v32-titleline">
         <div><h1 className="tmv-v33-script-title">Ahsan’s day<span className="tmv-v32-dot">.</span></h1><p>Just the important moments, in one place.</p></div>
-        <button type="button" className="tmv-v32-summarybtn" onClick={onOpenSummary} aria-label="Open daily summary assistant"><Sparkles size={17}/><span>Quick AI summary</span></button>
+        <div className="tmv-v37-quick-actions">
+          <button type="button" className={`tmv-v37-icon-action tmv-v37-love${love?.liked ? ' is-loved' : ''}`}
+            onClick={onLove} disabled={loveBusy} aria-pressed={Boolean(love?.liked)}
+            aria-label={love?.liked ? 'Remove love for this day' : 'Send love for this day'}
+            title={love?.liked ? 'Remove love' : 'Send love'}>
+            <Heart size={17} fill={love?.liked ? 'currentColor' : 'none'} strokeWidth={1.8}/>
+            {love?.count > 0 && <span className="tmv-v37-love-count">{love.count}</span>}
+          </button>
+          <button type="button" className={`tmv-v37-icon-action${readingDay ? ' is-reading' : ''}`}
+            onClick={readSelectedDay} aria-pressed={readingDay}
+            aria-label={readingDay ? 'Stop listening to Ahsan’s day' : 'Listen to Ahsan’s day'}
+            title={readingDay ? 'Stop listening' : 'Listen to this day'}>
+            {readingDay ? <VolumeX size={17}/> : <Volume2 size={17}/>}
+          </button>
+          <button type="button" className="tmv-v32-summarybtn" onClick={onOpenSummary} aria-label="Open daily summary assistant"><Sparkles size={17}/><span>Quick AI summary</span></button>
+        </div>
       </div>
     </div>
+    {listenError && <div className="tmv-mini-toast" role="status">{listenError}</div>}
+    {ownerMode && love?.names?.length > 0 && <small className="tmv-v37-owner-love">❤️ Loved by {love.names.map(name => FAMILY_IDENTITY[name]?.name || name).join(', ')}</small>}
     <div className="tmv-v32-sectiontitle tmv-v34-sectiontitle"><h2>Daily Life</h2><span>Simple daily overview</span></div>
     <div className="tmv-v34-day-prayer">
       <div className="tmv-v34-date-slot">
@@ -1615,6 +1697,35 @@ export default function TrackMe() {
   const [search,setSearch]=useState('');
   const [filter,setFilter]=useState('all');
   const [summaryOpen,setSummaryOpen]=useState(false);
+  /* V37: One saved heart per family member and selected calendar day. */
+  const [love, setLove] = useState({date:null, liked:false, count:0, names:[]});
+  const [loveBusy, setLoveBusy] = useState(false);
+  const latestLoveDate = useRef(viewDate);
+  latestLoveDate.current = viewDate;
+  useEffect(() => {
+    if (loading || !authenticated || welcome) return undefined;
+    let mounted = true;
+    setLove({date:viewDate,liked:false,count:0,names:[]});
+    api({action:'love_get', date:viewDate})
+      .then(data => { if (mounted) setLove({...data,date:viewDate}); })
+      .catch(() => { if (mounted) setLove({date:viewDate,liked:false,count:0,names:[]}); });
+    return () => { mounted = false; };
+  }, [authenticated, loading, welcome, viewDate, familyViewer]);
+  async function toggleLove() {
+    if (loveBusy) return;
+    if (!FAMILY_IDENTITY[familyViewer]) {
+      setNotice('Sign in with your personal family password to send love.');
+      return;
+    }
+    const date = viewDate;
+    const liked = !Boolean(love.date === date && love.liked);
+    setLoveBusy(true);
+    try {
+      const data = await api({action:'love_set',date,liked});
+      if (date === latestLoveDate.current) setLove({...data,date});
+    } catch (err) { fail(err); }
+    finally { setLoveBusy(false); }
+  }
   /* V31: Update this person's last-open timestamp only after consent has been saved. */
   useEffect(() => {
     if (loading || !authenticated || !['nasir','talat','happa','yamna'].includes(familyViewer)) return undefined;
@@ -1691,11 +1802,12 @@ export default function TrackMe() {
   if(!authenticated)return <main className="tm-page"><LoginScreen password={password} setPassword={setPassword} onSubmit={signIn} busy={busy} error={loginError}/></main>;
   if(welcome)return <main className="tm-page"><CautionWelcome viewer={familyViewer} onContinue={()=>setWelcome(false)}/></main>;
   return <main className="tm-page tmv-family"><div className="tm-shell tmv-shell">
-    <header className="tmv-header"><button type="button" className="tmv-brand" onClick={()=>go('overview')} aria-label="Go to Ahsan's daily updates"><AhsanAvatar className="tmv-avatar-header"/><span><strong><AhsanName/>’s Updates</strong><small>Family journal</small></span></button><div className="tmv-mini-header-actions"><FamilySevenDayReminder viewer={familyViewer}/><button type="button" className="tmv-logout" onClick={signOut}><LogOut size={18}/><span>Log out</span></button></div></header>
+    <header className="tmv-header"><button type="button" className="tmv-brand" onClick={()=>go('overview')} aria-label="Go to Ahsan's daily updates"><AhsanAvatar className="tmv-avatar-header"/><span><strong><AhsanName/>’s Updates</strong><small>Family journal</small></span></button><div className="tmv-mini-header-actions"><FamilySevenDayReminder viewer={familyViewer}/><FamilyIdentity viewer={familyViewer}/><button type="button" className="tmv-logout" onClick={signOut}><LogOut size={18}/><span>Log out</span></button></div></header>
     {section!=='overview'&&<button type="button" className="tmv-back" onClick={()=>go('overview')}><ArrowLeft size={20}/> Back to daily updates</button>}
     {notice&&<div className="tmv-notice" role="status"><CheckCircle2 size={19}/><span>{notice}</span><button type="button" onClick={()=>setNotice('')} aria-label="Dismiss"><X size={17}/></button></div>}
     {ownerMode&&<div className="tmv-owner-banner"><span><LockKeyhole size={16}/> Owner mode · all sections unlocked</span><button type="button" onClick={lockOwner}>Finish editing</button></div>}
-    {section==='overview'&&<FamilyToday entries={entries} days={prayerDays} quran={quranEntries} viewDate={viewDate} setViewDate={setViewDate} onOpen={go} ownerMode={ownerMode} onNew={newTask} onOpenSummary={()=>setSummaryOpen(true)}/>}
+    {section==='overview'&&<FamilyToday entries={entries} days={prayerDays} quran={quranEntries} viewDate={viewDate} setViewDate={setViewDate} onOpen={go} ownerMode={ownerMode} onNew={newTask} onOpenSummary={()=>setSummaryOpen(true)}
+      love={love.date === viewDate ? love : {date:viewDate,liked:false,count:0,names:[]}} loveBusy={loveBusy} onLove={toggleLove}/>}
     {['office','personal','university'].includes(section)&&<WorkPanel section={section} ownerMode={ownerMode} entries={entries} busy={busy} search={search} setSearch={setSearch} filter={filter} setFilter={setFilter} expanded={expanded} setExpanded={setExpanded} note={note} setNote={setNote} onNew={newTask} onNote={addNote} onEdit={item=>setEditor({...item})} onDelete={deleteTask} onStatus={updateTask}/>}
     {section==='prayer'&&<PrayerPanel ownerMode={ownerMode} date={prayerDate} setDate={setPrayerDate} days={prayerDays} busy={busy} onToggle={togglePrayer}/>}
     {section==='quran'&&<QuranPanel ownerMode={ownerMode} quran={quranEntries} busy={busy} onAdd={addQuran} onDelete={deleteQuran}/>}

@@ -2108,3 +2108,53 @@ body:has(.tm-page) {background:#f5f7f6}
   .tm-page .tmv-v34-day-prayer .tmv-prayer-card .tmv-card-heading h2 {font-size:14px}
   .tm-page .tmv-v34-day-prayer .tmv-prayer-card .tmv-prayer-head strong {font-size:10.5px}
 }
+
+
+/* V37: Compact family name, one-tap love and read-aloud. No extra cards. */
+.tm-page .tmv-v37-identity{
+  display:inline-flex;align-items:center;justify-content:center;gap:4px;
+  color:#35654e;font-size:11px;font-weight:650;line-height:1.2;
+  padding:3px 5px;white-space:nowrap;max-width:85px;
+}
+.tm-page .tmv-v37-identity svg{flex:0 0 13px;width:13px;height:13px}
+.tm-page .tmv-v37-quick-actions{display:flex;align-items:center;gap:5px;flex:0 0 auto}
+.tm-page .tmv-v37-icon-action{
+  min-width:35px;height:38px;border:0;border-radius:9px;
+  background:transparent;color:#426e57;display:inline-flex;align-items:center;
+  justify-content:center;gap:3px;padding:0 4px;cursor:pointer;
+}
+.tm-page .tmv-v37-icon-action:hover{background:#edf5ef}
+.tm-page .tmv-v37-icon-action.is-loved{color:#ba5664}
+.tm-page .tmv-v37-icon-action.is-reading{color:#216e50;background:#e8f4ec}
+.tm-page .tmv-v37-love-count{font-size:10px;line-height:1;font-weight:700;color:inherit}
+.tm-page .tmv-v37-owner-love{font-size:11px;line-height:1.5;color:#57745e;margin-top:-5px}
+.tm-page .tmv-v37-icon-action:focus-visible{outline:2px solid #378461;outline-offset:2px}
+@media(max-width:600px){
+  .tm-page .tmv-mini-header-actions{gap:1px}
+  .tm-page .tmv-v37-identity{font-size:10px;gap:3px;padding:2px;max-width:68px}
+  .tm-page .tmv-v37-identity svg{width:12px;height:12px;flex-basis:12px}
+  .tm-page .tmv-v37-quick-actions{gap:2px}
+  .tm-page .tmv-v37-icon-action{width:32px;min-width:32px;height:36px;padding:0 2px}
+  .tm-page .tmv-v37-icon-action svg{width:16px;height:16px}
+  .tm-page .tmv-v32-titleline{gap:6px}
+}
+@media(max-width:370px){
+  .tm-page .tmv-v37-identity{max-width:58px;font-size:9px}
+  .tm-page .tmv-mini-header-actions .tmv-mini-bell{width:30px;height:30px;flex-basis:30px}
+  .tm-page .tmv-v32-home .tmv-v32-titleline h1.tmv-v33-script-title{font-size:30px}
+  .tm-page .tmv-v37-icon-action{min-width:28px;width:28px}
+  .tm-page .tmv-v32-summarybtn{width:36px;height:36px;min-height:36px}
+  .tm-page .tmv-v32-titleline p{font-size:10px}
+}
+
+/* Keep bell + tiny family label + logout on one line at 320px. */
+@media(max-width:370px){
+  .tm-page .tmv-header{gap:4px}
+  .tm-page .tmv-brand{gap:5px;min-width:0}
+  .tm-page .tmv-brand .tmv-avatar-header{width:31px;height:31px}
+  .tm-page .tmv-brand>span:last-child{min-width:0}
+  .tm-page .tmv-brand strong{font-size:12px;white-space:nowrap}
+  .tm-page .tmv-brand small{display:none}
+  .tm-page .tmv-mini-header-actions .tmv-logout{min-width:34px;width:34px;height:34px}
+  .tm-page .tmv-v37-identity{font-size:9px;max-width:55px}
+}

@@ -32,6 +32,20 @@ const PRAYER_KEY = "ahsan:private-track:prayers:v1";
 
 const QURAN_KEY = "ahsan:private-track:quran:v1";
 
+/* V37 family love: signed viewer + date-scoped Redis hash */
+const LOVE_KEY_PREFIX = 'ahsan:private-track:love:v1:';
+const LOVE_VIEWERS = ['nasir', 'talat', 'happa', 'yamna'];
+function parseLoveNames(result) {
+  const values = {};
+  if (Array.isArray(result)) {
+    for (let i = 0; i + 1 < result.length; i += 2) values[String(result[i])] = result[i + 1];
+  } else if (result && typeof result === 'object') {
+    Object.assign(values, result);
+  }
+  return LOVE_VIEWERS.filter(viewer => String(values[viewer]) === '1');
+}
+
+
 const COOKIE = "ahsan_track_session";
 
 /* V30 FAMILY VIEWER PASSWORDS */
@@ -1110,6 +1124,23 @@ export default async function handler(
         await writeJSON(key, { ...state, subscriptions: updated });
         return res.status(200).json({ enabled: false });
       }
+    }
+
+    /* V37: One reaction per signed-in family member per selected day. */
+    if (action === 'love_get' || action === 'love_set') {
+      const date = typeof body.date === 'string' ? body.date : '';
+      if (!validDate(date)) return error(res, 400, 'Invalid journal date.');
+      const viewer = authenticatedViewer(req);
+      const key = LOVE_KEY_PREFIX + date;
+      if (action === 'love_set') {
+        if (!LOVE_VIEWERS.includes(viewer)) return error(res, 403, 'Use an individual family password to send love.');
+        if (typeof body.liked !== 'boolean') return error(res, 400, 'Invalid reaction.');
+        // HSET/HDEL are atomic at Redis; overlapping reactions are not lost.
+        if (body.liked) await redis('HSET', key, viewer, '1');
+        else await redis('HDEL', key, viewer);
+      }
+      const names = parseLoveNames(await redis('HGETALL', key));
+      return res.status(200).json({date, liked:names.includes(viewer), count:names.length, names});
     }
 
     if (action === "load") {
