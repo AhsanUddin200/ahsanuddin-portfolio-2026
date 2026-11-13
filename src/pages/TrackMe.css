@@ -1846,247 +1846,265 @@ body:has(.tm-page) {background:#f5f7f6}
   .tm-page .tmv-v32-home .tmv-v32-titleline h1.tmv-v33-script-title { font-size: 33px; }
 }
 
-
 /* ================================================================
-   V34 — compact DATE + PRAYER side by side (home screen only)
-   Existing prayer data, video, history, date selection and all other
-   pages are unchanged. No separate CSS file is required.
+   Track Me V36: Professional DATE + PRAYER layout
+   Changes only the daily home cards. No changes to records, videos,
+   date selection, authentication, notifications, or detail views.
    ================================================================ */
-.tm-page .tmv-v32-home .tmv-v34-sectiontitle {
-  margin-top: 19px;
-  margin-bottom: 10px;
-}
+.tm-page .tmv-v32-home .tmv-v34-sectiontitle { margin: 18px 0 10px; }
 .tm-page .tmv-v34-day-prayer {
-  display: grid;
-  grid-template-columns: minmax(192px, 0.31fr) minmax(0, 1fr);
-  gap: 12px;
-  align-items: start;
-  min-width: 0;
+  display:grid;
+  grid-template-columns:minmax(212px,0.32fr) minmax(0,1fr);
+  align-items:stretch;
+  gap:12px;
+  min-width:0;
 }
-.tm-page .tmv-v34-date-slot { min-width: 0; }
-.tm-page .tmv-v34-date-slot .tmv-v33-datebar {
-  min-height: 111px;
-  height: auto;
-  padding: 11px 7px;
-  gap: 4px;
-  border-radius: 12px;
+.tm-page .tmv-v34-date-slot { display:flex; min-width:0; }
+.tm-page .tmv-v34-date-slot .tmv-v35-datebar {
+  display:flex;
+  flex:1;
+  min-width:0;
+  width:100%;
+  height:100%;
+  min-height:211px;
+  padding:12px 9px;
+  gap:5px;
+  border-radius:15px;
+  position:relative;
+  isolation:isolate;
+  overflow:hidden;
+  box-shadow:0 3px 13px rgba(23,58,42,.025);
 }
-.tm-page .tmv-v34-date-slot .tmv-v32-datearrow {
-  width: 29px;
-  height: 34px;
-  border-radius: 8px;
-  flex: 0 0 29px;
-}
-.tm-page .tmv-v34-date-slot .tmv-v32-datearrow svg { width: 17px; height: 17px; }
-.tm-page .tmv-v34-date-slot .tmv-v32-datecenter { gap: 4px; }
-.tm-page .tmv-v34-date-slot .tmv-v32-datecenter>span {
-  font-size: 9px;
-  letter-spacing: .05em;
-  overflow-wrap: anywhere;
-}
-.tm-page .tmv-v34-date-slot .tmv-v32-datecenter>strong {
-  font-size: 12px;
-  line-height: 1.35;
-  white-space: normal;
-  overflow-wrap: anywhere;
-}
-.tm-page .tmv-v34-date-slot .tmv-v33-date-meta {
-  white-space: normal;
-  flex-wrap: wrap;
-  gap: 4px;
-  font-size: 10px;
-}
-.tm-page .tmv-v34-day-prayer .tmv-prayer-card {
-  min-width: 0;
-  width: 100%;
-  padding: 10px 13px 0;
-  gap: 7px;
-}
-.tm-page .tmv-v34-day-prayer .tmv-prayer-card .tmv-prayer-five {
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 2px;
-}
-.tm-page .tmv-v34-day-prayer .tmv-prayer-card .tmv-prayer-head { gap: 5px; }
-.tm-page .tmv-v34-day-prayer .tmv-prayer-card .tmv-prayer-one strong { font-size: 11px; }
-.tm-page .tmv-v34-day-prayer .tmv-prayer-card .tmv-prayer-one small { font-size: 10px; }
-.tm-page .tmv-v34-day-prayer .tmv-prayer-card .tmv-read-more { min-height: 34px; }
-.tm-page .tmv-v34-day-prayer + .tmv-v32-life-title { margin-top: 21px; }
-
-/* At phone widths, date stays a small horizontal strip on top: keeping
-   five prayer columns beside a second card would make names unreadable. */
-@media (max-width: 720px) {
-  .tm-page .tmv-v34-day-prayer { grid-template-columns: minmax(0, 1fr); gap: 9px; }
-  .tm-page .tmv-v34-date-slot .tmv-v33-datebar {
-    min-height: 0;
-    height: 57px;
-    padding: 5px 9px;
-    gap: 7px;
-  }
-  .tm-page .tmv-v34-date-slot .tmv-v32-datearrow {
-    width: 34px;
-    height: 38px;
-    flex-basis: 34px;
-  }
-  .tm-page .tmv-v34-date-slot .tmv-v32-datecenter { gap: 1px; }
-  .tm-page .tmv-v34-date-slot .tmv-v32-datecenter>strong { font-size: 12px; }
-  .tm-page .tmv-v34-date-slot .tmv-v33-date-meta { margin-top: 0; }
-  .tm-page .tmv-v34-day-prayer .tmv-prayer-card { padding: 11px 12px 0; }
-  .tm-page .tmv-v34-day-prayer + .tmv-v32-life-title { margin-top: 19px; }
-}
-@media (max-width: 370px) {
-  .tm-page .tmv-v34-date-slot .tmv-v33-datebar { height: 61px; }
-  .tm-page .tmv-v34-date-slot .tmv-v32-datecenter>strong { font-size: 11px; }
-}
-
-
-/* ================================================================
-   V35 — Same-height date + Prayer cards; elegant local day/night sky.
-   Day: sun, slow clouds and decorative animated traffic.
-   Night: moon and faint twinkling stars. These are illustrations, NOT
-   real-world traffic indicators. Data/date navigation remains unchanged.
-   ================================================================ */
-@media (min-width: 721px) {
-  .tm-page .tmv-v34-day-prayer {
-    align-items: stretch;
-    grid-template-columns: minmax(220px, .31fr) minmax(0, 1fr);
-  }
-  .tm-page .tmv-v34-date-slot {
-    display: flex;
-    align-items: stretch;
-    min-width: 0;
-  }
-  .tm-page .tmv-v34-date-slot .tmv-v35-datebar {
-    width: 100%;
-    height: 100%;
-    min-height: 224px;
-    padding: 13px 8px;
-  }
-  .tm-page .tmv-v34-day-prayer .tmv-prayer-card {
-    height: 100%;
-    min-height: 224px;
-    padding-top: 9px;
-    gap: 5px;
-    justify-content: space-between;
-  }
-  .tm-page .tmv-v34-day-prayer .tmv-prayer-card .tmv-card-icon { height: 30px; }
-  .tm-page .tmv-v34-day-prayer .tmv-prayer-card .tmv-prayer-readout { gap: 6px; }
-  .tm-page .tmv-v34-day-prayer .tmv-prayer-card .tmv-prayer-mark { width: 27px; height: 27px; }
-  .tm-page .tmv-v34-day-prayer .tmv-prayer-card .tmv-read-more {
-    min-height: 33px;
-    padding-top: 5px;
-    padding-bottom: 5px;
-  }
-}
-/* Theme remains neutral and readable even when the little sky moves. */
-.tm-page .tmv-v35-datebar {
-  position: relative;
-  isolation: isolate;
-  overflow: hidden;
-  transition: background .35s ease, border-color .35s ease;
-}
+/* Restrained editorial backgrounds, without illustrations/animations. */
 .tm-page .tmv-v35-datebar.tmv-v35-day {
-  background: linear-gradient(150deg, #fffdf6 0%, #f8fcef 47%, #eff7ed 100%);
-  border-color: #dfe7d8;
+  background:linear-gradient(153deg,#fffefd 0%,#fbfcf8 58%,#f0f5ef 100%);
+  border:1px solid #dfe8e1;
 }
 .tm-page .tmv-v35-datebar.tmv-v35-night {
-  background: linear-gradient(155deg, #173936 0%, #224449 100%);
-  border-color: #274b46;
+  background:linear-gradient(155deg,#143c38 0%,#1b4942 100%);
+  border:1px solid #244d45;
+}
+.tm-page .tmv-v35-datebar .tmv-v36-ambient {
+  position:absolute;
+  inset:0;
+  overflow:hidden;
+  pointer-events:none;
+  z-index:0;
+}
+.tm-page .tmv-v35-datebar .tmv-v36-ambient::before {
+  content:"";
+  position:absolute;
+  width:145px;
+  height:145px;
+  right:-62px;
+  top:-77px;
+  border-radius:50%;
+  border:1px solid rgba(45,107,70,.07);
+  box-shadow:0 0 0 31px rgba(45,107,70,.025);
+}
+.tm-page .tmv-v35-night .tmv-v36-ambient::before {
+  border-color:rgba(255,255,255,.10);
+  box-shadow:0 0 0 31px rgba(255,255,255,.025);
+}
+.tm-page .tmv-v36-ambient-icon {
+  position:absolute;
+  top:15px;
+  right:14px;
+  color:#c69e62;
+  opacity:.24;
+}
+.tm-page .tmv-v35-night .tmv-v36-ambient-icon {color:#e7dbc0;opacity:.25}
+.tm-page .tmv-v35-night .tmv-v36-ambient {
+  background-image:radial-gradient(circle at 23% 22%,rgba(240,251,235,.35) 1px,transparent 1.5px),
+    radial-gradient(circle at 80% 65%,rgba(240,251,235,.26) 1px,transparent 1.5px),
+    radial-gradient(circle at 31% 84%,rgba(240,251,235,.24) 1px,transparent 1.5px);
 }
 .tm-page .tmv-v35-datebar .tmv-v32-datearrow,
-.tm-page .tmv-v35-datebar .tmv-v32-datecenter {
-  position: relative;
-  z-index: 2;
+.tm-page .tmv-v35-datebar .tmv-v32-datecenter {position:relative;z-index:2}
+.tm-page .tmv-v34-date-slot .tmv-v32-datearrow {
+  flex:0 0 30px;
+  width:30px;
+  height:36px;
+  padding:0;
+  border-radius:9px;
+  color:#416f56;
+  background:rgba(221,235,223,.55);
 }
-.tm-page .tmv-v35-datebar.tmv-v35-night .tmv-v32-datecenter > span,
-.tm-page .tmv-v35-datebar.tmv-v35-night .tmv-v32-datecenter > strong,
-.tm-page .tmv-v35-datebar.tmv-v35-night .tmv-v33-date-meta {
-  color: #f2f9f5;
+.tm-page .tmv-v34-date-slot .tmv-v32-datearrow svg {width:16px;height:16px}
+.tm-page .tmv-v35-night .tmv-v32-datearrow {
+  color:#e4f0e8;
+  background:rgba(255,255,255,.12);
 }
-.tm-page .tmv-v35-datebar.tmv-v35-night .tmv-v32-datecenter > span { color: #bce4c6; }
-.tm-page .tmv-v35-datebar.tmv-v35-night .tmv-v33-date-meta { color: #d7e8da; }
-.tm-page .tmv-v35-datebar.tmv-v35-night .tmv-v32-datearrow {
-  background: rgba(255,255,255,.12);
-  color: #e4f4e9;
+.tm-page .tmv-v35-night .tmv-v32-datearrow:hover:not(:disabled) {background:rgba(255,255,255,.20)}
+.tm-page .tmv-v35-night .tmv-v32-datecenter > :is(span,strong),
+.tm-page .tmv-v35-night .tmv-v33-date-meta {color:#ecf6f1}
+.tm-page .tmv-v35-night .tmv-v32-datecenter > span {color:#b4dfca}
+.tm-page .tmv-v34-date-slot .tmv-v32-datecenter {gap:4px}
+.tm-page .tmv-v34-date-slot .tmv-v32-datecenter > span {
+  font-size:9px;
+  font-weight:750;
+  letter-spacing:.1em;
+  overflow-wrap:anywhere;
 }
-.tm-page .tmv-v35-datebar.tmv-v35-night .tmv-v32-datearrow:hover:not(:disabled) { background: rgba(255,255,255,.22); }
-.tm-page .tmv-v35-datebar .tmv-v35-ambient {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  overflow: hidden;
+.tm-page .tmv-v34-date-slot .tmv-v32-datecenter > .tmv-v36-full-date {
+  font-size:13px;
+  line-height:1.4;
+  font-weight:700;
+  overflow-wrap:anywhere;
 }
-.tm-page .tmv-v35-sky-symbol {
-  position: absolute;
-  top: 12px;
-  right: 13px;
-  opacity: .60;
+.tm-page .tmv-v36-mobile-date,
+.tm-page .tmv-v36-mobile-eyebrow {display:none}
+.tm-page .tmv-v34-date-slot .tmv-v33-date-meta {
+  display:flex;
+  flex-wrap:wrap;
+  white-space:normal;
+  gap:4px 5px;
+  font-size:10px;
+  line-height:1.3;
+  overflow-wrap:anywhere;
 }
-.tm-page .tmv-v35-day .tmv-v35-sky-symbol { color: #d7a64c; animation: tmv-v35-sunlight 8s ease-in-out infinite; }
-.tm-page .tmv-v35-night .tmv-v35-sky-symbol { color: #f7e9c0; opacity: .84; }
-.tm-page .tmv-v35-cloud {
-  position: absolute;
-  left: -45px;
-  top: 28px;
-  width: 47px;
-  height: 10px;
-  border-radius: 22px;
-  background: rgba(178,204,186,.25);
-  box-shadow: 13px -5px 0 2px rgba(178,204,186,.20);
-  animation: tmv-v35-cloud-cross 29s linear infinite;
+/* Same-height partner. Prayer retains the existing video and history. */
+.tm-page .tmv-v34-day-prayer .tmv-prayer-card {
+  width:100%;
+  min-width:0;
+  height:100%;
+  min-height:211px;
+  justify-content:space-between;
+  border-radius:15px;
+  padding:11px 16px 0;
+  gap:6px;
+  border-color:#e0e9e2;
+  background:#fff;
 }
-.tm-page .tmv-v35-cloud-second { top: 61px; opacity: .6; animation-delay: -15s; animation-duration: 35s; }
-.tm-page .tmv-v35-star {
-  position: absolute;
-  width: 3px;
-  height: 3px;
-  border-radius: 50%;
-  background: #e5f5e7;
-  box-shadow: 0 0 7px rgba(242,251,231,.65);
-  animation: tmv-v35-starlight 2.8s ease-in-out infinite alternate;
+.tm-page .tmv-v34-day-prayer .tmv-prayer-card .tmv-card-video {
+  opacity:.34;
+  filter:saturate(.65) contrast(.94);
 }
-.tm-page .tmv-v35-star-one{top:23px;left:20px}
-.tm-page .tmv-v35-star-two{top:48px;right:66px;animation-delay:-1.3s}
-.tm-page .tmv-v35-star-three{top:78%;right:30px;animation-delay:-2s}
-.tm-page .tmv-v35-star-four{top:65%;left:28px;animation-delay:-.7s}
-.tm-page .tmv-v35-traffic {
-  position: absolute;
-  inset: auto 13px 12px;
-  height: 20px;
-  opacity: .32;
-  overflow: hidden;
+.tm-page .tmv-v34-day-prayer .tmv-prayer-card::before {background:rgba(255,255,255,.91)}
+.tm-page .tmv-v34-day-prayer .tmv-prayer-card .tmv-card-heading h2 {font-size:17px}
+.tm-page .tmv-v34-day-prayer .tmv-prayer-card .tmv-prayer-readout {gap:6px}
+.tm-page .tmv-v34-day-prayer .tmv-prayer-card .tmv-prayer-five {
+  grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:3px;
 }
-.tm-page .tmv-v35-road-line {
-  position: absolute;
-  bottom: 1px;
-  width: 100%;
-  border-bottom: 1px dashed #92b7a1;
+.tm-page .tmv-v34-day-prayer .tmv-prayer-card .tmv-prayer-one strong {font-size:11px}
+.tm-page .tmv-v34-day-prayer .tmv-prayer-card .tmv-prayer-one small {font-size:10px}
+.tm-page .tmv-v34-day-prayer .tmv-prayer-card .tmv-read-more {
+  min-height:34px;
+  padding:7px 0;
+  margin-top:2px;
 }
-.tm-page .tmv-v35-car {
-  position: absolute;
-  bottom: 0;
-  left: -42px;
-  width: 29px;
-  height: 14px;
-  color: #497960;
-  animation: tmv-v35-traffic-pass 17s linear infinite;
+.tm-page .tmv-v34-day-prayer + .tmv-v32-life-title {margin-top:21px}
+/* Mobile: keep a genuine 2-column split, equal card height.
+   Date gets its own readable calendar typography and bottom navigation;
+   Prayer uses 3+2 markers instead of squeezing five across. */
+@media(max-width:720px) {
+  .tm-page .tmv-v34-day-prayer {
+    grid-template-columns:minmax(108px,.94fr) minmax(0,1.9fr);
+    gap:8px;
+    align-items:stretch;
+  }
+  .tm-page .tmv-v34-date-slot .tmv-v35-datebar {
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    grid-template-rows:minmax(0,1fr) 34px;
+    align-items:stretch;
+    min-height:240px;
+    height:100%;
+    gap:8px 5px;
+    padding:12px 8px 9px;
+  }
+  .tm-page .tmv-v34-date-slot .tmv-v32-datecenter {
+    grid-column:1 / -1;
+    grid-row:1;
+    justify-content:center;
+    gap:6px;
+  }
+  .tm-page .tmv-v34-date-slot .tmv-v32-datearrow {
+    grid-row:2;
+    width:100%;
+    height:34px;
+    flex:auto;
+  }
+  .tm-page .tmv-v34-date-slot .tmv-v32-datearrow:first-of-type {grid-column:1}
+  .tm-page .tmv-v34-date-slot .tmv-v32-datearrow:last-of-type {grid-column:2}
+  .tm-page .tmv-v34-date-slot .tmv-v32-datecenter > .tmv-v36-full-eyebrow, 
+  .tm-page .tmv-v34-date-slot .tmv-v32-datecenter > .tmv-v36-full-date {display:none}
+  .tm-page .tmv-v34-date-slot .tmv-v32-datecenter > .tmv-v36-mobile-eyebrow {
+    display:block;
+    font-size:9px;
+    font-weight:750;
+    letter-spacing:.06em;
+  }
+  .tm-page .tmv-v34-date-slot .tmv-v32-datecenter > .tmv-v36-mobile-date {
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:1px;
+    font-family:Inter,system-ui,sans-serif;
+    line-height:1.12;
+    letter-spacing:0;
+    color:#1d3d30;
+  }
+  .tm-page .tmv-v36-date-number {font-size:28px;font-weight:750;line-height:1}
+  .tm-page .tmv-v36-month-year {font-size:10.5px;font-weight:700;white-space:nowrap}
+  .tm-page .tmv-v36-weekday {font-size:10px;font-weight:500;opacity:.77}
+  .tm-page .tmv-v35-night .tmv-v36-mobile-date {color:#f4f9f6!important}
+  .tm-page .tmv-v34-date-slot .tmv-v32-datecenter > span {font-size:9px;letter-spacing:.06em}
+  .tm-page .tmv-v34-date-slot .tmv-v33-date-meta {
+    margin-top:3px;
+    gap:3px 5px;
+    font-size:9.5px;
+  }
+  .tm-page .tmv-v34-date-slot .tmv-v33-date-meta svg {width:11px;height:11px}
+  .tm-page .tmv-v34-date-slot .tmv-v33-date-meta .tmv-v33-date-separator {display:none}
+  .tm-page .tmv-v36-ambient-icon {top:12px;right:8px;width:24px;height:24px;opacity:.13}
+  .tm-page .tmv-v34-day-prayer .tmv-prayer-card {
+    min-height:240px;
+    padding:12px 10px 0;
+    gap:7px;
+  }
+  .tm-page .tmv-v34-day-prayer .tmv-prayer-card .tmv-card-heading {gap:6px}
+  .tm-page .tmv-v34-day-prayer .tmv-prayer-card .tmv-card-icon {width:29px;height:29px;min-width:29px}
+  .tm-page .tmv-v34-day-prayer .tmv-prayer-card .tmv-card-icon svg {width:27px;height:27px}
+  .tm-page .tmv-v34-day-prayer .tmv-prayer-card .tmv-card-heading h2 {font-size:15px}
+  .tm-page .tmv-v34-day-prayer .tmv-prayer-card .tmv-prayer-head span {display:none}
+  .tm-page .tmv-v34-day-prayer .tmv-prayer-card .tmv-prayer-head strong {font-size:11.5px;line-height:1.3}
+  .tm-page .tmv-v34-day-prayer .tmv-prayer-card .tmv-prayer-readout {gap:8px}
+  .tm-page .tmv-v34-day-prayer .tmv-prayer-card .tmv-prayer-five {
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    justify-items:center;
+    column-gap:2px;
+    row-gap:9px;
+  }
+  .tm-page .tmv-v34-day-prayer .tmv-prayer-card .tmv-prayer-one {min-width:0;max-width:100%;gap:1px}
+  .tm-page .tmv-v34-day-prayer .tmv-prayer-card .tmv-prayer-mark {width:23px;height:23px;font-size:12px}
+  .tm-page .tmv-v34-day-prayer .tmv-prayer-card .tmv-prayer-mark svg {width:15px;height:15px}
+  .tm-page .tmv-v34-day-prayer .tmv-prayer-card .tmv-prayer-one strong {
+    font-size:10px;
+    font-weight:700;
+    line-height:1.2;
+    margin-top:2px;
+    white-space:nowrap;
+  }
+  .tm-page .tmv-v34-day-prayer .tmv-prayer-card .tmv-prayer-one small {
+    font-size:9px;
+    line-height:1.3;
+    white-space:nowrap;
+  }
+  .tm-page .tmv-v34-day-prayer .tmv-prayer-card .tmv-read-more {
+    min-height:32px;
+    font-size:11px;
+    padding:5px 0 7px;
+  }
+  .tm-page .tmv-v34-day-prayer + .tmv-v32-life-title {margin-top:19px}
 }
-.tm-page .tmv-v35-car-second { animation-delay: -8s; animation-duration: 23s; opacity: .8; }
-@keyframes tmv-v35-sunlight { 50% {opacity:.84;transform:rotate(12deg)} }
-@keyframes tmv-v35-cloud-cross { to {left:calc(100% + 50px)} }
-@keyframes tmv-v35-starlight { from {opacity:.25;transform:scale(.8)} to {opacity:.9;transform:scale(1.5)} }
-@keyframes tmv-v35-traffic-pass { to {left:calc(100% + 35px)} }
-@media (max-width: 720px) {
-  /* Keep the compact mobile DATE STRIP; do not force tall equal-height cards. */
-  .tm-page .tmv-v34-date-slot .tmv-v35-datebar { min-height: 0; height: 61px; }
-  .tm-page .tmv-v35-sky-symbol { top: 10px; right: 17px; width: 20px; height: 20px; }
-  .tm-page .tmv-v35-traffic {display:none}
-  .tm-page .tmv-v35-cloud-second {display:none}
-}
-@media(prefers-reduced-motion:reduce) {
-  .tm-page .tmv-v35-sky-symbol,
-  .tm-page .tmv-v35-cloud,
-  .tm-page .tmv-v35-star,
-  .tm-page .tmv-v35-car {animation:none!important}
-  .tm-page .tmv-v35-datebar {transition:none}
+@media(max-width:355px) {
+  .tm-page .tmv-v34-day-prayer {grid-template-columns:minmax(98px,.87fr) minmax(0,2fr);gap:7px}
+  .tm-page .tmv-v34-date-slot .tmv-v35-datebar {padding-left:6px;padding-right:6px}
+  .tm-page .tmv-v34-day-prayer .tmv-prayer-card {padding-left:7px;padding-right:7px}
+  .tm-page .tmv-v34-day-prayer .tmv-prayer-card .tmv-prayer-one strong {font-size:9px}
+  .tm-page .tmv-v34-day-prayer .tmv-prayer-card .tmv-prayer-one small {font-size:8.5px}
+  .tm-page .tmv-v34-day-prayer .tmv-prayer-card .tmv-card-heading h2 {font-size:14px}
+  .tm-page .tmv-v34-day-prayer .tmv-prayer-card .tmv-prayer-head strong {font-size:10.5px}
 }

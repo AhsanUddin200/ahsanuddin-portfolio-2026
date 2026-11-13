@@ -1314,27 +1314,20 @@ function V32DateNavigator({ value, setValue }) {
     weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
   });
   return <div className={`tmv-v32-datebar tmv-v33-datebar tmv-v35-datebar ${isDay ? 'tmv-v35-day' : 'tmv-v35-night'}`} aria-label="Daily updates date selection">
-    {/* Purely decorative local-time sky: no external services, no real traffic data. */}
-    <div className="tmv-v35-ambient" aria-hidden="true">
-      {isDay ? <>
-        <Sun className="tmv-v35-sky-symbol" size={30} strokeWidth={1.35}/>
-        <span className="tmv-v35-cloud tmv-v35-cloud-first"/>
-        <span className="tmv-v35-cloud tmv-v35-cloud-second"/>
-        <div className="tmv-v35-traffic">
-          <span className="tmv-v35-road-line"/>
-          <svg className="tmv-v35-car tmv-v35-car-first" viewBox="0 0 44 19" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 13h37l-2-5H29l-5-5H14l-6 7H3v3Z"/><circle cx="12" cy="15" r="2.6"/><circle cx="34" cy="15" r="2.6"/></svg>
-          <svg className="tmv-v35-car tmv-v35-car-second" viewBox="0 0 44 19" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 13h37l-2-5H29l-5-5H14l-6 7H3v3Z"/><circle cx="12" cy="15" r="2.6"/><circle cx="34" cy="15" r="2.6"/></svg>
-        </div>
-      </> : <>
-        <Moon className="tmv-v35-sky-symbol" size={29} strokeWidth={1.4}/>
-        <i className="tmv-v35-star tmv-v35-star-one"/><i className="tmv-v35-star tmv-v35-star-two"/>
-        <i className="tmv-v35-star tmv-v35-star-three"/><i className="tmv-v35-star tmv-v35-star-four"/>
-      </>}
+    {/* V36: quiet, static sun/moon accent only; no cartoon traffic or motion. */}
+    <div className="tmv-v36-ambient" aria-hidden="true">
+      <PartIcon className="tmv-v36-ambient-icon" size={40} strokeWidth={1.15}/>
     </div>
     <button type="button" className="tmv-v32-datearrow" onClick={() => setValue(shiftDay(value, -1))} aria-label="Previous day"><ChevronLeft size={20}/></button>
     <label className="tmv-v32-datecenter">
-      <span>{value === today ? 'TODAY' : 'SELECTED DATE · TAP TO CHANGE'}</span>
-      <strong>{readable}</strong>
+      <span className="tmv-v36-full-eyebrow">{value === today ? 'TODAY' : 'SELECTED DATE · TAP TO CHANGE'}</span>
+      <span className="tmv-v36-mobile-eyebrow">{value === today ? 'TODAY' : 'SELECTED DAY'}</span>
+      <strong className="tmv-v36-full-date">{readable}</strong>
+      <strong className="tmv-v36-mobile-date">
+        <span className="tmv-v36-date-number">{selectedDate.getDate()}</span>
+        <span className="tmv-v36-month-year">{selectedDate.toLocaleDateString('en-US', {month:'short', year:'numeric'})}</span>
+        <span className="tmv-v36-weekday">{selectedDate.toLocaleDateString('en-US', {weekday:'long'})}</span>
+      </strong>
       <small className="tmv-v33-date-meta" aria-label={`Current local time ${timeText}, ${isDay ? 'day' : 'night'}`}>
         <Clock3 size={12} strokeWidth={1.8} aria-hidden="true" />
         <span>{timeText}</span>
