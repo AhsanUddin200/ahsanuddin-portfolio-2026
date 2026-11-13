@@ -4,7 +4,7 @@ import {
   ArrowLeft, ArrowRight, BookOpen, BriefcaseBusiness, CalendarDays, Check,
   CheckCircle2, ChevronLeft, ChevronRight, Clock3, Edit3, Eye, EyeOff,
   GraduationCap, Heart, KeyRound, LockKeyhole, LogOut, Plus, Search,
-  Bell, Send, ShieldAlert, ShieldCheck, Sparkles, Trash2, TrendingUp, X, Home, Menu, MessageSquareText, Sun, Moon, Volume2, VolumeX, Smartphone, Mars, Venus, UserRound,
+  Bell, Send, ShieldAlert, ShieldCheck, Sparkles, Trash2, TrendingUp, X, Home, Menu, MessageSquareText, Sun, Moon, Volume2, VolumeX, Smartphone, UserRound,
 } from 'lucide-react';
 import './TrackMe.css';
 
@@ -493,18 +493,32 @@ function FamilySevenDayReminder({ viewer = 'family' }) {
   </>;
 }
 
-/* V37: Small authenticated family identity in the existing header. */
+/* V38: Compact, rounded male/female silhouette above the signed-in name.
+   Pure inline SVG: no new image files, dependencies, or login changes. */
 const FAMILY_IDENTITY = {
-  nasir: {name: 'Nasir', Icon: Mars},
-  talat: {name: 'Talat', Icon: Venus},
-  happa: {name: 'Happa', Icon: Venus},
-  yamna: {name: 'Yamna', Icon: Venus},
+  nasir: {name: 'Nasir', gender: 'male'},
+  talat: {name: 'Talat', gender: 'female'},
+  happa: {name: 'Happa', gender: 'female'},
+  yamna: {name: 'Yamna', gender: 'female'},
 };
+function FamilyProfileSilhouette({ gender }) {
+  if (gender === 'female') return <svg viewBox="0 0 32 32" fill="none" aria-hidden="true" focusable="false">
+    <path d="M9.6 23.6C8.4 21 8.1 17.3 8.7 13.1 9.5 7.8 11.9 5.7 16 5.7s6.5 2.1 7.3 7.4c.6 4.2.3 7.9-.9 10.5l-3.1-1.3.7-6.9c-.6-2-1.6-3.1-4-3.9-2.4.8-3.4 1.9-4 3.9l.7 6.9-3.1 1.3Z" fill="currentColor"/>
+    <path d="M11.4 15.5c0 4.4 1.9 6.7 4.6 6.7s4.6-2.3 4.6-6.7" stroke="currentColor" strokeWidth="1.35" strokeLinecap="round"/>
+    <path d="M5.7 27.8c.5-2.8 2.9-4.7 6.5-5.5l3.8 2.3 3.8-2.3c3.6.8 6 2.7 6.5 5.5" fill="currentColor"/>
+  </svg>;
+  if (gender === 'male') return <svg viewBox="0 0 32 32" fill="none" aria-hidden="true" focusable="false">
+    <path d="M10.3 13.6V10c0-3.2 2.3-5.2 5.7-5.2s5.7 2 5.7 5.2v3.6l-2.3-1.8-.7-1.6-2.4 1.2-3.4-1.1-2.6 3.3Z" fill="currentColor"/>
+    <path d="M10.8 13.6v3.1c0 3.4 2.1 5.8 5.2 5.8s5.2-2.4 5.2-5.8v-3.1" stroke="currentColor" strokeWidth="1.45" strokeLinecap="round"/>
+    <path d="M5.8 27.8c.5-3.2 2.8-4.7 6.6-5.5l3.6 2.3 3.6-2.3c3.8.8 6.1 2.3 6.6 5.5" fill="currentColor"/>
+  </svg>;
+  return <UserRound size={22} strokeWidth={1.7} aria-hidden="true"/>;
+}
 function FamilyIdentity({ viewer }) {
-  const person = FAMILY_IDENTITY[viewer] || {name: 'Family', Icon: UserRound};
-  const PersonIcon = person.Icon;
-  return <span className="tmv-v37-identity" title={`Signed in: ${person.name}`} aria-label={`Signed in as ${person.name}`}>
-    <PersonIcon size={13} strokeWidth={1.8} aria-hidden="true"/><span>{person.name}</span>
+  const person = FAMILY_IDENTITY[viewer] || {name: 'Family', gender: 'other'};
+  return <span className="tmv-v37-identity" role="img" title={`Signed in: ${person.name}`} aria-label={`Signed in as ${person.name}`}>
+    <span className="tmv-v38-avatar"><FamilyProfileSilhouette gender={person.gender}/></span>
+    <span className="tmv-v38-name">{person.name}</span>
   </span>;
 }
 
