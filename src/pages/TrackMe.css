@@ -2363,3 +2363,31 @@ body:has(.tm-page) {background:#f5f7f6}
 }
 @media(max-width:370px) {.tm-page .tmv-v39-month-title>span {display:none}}
 @media(prefers-reduced-motion:reduce) {.tm-page .tmv-v39-month-bar {transition:none}}
+
+
+/* V41 — compact optional family photo; zero empty card for visitors. */
+.tm-page .tmv-v41-life-tray{display:flex;gap:9px;align-items:center;min-width:0}
+.tm-page .tmv-v41-life-hint{font-size:10px;color:#91a196;white-space:nowrap}
+.tm-page .tmv-v41-moment{display:flex;align-items:center;position:relative;flex-shrink:0}
+.tm-page .tmv-v41-photo-input{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
+.tm-page .tmv-v41-moment-thumb,.tm-page .tmv-v41-moment-add{display:flex;align-items:center;gap:5px;background:#f0f6f1;color:#245d43;border:1px solid #d4e5d9;border-radius:9px;min-height:37px;padding:3px 7px;font-size:10px;font-weight:650;cursor:pointer}
+.tm-page .tmv-v41-moment-thumb img{height:29px;width:34px;display:block;object-fit:cover;border-radius:6px}
+.tm-page .tmv-v41-moment-add svg{width:15px;height:15px}
+.tm-page .tmv-v41-moment-thumb:hover,.tm-page .tmv-v41-moment-add:hover{background:#e6f2e9}
+.tm-page .tmv-v41-moment-error{position:absolute;right:0;bottom:calc(100% + 5px);width:175px;background:#fff7f4;border:1px solid #ead4cb;color:#955747;border-radius:7px;padding:7px;font-size:10px;z-index:5}
+.tm-page .tmv-v41-photo-backdrop{padding:16px;z-index:10000}
+.tm-page .tmv-v41-photo-modal{position:relative;width:min(480px,100%);max-height:90dvh;display:flex;flex-direction:column;background:#fff;border:1px solid #dbe6de;border-radius:15px;overflow:hidden;box-shadow:0 25px 70px #082a203d}
+.tm-page .tmv-v41-photo-modal>img{display:block;width:100%;height:auto;max-height:70dvh;object-fit:contain;background:#f4f8f5}
+.tm-page .tmv-v41-photo-close{position:absolute;right:9px;top:9px;width:36px;height:36px;display:grid;place-items:center;border-radius:50%;border:0;background:#ffffffec;color:#164632}
+.tm-page .tmv-v41-photo-caption{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px;font-size:11px;color:#436951}
+.tm-page .tmv-v41-photo-caption>span:first-child{display:flex;align-items:center;gap:6px}
+.tm-page .tmv-v41-photo-tools{display:flex;align-items:center;gap:5px}
+.tm-page .tmv-v41-photo-tools button{background:#f1f5f1;border:0;border-radius:7px;padding:7px 9px;color:#315d45;font-size:11px}
+.tm-page .tmv-v32-item-university .tmv-v32-extra{color:#2a7955}
+@media(max-width:550px){
+ .tm-page .tmv-v41-life-tray{gap:5px}
+ .tm-page .tmv-v41-life-hint{display:none}
+ .tm-page .tmv-v41-moment-thumb,.tm-page .tmv-v41-moment-add{min-height:34px;font-size:10px}
+ .tm-page .tmv-v41-moment-thumb img{width:29px;height:26px}
+ .tm-page .tmv-v41-photo-caption{flex-wrap:wrap}
+}

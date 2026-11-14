@@ -31,6 +31,8 @@ const TASK_KEY = "ahsan:private-track:entries:v1";
 const PRAYER_KEY = "ahsan:private-track:prayers:v1";
 
 const QURAN_KEY = "ahsan:private-track:quran:v1";
+/* V41 family moment */
+const MOMENT_KEY_PREFIX = 'ahsan:private-track:moment:v1:';
 
 /* V37 family love: signed viewer + date-scoped Redis hash */
 const LOVE_KEY_PREFIX = 'ahsan:private-track:love:v1:';
@@ -1006,7 +1008,7 @@ export default async function handler(
 
   if (
     req.method === "POST" &&
-    JSON.stringify(body).length > 15000
+    JSON.stringify(body).length > (body.action === 'moment_save' ? 125000 : 15000)
   ) {
     return error(
       res,
@@ -1087,6 +1089,36 @@ export default async function handler(
     /* =====================================================
        LOAD ALL TRACKING DATA
     ===================================================== */
+
+    /* V41: one private image per selected date. Owner PIN required to write. */
+    if (['moment_get','moment_save','moment_delete'].includes(action)) {
+      const date = typeof body.date === 'string' ? body.date : '';
+      if (!validDate(date)) return error(res, 400, 'Invalid photo date.');
+      const key = MOMENT_KEY_PREFIX + date;
+      if (action === 'moment_get') {
+        const saved = await readJSON(key, {});
+        return res.status(200).json({photo: saved.image || null});
+      }
+      const ownerPIN = process.env.TRACK_TASK_PIN || '';
+      if (ownerPIN.length < 6) return error(res, 503, 'Owner access code is not configured.');
+      const code = typeof body.pin === 'string' ? body.pin : '';
+      const check = await checkSecret(req, 'pin', code, ownerPIN);
+      if (!check.ok) return error(res, check.status, check.error);
+      if (action === 'moment_delete') {
+        await redis('DEL', key);
+        return res.status(200).json({photo:null});
+      }
+      const encoded = typeof body.image === 'string' ? body.image : '';
+      if (!/^data:image\/jpeg;base64,[A-Za-z0-9+/]+={0,2}$/.test(encoded) || encoded.length > 90000 || encoded.length < 400) {
+        return error(res, 400, 'Photo must be a small compressed JPEG.');
+      }
+      const bytes = Buffer.from(encoded.slice('data:image/jpeg;base64,'.length), 'base64');
+      if (bytes.length < 250 || bytes.length > 69000 || bytes[0] !== 0xff || bytes[1] !== 0xd8 || bytes[2] !== 0xff) {
+        return error(res, 400, 'Invalid JPEG photo.');
+      }
+      await writeJSON(key, {image:encoded, updatedAt:now()});
+      return res.status(200).json({photo:encoded});
+    }
 
     /* V31 reminder actions: authenticated signed family session is the only identity source. */
     if (['reminder_config','reminder_touch','reminder_subscribe','reminder_unsubscribe'].includes(action)) {

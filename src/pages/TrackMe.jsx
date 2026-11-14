@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import {
   ArrowLeft, ArrowRight, BookOpen, BriefcaseBusiness, CalendarDays, Check,
   CheckCircle2, ChevronLeft, ChevronRight, Clock3, Edit3, Eye, EyeOff,
-  GraduationCap, Heart, KeyRound, LockKeyhole, LogOut, Plus, Search,
+  GraduationCap, Heart, Camera, Image as ImageIcon, KeyRound, LockKeyhole, LogOut, Plus, Search,
   Bell, Send, ShieldAlert, ShieldCheck, Sparkles, Trash2, TrendingUp, X, Home, Menu, MessageSquareText, Sun, Moon, Volume2, VolumeX, Smartphone, UserRound,
 } from 'lucide-react';
 import './TrackMe.css';
@@ -1372,6 +1372,101 @@ function V32DateNavigator({ value, setValue }) {
   </div>;
 }
 
+/* V41 — One optional private photo for a selected journal day. No external assets. */
+function compressMomentPhoto(file) {
+  if (!file || !file.type.startsWith('image/')) return Promise.reject(new Error('Please select an image.'));
+  if (file.size > 12 * 1024 * 1024) return Promise.reject(new Error('Please choose an image under 12 MB.'));
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const image = new window.Image();
+    image.onload = () => {
+      URL.revokeObjectURL(url);
+      try {
+        let side = 720;
+        let data = '';
+        while (side >= 320) {
+          const scale = Math.min(1, side / Math.max(image.naturalWidth, image.naturalHeight));
+          const canvas = document.createElement('canvas');
+          canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+          canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+          const ctx = canvas.getContext('2d', {alpha:false});
+          if (!ctx) throw new Error('Image processing is unavailable.');
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0,0,canvas.width,canvas.height);
+          ctx.drawImage(image,0,0,canvas.width,canvas.height);
+          for (const quality of [0.72,0.58,0.43]) {
+            data = canvas.toDataURL('image/jpeg',quality);
+            if (data.length <= 90000) { resolve(data); return; }
+          }
+          side = Math.floor(side * 0.75);
+        }
+        reject(new Error('This photo cannot be compressed enough. Please choose another.'));
+      } catch (err) { reject(err); }
+    };
+    image.onerror = () => { URL.revokeObjectURL(url); reject(new Error('This image could not be opened.')); };
+    image.src = url;
+  });
+}
+
+function FamilyMoment({date, ownerMode, ownerPin}) {
+  const [photo, setPhoto] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const [view, setView] = useState(false);
+  const [error, setError] = useState('');
+  const uploadInput = useRef(null);
+  const liveDate = useRef(date);
+  liveDate.current = date;
+  useEffect(() => {
+    let alive = true;
+    setPhoto(null);
+    setView(false);
+    setError('');
+    api({action:'moment_get',date})
+      .then(data => {if(alive) setPhoto(data.photo || null);})
+      .catch(() => {if(alive) setError('Photo unavailable.');});
+    return () => {alive=false;};
+  },[date]);
+  async function upload(event) {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file || !ownerMode || !ownerPin) return;
+    setBusy(true);setError('');
+    try {
+      const image = await compressMomentPhoto(file);
+      const result = await api({action:'moment_save',date,pin:ownerPin,image});
+      if (liveDate.current === date) {setPhoto(result.photo);setView(false);}
+    } catch (err) {setError(err.message || 'Could not save photo.');}
+    finally {setBusy(false);}
+  }
+  async function remove() {
+    if (!ownerMode || !ownerPin || !window.confirm('Remove the photo for this date?')) return;
+    setBusy(true);setError('');
+    try {await api({action:'moment_delete',date,pin:ownerPin});if (liveDate.current === date) {setPhoto(null);setView(false);}}
+    catch (err) {setError(err.message || 'Could not remove photo.');}
+    finally {setBusy(false);}
+  }
+  if (!photo && !ownerMode) return null;
+  return <div className="tmv-v41-moment">
+    {ownerMode && <input ref={uploadInput} className="tmv-v41-photo-input" type="file" accept="image/*"
+      aria-label="Choose a photo for the selected date" onChange={upload} disabled={busy}/>}
+    {photo ? <button className="tmv-v41-moment-thumb" type="button" onClick={()=>setView(true)}
+      aria-label={`View Ahsan's moment from ${prettyDate(date)}`} title="Today's Moment">
+      <img src={photo} alt={`A moment from ${prettyDate(date)}`}/><span>Moment</span>
+    </button> : <button className="tmv-v41-moment-add" type="button" onClick={()=>uploadInput.current?.click()} disabled={busy}
+      aria-label="Add today's moment photo" title="Add a photo"><Camera size={15}/><span>{busy?'Saving…':'Add moment'}</span></button>}
+    {error && <span className="tmv-v41-moment-error" role="status">{error}</span>}
+    {view && photo && <div className="tm-modal-backdrop tmv-v41-photo-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget)setView(false);}}>
+      <section className="tmv-v41-photo-modal" role="dialog" aria-modal="true" aria-label="Today's moment">
+        <button type="button" className="tmv-v41-photo-close" onClick={()=>setView(false)} aria-label="Close photo"><X size={19}/></button>
+        <img src={photo} alt={`Ahsan's moment from ${prettyDate(date)}`}/>
+        <div className="tmv-v41-photo-caption"><span><ImageIcon size={16}/> {prettyDate(date)} · Ahsan's moment</span>
+        {ownerMode && <span className="tmv-v41-photo-tools"><button onClick={()=>uploadInput.current?.click()} disabled={busy} type="button">Replace</button><button onClick={remove} disabled={busy} type="button">Remove</button></span>}
+        </div>
+      </section>
+    </div>}
+  </div>;
+}
+
 function V32LifeItem({ type, date, title, summary, status, extra, expanded, onToggle, onOpen, children }) {
   const label = {quran:'See reading history',office:'See all projects',university:'See all applications',personal:'See all activities'}[type];
   const displayStatus = String(status || 'No update');
@@ -1426,8 +1521,19 @@ function V32WorkItem({ section, entries, date, expanded, onToggle, onOpen }) {
     ? [meta.university || item.title, meta.program].filter(Boolean).join(' · ')
     : [mainName, section === 'office' && meta.project ? item.title : ''].filter(Boolean).join(' · ');
   else summary = `No new daily note ${todayLabel} · Last: ${mainName}`;
+  /* V41: Countdown for saved important dates only; never assume an application failed. */
+  const importantDate = section === 'university' && item ? (meta.upcomingDate || item.dueDate || '') : '';
+  const daysUntilImportant = /^\d{4}-\d{2}-\d{2}$/.test(importantDate)
+    ? Math.round((Date.parse(`${importantDate}T12:00:00Z`) - Date.parse(`${dayISO()}T12:00:00Z`)) / 86400000)
+    : null;
+  const needsAction = ['planning','upcoming'].includes(meta.applicationStatus || '') && item?.status !== 'done';
+  const deadlineInfo = daysUntilImportant === null ? ''
+    : daysUntilImportant === 0 ? 'Today'
+    : daysUntilImportant === 1 ? 'Tomorrow'
+    : daysUntilImportant > 1 && daysUntilImportant <= 14 ? `${daysUntilImportant} days left`
+    : daysUntilImportant < 0 && needsAction ? 'Date passed · check status' : '';
   const extra = section === 'university' && item
-    ? [meta.program && !todayNotes.length ? meta.program : '', meta.upcomingDate ? `Important date: ${prettyDate(meta.upcomingDate)}` : ''].filter(Boolean).join(' · ')
+    ? [meta.program && !todayNotes.length ? meta.program : '', importantDate ? `Important: ${prettyDate(importantDate)}` : '', deadlineInfo].filter(Boolean).join(' · ')
     : (!todayNotes.length && sourceDate ? `Last saved: ${sourceDate}` : '');
   // On historical dates, statuses are today's saved statuses; the old stage cannot be reconstructed.
   const detail = item ? <>
@@ -1586,7 +1692,7 @@ function MonthlyProgress({ entries, days, quran, selectedDate, onSelectDate }) {
   </section>;
 }
 
-function FamilyToday({ entries, days, quran, viewDate, setViewDate, onOpen, onOpenSummary, ownerMode, onNew, love, loveBusy, onLove }) {
+function FamilyToday({ entries, days, quran, viewDate, setViewDate, onOpen, onOpenSummary, ownerMode, onNew, love, loveBusy, onLove, ownerPin }) {
   const [expanded, setExpanded] = useState(null);
   useEffect(() => { setExpanded(null); }, [viewDate]);
   const read = quran.filter(item => item.date === viewDate)
@@ -1715,7 +1821,7 @@ function FamilyToday({ entries, days, quran, viewDate, setViewDate, onOpen, onOp
       </span>
       <button type="button" onClick={() => setShowEmptyDayToast(false)} aria-label="Dismiss notification"><X size={17}/></button>
     </div>}
-    <div className="tmv-v32-sectiontitle tmv-v32-life-title"><h2>Life &amp; Progress</h2><span>Only what matters</span></div>
+    <div className="tmv-v32-sectiontitle tmv-v32-life-title"><h2>Life &amp; Progress</h2><div className="tmv-v41-life-tray"><span className="tmv-v41-life-hint">Only what matters</span><FamilyMoment date={viewDate} ownerMode={ownerMode} ownerPin={ownerPin}/></div></div>
     <section className="tmv-v32-life" aria-label="Life and progress">
       <V32LifeItem type="quran" date={viewDate} title="Quran Reading" summary={quranSummary}
         status={read.length ? 'Recorded' : 'No update'} extra={quranExtra}
@@ -1959,7 +2065,7 @@ export default function TrackMe() {
     {notice&&<div className="tmv-notice" role="status"><CheckCircle2 size={19}/><span>{notice}</span><button type="button" onClick={()=>setNotice('')} aria-label="Dismiss"><X size={17}/></button></div>}
     {ownerMode&&<div className="tmv-owner-banner"><span><LockKeyhole size={16}/> Owner mode · all sections unlocked</span><button type="button" onClick={lockOwner}>Finish editing</button></div>}
     {section==='overview'&&<FamilyToday entries={entries} days={prayerDays} quran={quranEntries} viewDate={viewDate} setViewDate={setViewDate} onOpen={go} ownerMode={ownerMode} onNew={newTask} onOpenSummary={()=>setSummaryOpen(true)}
-      love={love.date === viewDate ? love : {date:viewDate,liked:false,count:0,names:[]}} loveBusy={loveBusy} onLove={toggleLove}/>}
+      love={love.date === viewDate ? love : {date:viewDate,liked:false,count:0,names:[]}} loveBusy={loveBusy} onLove={toggleLove} ownerPin={creationPin}/>}
     {['office','personal','university'].includes(section)&&<WorkPanel section={section} ownerMode={ownerMode} entries={entries} busy={busy} search={search} setSearch={setSearch} filter={filter} setFilter={setFilter} expanded={expanded} setExpanded={setExpanded} note={note} setNote={setNote} onNew={newTask} onNote={addNote} onEdit={item=>setEditor({...item})} onDelete={deleteTask} onStatus={updateTask}/>}
     {section==='prayer'&&<PrayerPanel ownerMode={ownerMode} date={prayerDate} setDate={setPrayerDate} days={prayerDays} busy={busy} onToggle={togglePrayer}/>}
     {section==='quran'&&<QuranPanel ownerMode={ownerMode} quran={quranEntries} busy={busy} onAdd={addQuran} onDelete={deleteQuran}/>}
