@@ -4,7 +4,7 @@ import {
   ArrowLeft, ArrowRight, BookOpen, BriefcaseBusiness, CalendarDays, Check,
   CheckCircle2, ChevronLeft, ChevronRight, Clock3, Edit3, Eye, EyeOff,
   GraduationCap, Heart, Camera, Image as ImageIcon, KeyRound, LockKeyhole, LogOut, Plus, Search,
-  Bell, Send, ShieldAlert, ShieldCheck, Sparkles, Trash2, TrendingUp, X, Home, Menu, MessageSquareText, Sun, Moon, Volume2, VolumeX, Smartphone, UserRound,
+  Bell, Send, ShieldAlert, ShieldCheck, Sparkles, Trash2, TrendingUp, X, Home, Menu, MessageSquareText, Sun, Moon, Volume2, VolumeX, Smartphone, UserRound, MapPinned, MapPin, Globe2, Radio, Navigation,
 } from 'lucide-react';
 import './TrackMe.css';
 
@@ -1467,6 +1467,164 @@ function FamilyMoment({date, ownerMode, ownerPin}) {
   </div>;
 }
 
+/* V42 — Life Map. Lazy-load map tiles only when the family opens this popup.
+   Geolocation only starts after the owner explicitly presses Start Live. */
+let lifeMapLeafletPromise;
+function loadLifeMapLeaflet() {
+  if (typeof window === 'undefined') return Promise.reject(new Error('Map requires a browser.'));
+  if (window.L?.map) return Promise.resolve(window.L);
+  if (!lifeMapLeafletPromise) lifeMapLeafletPromise = new Promise((resolve,reject) => {
+    if (!document.querySelector('link[data-tmv-life-map]')) {
+      const css = document.createElement('link');
+      css.rel = 'stylesheet';
+      css.href = 'https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css';
+      css.integrity = 'sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=';
+      css.crossOrigin = 'anonymous';
+      css.dataset.tmvLifeMap = 'true';
+      document.head.appendChild(css);
+    }
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js';
+    script.integrity = 'sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=';
+    script.crossOrigin = 'anonymous';
+    script.async = true;
+    script.onload = () => window.L?.map ? resolve(window.L) : reject(new Error('Map could not initialize.'));
+    script.onerror = () => reject(new Error('Map tiles are unavailable. Check your internet connection.'));
+    document.head.appendChild(script);
+  }).catch(err => {lifeMapLeafletPromise = null;throw err;});
+  return lifeMapLeafletPromise;
+}
+
+function LifeMapModal({mapData, tracking, ownerMode, busy, error, onClose, onStart, onStop, onMark, onClear}) {
+  const mapHolder = useRef(null);
+  const instance = useRef(null);
+  const layers = useRef(null);
+  const initialFit = useRef(false);
+  const [ready,setReady] = useState(false);
+  const [mapError,setMapError] = useState('');
+  const [countryFilter,setCountryFilter] = useState('All');
+  const [city,setCity] = useState('');
+  const [country,setCountry] = useState('');
+  const [formBusy,setFormBusy] = useState(false);
+  const visits = Array.isArray(mapData.visited) ? mapData.visited : [];
+  const countries = [...new Set(visits.map(v => v.country).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+  const displayed = countryFilter === 'All' ? visits : visits.filter(v => v.country === countryFilter);
+  const live = mapData.live || null;
+  const active = Boolean(mapData.sharing && live);
+  useEffect(() => {if (!visits.length) setCountryFilter('All');},[visits.length]);
+
+  useEffect(() => {
+    const key = e => {if (e.key === 'Escape') onClose();};
+    document.addEventListener('keydown',key);
+    return () => document.removeEventListener('keydown',key);
+  },[onClose]);
+
+  useEffect(() => {
+    let alive = true;
+    loadLifeMapLeaflet().then(L => {
+      if (!alive || !mapHolder.current) return;
+      const map = L.map(mapHolder.current,{zoomControl:true,scrollWheelZoom:false,worldCopyJump:true,
+        attributionControl:true}).setView([20,10],2);
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{
+        maxZoom:18,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a>',
+      }).addTo(map);
+      instance.current = map;
+      layers.current = L.layerGroup().addTo(map);
+      setReady(true);
+      window.setTimeout(() => {if(alive) map.invalidateSize();},80);
+    }).catch(e => {if(alive) setMapError(e.message || 'Map unavailable.');});
+    return () => {alive=false;instance.current?.remove();instance.current=null;layers.current=null;};
+  },[]);
+
+  useEffect(() => {
+    if (!ready || !instance.current || !window.L) return;
+    const map = instance.current;
+    const L = window.L;
+    layers.current?.clearLayers();
+    const bounds = [];
+    displayed.forEach(place => {
+      if (!Number.isFinite(place.lat) || !Number.isFinite(place.lng)) return;
+      const point = [place.lat,place.lng];
+      const marker = L.circleMarker(point,{radius:7,color:'#f5faf6',weight:2,
+        fillColor:'#237550',fillOpacity:.96}).addTo(layers.current);
+      const label = document.createElement('div');
+      label.textContent = `${place.city}, ${place.country}`;
+      marker.bindPopup(label);
+      bounds.push(point);
+    });
+    if (live && countryFilter === 'All') {
+      const point = [live.lat,live.lng];
+      L.marker(point,{
+        icon:L.divIcon({className:'tmv-v42-current-pin',html:'<span class="tmv-v42-pin-pulse"><i></i></span>',iconSize:[24,24],iconAnchor:[12,12]}),
+        title:'Ahsan live location',
+      }).bindPopup('Ahsan · Live location').addTo(layers.current);
+      bounds.push(point);
+    }
+    if (!initialFit.current && bounds.length) {
+      if (bounds.length === 1) map.setView(bounds[0],Math.min(12,live ? 13 : 9));
+      else map.fitBounds(L.latLngBounds(bounds),{padding:[28,28],maxZoom:12});
+      initialFit.current = true;
+    }
+  },[ready,visits,live,countryFilter]);
+
+  function selectCountry(next) {setCountryFilter(next);initialFit.current=false;}
+  async function markCity(event) {
+    event.preventDefault();
+    if (!city.trim() || !country.trim() || formBusy) return;
+    setFormBusy(true);
+    try {if(await onMark(city.trim(),country.trim())){setCity('');setCountry('');}}
+    finally {setFormBusy(false);}
+  }
+  return <div className="tmv-v42-overlay" onMouseDown={event=>{if(event.target===event.currentTarget)onClose();}}>
+    <section className="tmv-v42-panel" role="dialog" aria-modal="true" aria-label="Ahsan's Life Map">
+      <div className="tmv-v42-header">
+        <span className="tmv-v42-title-icon"><MapPinned size={21}/></span>
+        <div className="tmv-v42-heading"><h2>Ahsan's Life Map</h2><p>Live location &amp; places visited</p></div>
+        <button type="button" className="tmv-v42-close" onClick={onClose} aria-label="Close Life Map"><X size={19}/></button>
+      </div>
+      <div className="tmv-v42-summary">
+        <span className={`tmv-v42-live-status${active?' is-live':''}`}><span className="tmv-v42-live-dot"/>{active?'Live now':'Not live'}</span>
+        <span><MapPin size={13}/> {visits.length} visited {visits.length===1?'city':'cities'}</span>
+        <span><Globe2 size={13}/> {countries.length} {countries.length===1?'country':'countries'}</span>
+      </div>
+      <div className="tmv-v42-map-wrap">
+        <div ref={mapHolder} className="tmv-v42-map" role="application" aria-label="Interactive worldwide visited cities and live location map"/>
+        {!ready && <div className="tmv-v42-map-loading"><Globe2 size={23}/>{mapError || 'Opening world map…'}</div>}
+      </div>
+      <div className="tmv-v42-actions">
+        {ownerMode ? (tracking ?
+          <button type="button" className="tmv-v42-stop" onClick={onStop} disabled={busy}><Radio size={15}/> Stop Live</button> :
+          <button type="button" className="tmv-v42-start" onClick={onStart} disabled={busy}><Navigation size={15}/> Start Live</button>) :
+          <span className="tmv-v42-viewer-note">Owner can enable live sharing</span>}
+        <span className="tmv-v42-hint">GPS updates while the owner's app is open. No 24/7 background tracking.</span>
+      </div>
+      {error && <p className="tmv-v42-error" role="status">{error}</p>}
+      {active && live && <p className="tmv-v42-lastseen"><Radio size={12}/> Updated {new Date(live.seenAt).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})} · Accuracy ±{Math.round(live.accuracy)} m</p>}
+      <div className="tmv-v42-city-heading"><strong>Visited places</strong><span>Automatically saved when a new city is detected</span></div>
+      {countries.length > 1 && <div className="tmv-v42-country-filters" aria-label="Filter visited countries">
+        {['All',...countries].map(name=><button type="button" className={countryFilter===name?'is-active':''} key={name} onClick={()=>selectCountry(name)}>{name}</button>)}
+      </div>}
+      <div className="tmv-v42-city-list">
+        {displayed.length ? [...displayed].reverse().map(place=><button type="button" key={place.key} className="tmv-v42-city-chip"
+          onClick={()=>instance.current?.setView([place.lat,place.lng],11)} title={`View ${place.city}, ${place.country} on the map`}>
+          <MapPin size={12}/><span>{place.city}</span><small>{place.country}</small>
+        </button>):<p className="tmv-v42-empty">No visited cities recorded yet. Enable Live on Ahsan's phone to start his journey.</p>}
+      </div>
+      {ownerMode && <div className="tmv-v42-owner-extra">
+        <form className="tmv-v42-mark-form" onSubmit={markCity}>
+          <span className="tmv-v42-mark-label">Mark current city</span>
+          <input aria-label="Current city" placeholder="City" maxLength={72} value={city} onChange={e=>setCity(e.target.value)}/>
+          <input aria-label="Country" placeholder="Country" maxLength={72} value={country} onChange={e=>setCountry(e.target.value)}/>
+          <button type="submit" disabled={formBusy||!active||!city.trim()||!country.trim()} title="Save this city using the current GPS coordinates"><Plus size={14}/> Save</button>
+        </form>
+        <button className="tmv-v42-clear" type="button" onClick={onClear} disabled={busy||(!visits.length&&!active)}>
+          <Trash2 size={13}/> Erase map history</button>
+      </div>}
+      <p className="tmv-v42-privacy"><LockKeyhole size={12}/> Private to signed-in family. Starting Live shares your current GPS position with them. Map tiles and occasional city lookups use OpenStreetMap services.</p>
+    </section>
+  </div>;
+}
+
 function V32LifeItem({ type, date, title, summary, status, extra, expanded, onToggle, onOpen, children }) {
   const label = {quran:'See reading history',office:'See all projects',university:'See all applications',personal:'See all activities'}[type];
   const displayStatus = String(status || 'No update');
@@ -1692,7 +1850,7 @@ function MonthlyProgress({ entries, days, quran, selectedDate, onSelectDate }) {
   </section>;
 }
 
-function FamilyToday({ entries, days, quran, viewDate, setViewDate, onOpen, onOpenSummary, ownerMode, onNew, love, loveBusy, onLove, ownerPin }) {
+function FamilyToday({ entries, days, quran, viewDate, setViewDate, onOpen, onOpenSummary, ownerMode, onNew, love, loveBusy, onLove, ownerPin, onOpenLifeMap }) {
   const [expanded, setExpanded] = useState(null);
   useEffect(() => { setExpanded(null); }, [viewDate]);
   const read = quran.filter(item => item.date === viewDate)
@@ -1821,7 +1979,7 @@ function FamilyToday({ entries, days, quran, viewDate, setViewDate, onOpen, onOp
       </span>
       <button type="button" onClick={() => setShowEmptyDayToast(false)} aria-label="Dismiss notification"><X size={17}/></button>
     </div>}
-    <div className="tmv-v32-sectiontitle tmv-v32-life-title"><h2>Life &amp; Progress</h2><div className="tmv-v41-life-tray"><span className="tmv-v41-life-hint">Only what matters</span><FamilyMoment date={viewDate} ownerMode={ownerMode} ownerPin={ownerPin}/></div></div>
+    <div className="tmv-v32-sectiontitle tmv-v32-life-title"><h2>Life &amp; Progress</h2><div className="tmv-v41-life-tray"><span className="tmv-v41-life-hint">Only what matters</span><button type="button" className="tmv-v42-open-map" onClick={onOpenLifeMap} aria-label="Open Ahsan's Life Map" title="Life Map"><MapPinned size={15}/><span>Life Map</span></button><FamilyMoment date={viewDate} ownerMode={ownerMode} ownerPin={ownerPin}/></div></div>
     <section className="tmv-v32-life" aria-label="Life and progress">
       <V32LifeItem type="quran" date={viewDate} title="Quran Reading" summary={quranSummary}
         status={read.length ? 'Recorded' : 'No update'} extra={quranExtra}
@@ -1949,6 +2107,100 @@ export default function TrackMe() {
   const [pinError,setPinError]=useState('');
   const [creationPin,setCreationPin]=useState('');
   const [ownerMode,setOwnerMode]=useState(false);
+  /* V42: Owner-initiated GPS, scoped to this open browser tab only. */
+  const [lifeMapOpen,setLifeMapOpen] = useState(false);
+  const [lifeMapTracking,setLifeMapTracking] = useState(false);
+  const [lifeMapToken,setLifeMapToken] = useState('');
+  const [lifeMapData,setLifeMapData] = useState({live:null,sharing:false,visited:[]});
+  const [lifeMapBusy,setLifeMapBusy] = useState(false);
+  const [lifeMapError,setLifeMapError] = useState('');
+  useEffect(() => {
+    if (!lifeMapOpen || !authenticated) return undefined;
+    let alive=true;
+    let busy=false;
+    const fetchMap = async () => {
+      if (busy || document.visibilityState === 'hidden') return;
+      busy=true;
+      try {const data=await api({action:'life_map_get'});if(alive) {setLifeMapData(data);setLifeMapError('');}}
+      catch(err) {if(alive)setLifeMapError(err.message||'Could not load the private map.');}
+      finally {busy=false;}
+    };
+    fetchMap();
+    const timer=window.setInterval(fetchMap,25000);
+    return ()=>{alive=false;window.clearInterval(timer);};
+  },[lifeMapOpen,authenticated]);
+  useEffect(() => {
+    if (!lifeMapTracking || !ownerMode || !authenticated || !creationPin || !lifeMapToken) return undefined;
+    if (!navigator.geolocation || !window.isSecureContext) {
+      setLifeMapError('GPS requires HTTPS and a device with location access.');
+      setLifeMapTracking(false);
+      return undefined;
+    }
+    let active=true, inFlight=false, lastAt=0, lastLat=null, lastLng=null;
+    const sendPosition = async position => {
+      if (!active || document.visibilityState === 'hidden' || inFlight) return;
+      const {latitude:lat,longitude:lng,accuracy} = position.coords || {};
+      if (![lat,lng,accuracy].every(Number.isFinite)) return;
+      const currentTime=Date.now();
+      if (currentTime-lastAt < 30000) return;
+      if (lastLat !== null && currentTime-lastAt < 105000) {
+        const distance=Math.hypot((lat-lastLat)*111000,(lng-lastLng)*111000*Math.cos(lat*Math.PI/180));
+        if (distance < 40) return;
+      }
+      inFlight=true;
+      try {
+        const data=await api({action:'life_map_update',pin:creationPin,token:lifeMapToken,lat,lng,accuracy});
+        if (active) {lastAt=Date.now();lastLat=lat;lastLng=lng;setLifeMapData(data);setLifeMapError('');}
+      } catch(err) {if(active) setLifeMapError(err.message||'Could not share the location.');}
+      finally {inFlight=false;}
+    };
+    const onError = error => {
+      if (!active) return;
+      setLifeMapError(error?.code===1?'Location permission denied. Allow location in your browser settings.':
+        error?.code===2?'Device location unavailable. Turn on GPS and try again.':'Waiting for GPS signal…');
+      if (error?.code === 1) setLifeMapTracking(false);
+    };
+    const options={enableHighAccuracy:true,maximumAge:15000,timeout:20000};
+    const watchId=navigator.geolocation.watchPosition(sendPosition,onError,options);
+    const timer=window.setInterval(()=>{
+      if(active && document.visibilityState === 'visible') navigator.geolocation.getCurrentPosition(sendPosition,onError,options);
+    },85000);
+    return ()=>{active=false;window.clearInterval(timer);navigator.geolocation.clearWatch(watchId);};
+  },[lifeMapTracking,ownerMode,authenticated,creationPin,lifeMapToken]);
+
+  async function startLifeMap() {
+    if (!ownerMode || !creationPin) {setLifeMapError('Unlock owner updates before enabling live location.');return;}
+    if (!navigator.geolocation || !window.isSecureContext) {setLifeMapError('HTTPS and a GPS-enabled browser are required.');return;}
+    setLifeMapError('');setLifeMapBusy(true);
+    try {
+      const {token,...data}=await api({action:'life_map_start',pin:creationPin});
+      if (!token) throw Error('Could not start a private location session.');
+      setLifeMapData(data);setLifeMapToken(token);setLifeMapTracking(true);
+    } catch(err) {setLifeMapError(err.message||'Unable to start live sharing.');}
+    finally {setLifeMapBusy(false);}
+  }
+  async function stopLifeMap() {
+    setLifeMapTracking(false);setLifeMapToken('');
+    setLifeMapData(state=>({...state,live:null,sharing:false}));
+    if (!creationPin || !authenticated) return;
+    try {const data=await api({action:'life_map_stop',pin:creationPin});setLifeMapData(data);}
+    catch(err) {setLifeMapError(err.message||'Could not stop sharing on the server. It will expire shortly.');}
+  }
+  async function lifeMapMarkCity(city,country) {
+    if (!creationPin || !ownerMode) return;
+    setLifeMapBusy(true);setLifeMapError('');
+    try {setLifeMapData(await api({action:'life_map_mark_city',pin:creationPin,city,country}));return true;}
+    catch(err) {setLifeMapError(err.message||'Could not save the city.');return false;}
+    finally {setLifeMapBusy(false);}
+  }
+  async function lifeMapClear() {
+    if (!creationPin || !ownerMode || !window.confirm('Erase all visited cities and the shared location? This cannot be undone.')) return;
+    setLifeMapTracking(false);setLifeMapToken('');setLifeMapBusy(true);setLifeMapError('');
+    try {setLifeMapData(await api({action:'life_map_clear',pin:creationPin}));}
+    catch(err) {setLifeMapError(err.message||'Could not erase map history.');}
+    finally {setLifeMapBusy(false);}
+  }
+
   const [editor,setEditor]=useState(null);
   const [expanded,setExpanded]=useState(null);
   const [note,setNote]=useState('');
@@ -2042,10 +2294,10 @@ export default function TrackMe() {
       setBusy(false);
     }
   }
-  async function signOut(){try{await api({action:'logout'});loginAttemptRef.current.last='';setAuthenticated(false);setFamilyViewer('family');setOwnerMode(false);setCreationPin('');setEntries([]);setPrayerDays({});setQuranEntries([]);setWelcome(false);setEditor(null);setNotice('');setSection('overview');}catch(err){fail(err);}}
+  async function signOut(){try{if(lifeMapTracking&&creationPin){setLifeMapTracking(false);setLifeMapToken('');await api({action:'life_map_stop',pin:creationPin}).catch(()=>{});}await api({action:'logout'});loginAttemptRef.current.last='';setAuthenticated(false);setFamilyViewer('family');setOwnerMode(false);setCreationPin('');setEntries([]);setPrayerDays({});setQuranEntries([]);setWelcome(false);setEditor(null);setNotice('');setSection('overview');}catch(err){fail(err);}}
   function openOwner(){if(ownerMode)return;setPinError('');setPinOpen(true);}
   async function verifyPin(pin){setBusy(true);setPinError('');try{await api({action:'verify_create_pin',pin});setCreationPin(pin);setOwnerMode(true);setPinOpen(false);setNotice('Owner mode is on. You can update every section without entering the code again. Select Finish editing when done.');}catch(err){setPinError(err.message);}finally{setBusy(false);}}
-  function lockOwner(){setOwnerMode(false);setCreationPin('');setEditor(null);setExpanded(null);setNotice('Owner editing is off.');}
+  function lockOwner(){if(lifeMapTracking)void stopLifeMap();setOwnerMode(false);setCreationPin('');setEditor(null);setExpanded(null);setNotice('Owner editing is off.');}
   function newTask(target='office'){if(!ownerMode){openOwner();return;}setEditor(initialTask(target));}
   async function saveTask(form){setBusy(true);setNotice('');try{const editing=Boolean(editor?.id);const data=await api({action:editing?'update':'create',...(editing?{id:editor.id}:{pin:creationPin}),item:form});setEntries(list=>editing?list.map(x=>x.id===data.item.id?data.item:x):[data.item,...list]);setEditor(null);setNotice(editing?'Updated successfully.':'New task saved.');}catch(err){fail(err);}finally{setBusy(false);}}
   async function updateTask(item,status){setBusy(true);try{const data=await api({action:'update',id:item.id,item:{...item,status}});setEntries(list=>list.map(x=>x.id===item.id?data.item:x));}catch(err){fail(err);}finally{setBusy(false);}}
@@ -2065,13 +2317,16 @@ export default function TrackMe() {
     {notice&&<div className="tmv-notice" role="status"><CheckCircle2 size={19}/><span>{notice}</span><button type="button" onClick={()=>setNotice('')} aria-label="Dismiss"><X size={17}/></button></div>}
     {ownerMode&&<div className="tmv-owner-banner"><span><LockKeyhole size={16}/> Owner mode · all sections unlocked</span><button type="button" onClick={lockOwner}>Finish editing</button></div>}
     {section==='overview'&&<FamilyToday entries={entries} days={prayerDays} quran={quranEntries} viewDate={viewDate} setViewDate={setViewDate} onOpen={go} ownerMode={ownerMode} onNew={newTask} onOpenSummary={()=>setSummaryOpen(true)}
-      love={love.date === viewDate ? love : {date:viewDate,liked:false,count:0,names:[]}} loveBusy={loveBusy} onLove={toggleLove} ownerPin={creationPin}/>}
+      love={love.date === viewDate ? love : {date:viewDate,liked:false,count:0,names:[]}} loveBusy={loveBusy} onLove={toggleLove} ownerPin={creationPin} onOpenLifeMap={()=>{setLifeMapError('');setLifeMapOpen(true);}}/>}
     {['office','personal','university'].includes(section)&&<WorkPanel section={section} ownerMode={ownerMode} entries={entries} busy={busy} search={search} setSearch={setSearch} filter={filter} setFilter={setFilter} expanded={expanded} setExpanded={setExpanded} note={note} setNote={setNote} onNew={newTask} onNote={addNote} onEdit={item=>setEditor({...item})} onDelete={deleteTask} onStatus={updateTask}/>}
     {section==='prayer'&&<PrayerPanel ownerMode={ownerMode} date={prayerDate} setDate={setPrayerDate} days={prayerDays} busy={busy} onToggle={togglePrayer}/>}
     {section==='quran'&&<QuranPanel ownerMode={ownerMode} quran={quranEntries} busy={busy} onAdd={addQuran} onDelete={deleteQuran}/>}
     <div className="tmv-bottom"><button type="button" className="tmv-owner-link" onClick={ownerMode?lockOwner:openOwner}><LockKeyhole size={16}/>{ownerMode?'Finish owner updates':'Owner updates (private code)'}</button><p>Only for <AhsanName/>’s family.</p></div>
     <div className="tmv-install-footer"><InstallShortcut/></div>
   </div>
+  {lifeMapOpen&&<LifeMapModal mapData={lifeMapData} tracking={lifeMapTracking} ownerMode={ownerMode}
+    busy={lifeMapBusy} error={lifeMapError} onClose={()=>setLifeMapOpen(false)}
+    onStart={startLifeMap} onStop={stopLifeMap} onMark={lifeMapMarkCity} onClear={lifeMapClear}/>}
   {pinOpen&&<PinModal busy={busy} onVerify={verifyPin} onClose={()=>setPinOpen(false)} error={pinError}/>}
   {editor&&<TaskEditor key={editor.id||`new-${editor.section}`} initial={editor} saving={busy} onClose={()=>setEditor(null)} onSave={saveTask}/>}
   {summaryOpen&&<SummaryChat entries={entries} prayerDays={prayerDays} quranEntries={quranEntries} selectedDate={viewDate} onClose={()=>setSummaryOpen(false)} onSessionError={fail}/>}

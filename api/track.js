@@ -34,6 +34,64 @@ const QURAN_KEY = "ahsan:private-track:quran:v1";
 /* V41 family moment */
 const MOMENT_KEY_PREFIX = 'ahsan:private-track:moment:v1:';
 
+/* V42: Private Life Map, opt-in foreground location + cached visited city records. */
+const LIFE_MAP_KEY = 'ahsan:private-track:life-map:v1';
+const LIFE_MAP_ACTIVE_KEY = 'ahsan:private-track:life-map:active:v1';
+const validMapCoordinate = (v, low, high) => typeof v === 'number' && Number.isFinite(v) && v >= low && v <= high;
+const mapDistanceKm = (a,b,c,d) => {
+  const r = Math.PI / 180;
+  const v = Math.sin((c-a)*r/2)**2 + Math.cos(a*r)*Math.cos(c*r)*Math.sin((d-b)*r/2)**2;
+  return 12742 * Math.asin(Math.min(1,Math.sqrt(v)));
+};
+function lifeMapOutput(state, activeToken) {
+  const seenAt = Date.parse(state.last?.seenAt || '');
+  const fresh = Boolean(state.sharing && activeToken && state.token === activeToken && Number.isFinite(seenAt) && Date.now() - seenAt < 150000);
+  return {
+    live: fresh && validMapCoordinate(state.last?.lat,-90,90) && validMapCoordinate(state.last?.lng,-180,180) ? state.last : null,
+    sharing: fresh,
+    visited: Array.isArray(state.visited) ? state.visited.slice(-120) : [],
+  };
+}
+function lifeMapRememberCity(state, city, country, lat, lng) {
+  city = typeof city === 'string' ? city.trim().slice(0,72) : '';
+  country = typeof country === 'string' ? country.trim().slice(0,72) : '';
+  if (!city || !country) return;
+  const key = (country + '|' + city).toLocaleLowerCase('en');
+  const items = Array.isArray(state.visited) ? state.visited : [];
+  const stamp = now();
+  const index = items.findIndex(x => x.key === key);
+  if (index >= 0) {
+    const entry = items[index];
+    const newDay = String(entry.lastVisited || '').slice(0,10) !== stamp.slice(0,10);
+    items[index] = {...entry, lastVisited:stamp, count: Math.min(9999,(entry.count || 1) + (newDay ? 1 : 0))};
+  } else {
+    items.push({key,city,country,lat:Math.round(lat*1e5)/1e5,lng:Math.round(lng*1e5)/1e5,
+      firstVisited:stamp,lastVisited:stamp,count:1});
+  }
+  state.visited = items.slice(-120);
+}
+async function lifeMapPlaceFromCoordinates(lat,lng) {
+  // Only on meaningful movement, not on each GPS ping. One small family app.
+  try {
+    const url = new URL('https://nominatim.openstreetmap.org/reverse');
+    url.searchParams.set('format','jsonv2');
+    url.searchParams.set('zoom','10');
+    url.searchParams.set('addressdetails','1');
+    url.searchParams.set('lat',String(lat));
+    url.searchParams.set('lon',String(lng));
+    const result = await fetch(url.toString(),{
+      headers:{'User-Agent':'AhsansUpdatesFamilyJournal/1.0 (https://ahsannasir.runs-on.dev/track-me)',
+        'Accept-Language':'en','Accept':'application/json'},
+      signal:AbortSignal.timeout(3500),
+    });
+    if (!result.ok) return null;
+    const address = (await result.json())?.address || {};
+    const city = [address.city,address.town,address.village,address.municipality,address.county,address.state]
+      .find(item => typeof item === 'string' && item.trim());
+    return city && address.country ? {city,country:address.country} : null;
+  } catch { return null; }
+}
+
 /* V37 family love: signed viewer + date-scoped Redis hash */
 const LOVE_KEY_PREFIX = 'ahsan:private-track:love:v1:';
 const LOVE_VIEWERS = ['nasir', 'talat', 'happa', 'yamna'];
@@ -1118,6 +1176,83 @@ export default async function handler(
       }
       await writeJSON(key, {image:encoded, updatedAt:now()});
       return res.status(200).json({photo:encoded});
+    }
+
+    /* V42: Life Map is private to signed-in family. Only verified owner PIN writes location. */
+    if (['life_map_get','life_map_start','life_map_update','life_map_stop','life_map_mark_city','life_map_remove_city','life_map_clear'].includes(action)) {
+      let state = await readJSON(LIFE_MAP_KEY,{visited:[],sharing:false});
+      if (action === 'life_map_get') {
+        const activeToken = await redis('GET',LIFE_MAP_ACTIVE_KEY);
+        return res.status(200).json(lifeMapOutput(state,activeToken));
+      }
+      const secret = process.env.TRACK_TASK_PIN || '';
+      if (secret.length < 6) return error(res,503,'Owner access code is not configured.');
+      const check = await checkSecret(req,'pin',typeof body.pin === 'string' ? body.pin : '',secret);
+      if (!check.ok) return error(res,check.status,check.error);
+      if (action === 'life_map_start') {
+        const token = randomUUID();
+        state.sharing = true; state.token = token; state.last = null;
+        await writeJSON(LIFE_MAP_KEY,state);
+        await redis('SET',LIFE_MAP_ACTIVE_KEY,token,'EX',900);
+        return res.status(200).json({...lifeMapOutput(state,token),token});
+      }
+      if (action === 'life_map_clear') {
+        await redis('DEL',LIFE_MAP_ACTIVE_KEY);
+        await redis('DEL',LIFE_MAP_KEY);
+        return res.status(200).json({live:null,sharing:false,visited:[]});
+      }
+      if (action === 'life_map_stop') {
+        await redis('DEL',LIFE_MAP_ACTIVE_KEY);
+        state.sharing = false;
+        state.last = null; // Stop sharing immediately; only coarser visited-city pins remain.
+        await writeJSON(LIFE_MAP_KEY,state);
+        return res.status(200).json(lifeMapOutput(state,null));
+      }
+      if (action === 'life_map_remove_city') {
+        const key = typeof body.key === 'string' ? body.key.slice(0,160) : '';
+        state.visited = (Array.isArray(state.visited) ? state.visited : []).filter(v => v.key !== key);
+        await writeJSON(LIFE_MAP_KEY,state);
+        return res.status(200).json(lifeMapOutput(state,null));
+      }
+      if (action === 'life_map_mark_city') {
+        const activeToken = await redis('GET',LIFE_MAP_ACTIVE_KEY);
+        if (!activeToken || state.token !== activeToken) return error(res,409,'Live sharing is off.');
+        const last = state.last;
+        const age = Date.now()-Date.parse(last?.seenAt || '');
+        if (!state.sharing || !last || !Number.isFinite(age) || age > 600000)
+          return error(res,409,'Start live sharing to mark your current city.');
+        const city = txt(body.city,72), country = txt(body.country,72);
+        if (city.length < 2 || country.length < 2) return error(res,400,'Enter a valid city and country.');
+        lifeMapRememberCity(state,city,country,last.lat,last.lng);
+        await writeJSON(LIFE_MAP_KEY,state);
+        return res.status(200).json(lifeMapOutput(state,activeToken));
+      }
+      if (action === 'life_map_update') {
+        const activeToken = await redis('GET',LIFE_MAP_ACTIVE_KEY);
+        if (!activeToken || state.token !== activeToken || body.token !== activeToken)
+          return error(res,409,'Live session ended. Press Start Live again.');
+        const lat = body.lat, lng = body.lng, accuracy = body.accuracy;
+        if (!validMapCoordinate(lat,-90,90) || !validMapCoordinate(lng,-180,180) ||
+            !validMapCoordinate(accuracy,0,100000)) return error(res,400,'Invalid GPS coordinates.');
+        const roundedLat = Math.round(lat*1e6)/1e6, roundedLng = Math.round(lng*1e6)/1e6;
+        state.last = {lat:roundedLat,lng:roundedLng,accuracy:Math.round(accuracy),seenAt:now()};
+        state.sharing = true;
+        const checkAt = Date.parse(state.geocode?.at || '');
+        const elapsed = Number.isFinite(checkAt) ? Date.now()-checkAt : Infinity;
+        const distance = validMapCoordinate(state.geocode?.lat,-90,90)
+          ? mapDistanceKm(lat,lng,state.geocode.lat,state.geocode.lng) : Infinity;
+        // Do not bulk geocode: only the first fix or a new substantial area after 45 minutes.
+        if (accuracy <= 5000 && elapsed > 45*60000 && distance > 8) {
+          state.geocode = {at:now(),lat:roundedLat,lng:roundedLng};
+          const place = await lifeMapPlaceFromCoordinates(roundedLat,roundedLng);
+          if (place) lifeMapRememberCity(state,place.city,place.country,lat,lng);
+        }
+        if (await redis('GET',LIFE_MAP_ACTIVE_KEY) !== activeToken)
+          return error(res,409,'Live location sharing was stopped.');
+        await writeJSON(LIFE_MAP_KEY,state);
+        await redis('EXPIRE',LIFE_MAP_ACTIVE_KEY,900);
+        return res.status(200).json(lifeMapOutput(state,activeToken));
+      }
     }
 
     /* V31 reminder actions: authenticated signed family session is the only identity source. */
