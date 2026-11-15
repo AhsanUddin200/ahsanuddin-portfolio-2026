@@ -43,15 +43,21 @@ const mapDistanceKm = (a,b,c,d) => {
   const v = Math.sin((c-a)*r/2)**2 + Math.cos(a*r)*Math.cos(c*r)*Math.sin((d-b)*r/2)**2;
   return 12742 * Math.asin(Math.min(1,Math.sqrt(v)));
 };
+/* V43 Live Location Accuracy and Persistent Address */
 function lifeMapOutput(state, activeToken) {
-  const seenAt = Date.parse(state.last?.seenAt || '');
-  const fresh = Boolean(state.sharing && activeToken && state.token === activeToken && Number.isFinite(seenAt) && Date.now() - seenAt < 150000);
+  const seenAt=Date.parse(state.last?.seenAt || '');
+  const valid=Boolean(state.sharing &&
+    validMapCoordinate(state.last?.lat,-90,90) && validMapCoordinate(state.last?.lng,-180,180));
+  const fresh=Boolean(valid && state.token===activeToken && activeToken &&
+    Number.isFinite(seenAt) && Date.now()-seenAt<150000);
   return {
-    live: fresh && validMapCoordinate(state.last?.lat,-90,90) && validMapCoordinate(state.last?.lng,-180,180) ? state.last : null,
-    sharing: fresh,
+    live: valid ? state.last : null,
+    sharing: Boolean(state.sharing),
+    isFresh: fresh,
     visited: Array.isArray(state.visited) ? state.visited.slice(-120) : [],
   };
 }
+
 function lifeMapRememberCity(state, city, country, lat, lng) {
   city = typeof city === 'string' ? city.trim().slice(0,72) : '';
   country = typeof country === 'string' ? country.trim().slice(0,72) : '';
@@ -71,27 +77,31 @@ function lifeMapRememberCity(state, city, country, lat, lng) {
   state.visited = items.slice(-120);
 }
 async function lifeMapPlaceFromCoordinates(lat,lng) {
-  // Only on meaningful movement, not on each GPS ping. One small family app.
+  // Nominatim reverse at street zoom; use nearest mapped address, not a guessed building.
+  // Lookups are throttled in life_map_update and skipped on GPS heartbeats.
   try {
-    const url = new URL('https://nominatim.openstreetmap.org/reverse');
+    const url=new URL('https://nominatim.openstreetmap.org/reverse');
     url.searchParams.set('format','jsonv2');
-    url.searchParams.set('zoom','10');
+    url.searchParams.set('zoom','18');
     url.searchParams.set('addressdetails','1');
     url.searchParams.set('lat',String(lat));
     url.searchParams.set('lon',String(lng));
-    const result = await fetch(url.toString(),{
+    const result=await fetch(url.toString(),{
       headers:{'User-Agent':'AhsansUpdatesFamilyJournal/1.0 (https://ahsannasir.runs-on.dev/track-me)',
         'Accept-Language':'en','Accept':'application/json'},
-      signal:AbortSignal.timeout(3500),
+      signal:AbortSignal.timeout(5000),
     });
-    if (!result.ok) return null;
-    const address = (await result.json())?.address || {};
-    const city = [address.city,address.town,address.village,address.municipality,address.county,address.state]
-      .find(item => typeof item === 'string' && item.trim());
-    return city && address.country ? {city,country:address.country} : null;
-  } catch { return null; }
+    if(!result.ok) return null;
+    const json=await result.json();
+    const a=json?.address || {};
+    const city=[a.city,a.town,a.village,a.municipality,a.city_district,a.suburb,a.county,a.state]
+      .find(x=>typeof x==='string' && x.trim()) || '';
+    const country=typeof a.country==='string'?a.country:'';
+    const address=typeof json?.display_name==='string'?json.display_name.trim().slice(0,270):'';
+    if(!address && !city) return null;
+    return {city,country,address:address || [city,country].filter(Boolean).join(', ')};
+  } catch {return null;}
 }
-
 /* V37 family love: signed viewer + date-scoped Redis hash */
 const LOVE_KEY_PREFIX = 'ahsan:private-track:love:v1:';
 const LOVE_VIEWERS = ['nasir', 'talat', 'happa', 'yamna'];
@@ -1191,7 +1201,7 @@ export default async function handler(
       if (!check.ok) return error(res,check.status,check.error);
       if (action === 'life_map_start') {
         const token = randomUUID();
-        state.sharing = true; state.token = token; state.last = null;
+        state.sharing = true; state.token = token; // Keep the previously shared GPS/address until the next fresh fix.
         await writeJSON(LIFE_MAP_KEY,state);
         await redis('SET',LIFE_MAP_ACTIVE_KEY,token,'EX',900);
         return res.status(200).json({...lifeMapOutput(state,token),token});
@@ -1228,26 +1238,44 @@ export default async function handler(
         return res.status(200).json(lifeMapOutput(state,activeToken));
       }
       if (action === 'life_map_update') {
-        const activeToken = await redis('GET',LIFE_MAP_ACTIVE_KEY);
-        if (!activeToken || state.token !== activeToken || body.token !== activeToken)
+        const activeToken=await redis('GET',LIFE_MAP_ACTIVE_KEY);
+        if(!activeToken || state.token!==activeToken || body.token!==activeToken)
           return error(res,409,'Live session ended. Press Start Live again.');
-        const lat = body.lat, lng = body.lng, accuracy = body.accuracy;
-        if (!validMapCoordinate(lat,-90,90) || !validMapCoordinate(lng,-180,180) ||
-            !validMapCoordinate(accuracy,0,100000)) return error(res,400,'Invalid GPS coordinates.');
-        const roundedLat = Math.round(lat*1e6)/1e6, roundedLng = Math.round(lng*1e6)/1e6;
-        state.last = {lat:roundedLat,lng:roundedLng,accuracy:Math.round(accuracy),seenAt:now()};
-        state.sharing = true;
-        const checkAt = Date.parse(state.geocode?.at || '');
-        const elapsed = Number.isFinite(checkAt) ? Date.now()-checkAt : Infinity;
-        const distance = validMapCoordinate(state.geocode?.lat,-90,90)
+        const lat=body.lat,lng=body.lng,accuracy=body.accuracy;
+        if(!validMapCoordinate(lat,-90,90) || !validMapCoordinate(lng,-180,180) ||
+          !validMapCoordinate(accuracy,0,100000)) return error(res,400,'Invalid GPS coordinates.');
+        const roundedLat=Math.round(lat*1e6)/1e6,roundedLng=Math.round(lng*1e6)/1e6;
+        const previous=state.last || null;
+        const lastDistance=validMapCoordinate(previous?.lat,-90,90)
+          ? mapDistanceKm(lat,lng,previous.lat,previous.lng) : Infinity;
+        // Never label an old street as the new location after movement.
+        const keepAddress=lastDistance < Math.max(.08,accuracy/1000*.8);
+        state.last={lat:roundedLat,lng:roundedLng,accuracy:Math.round(accuracy),seenAt:now(),
+          address:keepAddress ? (previous?.address || null) : null};
+        state.sharing=true;
+        const checkAt=Date.parse(state.geocode?.at || '');
+        const elapsed=Number.isFinite(checkAt) ? Date.now()-checkAt : Infinity;
+        const geocodeDistance=validMapCoordinate(state.geocode?.lat,-90,90)
           ? mapDistanceKm(lat,lng,state.geocode.lat,state.geocode.lng) : Infinity;
-        // Do not bulk geocode: only the first fix or a new substantial area after 45 minutes.
-        if (accuracy <= 5000 && elapsed > 45*60000 && distance > 8) {
-          state.geocode = {at:now(),lat:roundedLat,lng:roundedLng};
-          const place = await lifeMapPlaceFromCoordinates(roundedLat,roundedLng);
-          if (place) lifeMapRememberCity(state,place.city,place.country,lat,lng);
+        // Street zoom (V43) always replaces previous area-level V42 geocoding.
+        // Throttle further lookups to meaningful movement and avoid unnecessary traffic.
+        const moved=geocodeDistance>Math.max(.12,accuracy/1000);
+        const due=!state.geocode || state.geocode.zoom!==18 ||
+          (moved && (elapsed>45000 || (geocodeDistance>1 && elapsed>10000))) ||
+          (elapsed>15*60000 && geocodeDistance>.04);
+        if(accuracy<=1500 && due) {
+          state.geocode={at:now(),lat:roundedLat,lng:roundedLng,zoom:18};
+          const place=await lifeMapPlaceFromCoordinates(roundedLat,roundedLng);
+          if(place) {
+            state.last.address=place.address || null;
+            if(place.city && place.country) {
+              state.last.city=place.city;
+              state.last.country=place.country;
+              lifeMapRememberCity(state,place.city,place.country,lat,lng);
+            }
+          }
         }
-        if (await redis('GET',LIFE_MAP_ACTIVE_KEY) !== activeToken)
+        if(await redis('GET',LIFE_MAP_ACTIVE_KEY)!==activeToken)
           return error(res,409,'Live location sharing was stopped.');
         await writeJSON(LIFE_MAP_KEY,state);
         await redis('EXPIRE',LIFE_MAP_ACTIVE_KEY,900);

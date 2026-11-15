@@ -1499,7 +1499,9 @@ function LifeMapModal({mapData, tracking, ownerMode, busy, error, onClose, onSta
   const mapHolder = useRef(null);
   const instance = useRef(null);
   const layers = useRef(null);
-  const initialFit = useRef(false);
+  const firstFocus = useRef(false);
+  const followLive = useRef(true);
+  const lastFocus = useRef(null);
   const [ready,setReady] = useState(false);
   const [mapError,setMapError] = useState('');
   const [countryFilter,setCountryFilter] = useState('All');
@@ -1509,8 +1511,13 @@ function LifeMapModal({mapData, tracking, ownerMode, busy, error, onClose, onSta
   const visits = Array.isArray(mapData.visited) ? mapData.visited : [];
   const countries = [...new Set(visits.map(v => v.country).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
   const displayed = countryFilter === 'All' ? visits : visits.filter(v => v.country === countryFilter);
-  const live = mapData.live || null;
-  const active = Boolean(mapData.sharing && live);
+  const live = mapData.live && Number.isFinite(mapData.live.lat) && Number.isFinite(mapData.live.lng) ? mapData.live : null;
+  const sharing = Boolean(mapData.sharing);
+  const fresh = Boolean(live && mapData.isFresh);
+  const accuracy = live && Number.isFinite(live.accuracy) ? Math.round(live.accuracy) : null;
+  const gpsZoom = accuracy !== null && accuracy <= 70 ? 17 : accuracy !== null && accuracy <= 220 ? 16 : 15;
+  const address = live?.address && typeof live.address === 'string' ? live.address : '';
+  const locationLabel = fresh ? 'Current GPS location' : 'Last shared GPS location';
   useEffect(() => {if (!visits.length) setCountryFilter('All');},[visits.length]);
 
   useEffect(() => {
@@ -1523,51 +1530,76 @@ function LifeMapModal({mapData, tracking, ownerMode, busy, error, onClose, onSta
     let alive = true;
     loadLifeMapLeaflet().then(L => {
       if (!alive || !mapHolder.current) return;
-      const map = L.map(mapHolder.current,{zoomControl:true,scrollWheelZoom:false,worldCopyJump:true,
+      const map = L.map(mapHolder.current,{zoomControl:false,scrollWheelZoom:false,worldCopyJump:true,
         attributionControl:true}).setView([20,10],2);
       L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{
-        maxZoom:18,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a>',
+        maxZoom:19,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a>',
       }).addTo(map);
+      L.control.zoom({position:'bottomright'}).addTo(map);
       instance.current = map;
       layers.current = L.layerGroup().addTo(map);
       setReady(true);
-      window.setTimeout(() => {if(alive) map.invalidateSize();},80);
+      window.setTimeout(() => {if(alive) map.invalidateSize();},100);
     }).catch(e => {if(alive) setMapError(e.message || 'Map unavailable.');});
     return () => {alive=false;instance.current?.remove();instance.current=null;layers.current=null;};
   },[]);
 
   useEffect(() => {
     if (!ready || !instance.current || !window.L) return;
-    const map = instance.current;
-    const L = window.L;
+    const map=instance.current;
+    const L=window.L;
     layers.current?.clearLayers();
-    const bounds = [];
+    const bounds=[];
     displayed.forEach(place => {
       if (!Number.isFinite(place.lat) || !Number.isFinite(place.lng)) return;
-      const point = [place.lat,place.lng];
-      const marker = L.circleMarker(point,{radius:7,color:'#f5faf6',weight:2,
-        fillColor:'#237550',fillOpacity:.96}).addTo(layers.current);
-      const label = document.createElement('div');
-      label.textContent = `${place.city}, ${place.country}`;
+      const point=[place.lat,place.lng];
+      const marker=L.circleMarker(point,{radius:6,color:'#fff',weight:2,
+        fillColor:'#d3a166',fillOpacity:.97}).addTo(layers.current);
+      const label=document.createElement('span');
+      label.textContent=`Visited: ${place.city}, ${place.country}`;
       marker.bindPopup(label);
       bounds.push(point);
     });
     if (live && countryFilter === 'All') {
-      const point = [live.lat,live.lng];
-      L.marker(point,{
-        icon:L.divIcon({className:'tmv-v42-current-pin',html:'<span class="tmv-v42-pin-pulse"><i></i></span>',iconSize:[24,24],iconAnchor:[12,12]}),
-        title:'Ahsan live location',
-      }).bindPopup('Ahsan · Live location').addTo(layers.current);
-      bounds.push(point);
+      const point=[live.lat,live.lng];
+      if (accuracy !== null && accuracy > 0) {
+        L.circle(point,{radius:accuracy,color:'#338b6c',weight:1,fillColor:'#4fac80',
+          fillOpacity:.10,opacity:.45,interactive:false}).addTo(layers.current);
+      }
+      const marker=L.marker(point,{
+        icon:L.divIcon({className:`tmv-v42-current-pin${fresh?'':' is-old'}`,
+          html:'<span class="tmv-v42-pin-pulse"><i></i></span>',iconSize:[28,28],iconAnchor:[14,14]}),
+        title:locationLabel,
+      }).addTo(layers.current);
+      const popup=document.createElement('div');
+      const title=document.createElement('strong');title.textContent=locationLabel;
+      const detail=document.createElement('div');detail.textContent=address || `${live.lat.toFixed(6)}, ${live.lng.toFixed(6)}`;
+      popup.append(title,detail);marker.bindPopup(popup);
+      const movedFar=!lastFocus.current || map.distance(lastFocus.current,point)>35;
+      if (followLive.current && (!firstFocus.current || movedFar)) {
+        map.setView(point,gpsZoom,{animate:firstFocus.current && map.distance(map.getCenter(),point)<6000});
+        lastFocus.current=point;
+        firstFocus.current=true;
+      }
+    } else if (!firstFocus.current && bounds.length) {
+      if (bounds.length===1) map.setView(bounds[0],12);
+      else map.fitBounds(L.latLngBounds(bounds),{padding:[40,40],maxZoom:12});
+      firstFocus.current=true;
     }
-    if (!initialFit.current && bounds.length) {
-      if (bounds.length === 1) map.setView(bounds[0],Math.min(12,live ? 13 : 9));
-      else map.fitBounds(L.latLngBounds(bounds),{padding:[28,28],maxZoom:12});
-      initialFit.current = true;
-    }
-  },[ready,visits,live,countryFilter]);
+  },[ready,visits,live,countryFilter,fresh,accuracy,address,gpsZoom,locationLabel]);
 
-  function selectCountry(next) {setCountryFilter(next);initialFit.current=false;}
+  function focusOnGPS() {
+    if (!live || !instance.current) return;
+    followLive.current=true;
+    lastFocus.current=[live.lat,live.lng];
+    instance.current.flyTo([live.lat,live.lng],gpsZoom,{duration:.55});
+  }
+  function selectCountry(next) {setCountryFilter(next);firstFocus.current=false;followLive.current=next==='All';}
+  function focusVisited(place) {
+    if (!instance.current || !Number.isFinite(place.lat) || !Number.isFinite(place.lng)) return;
+    followLive.current=false;
+    instance.current.flyTo([place.lat,place.lng],13,{duration:.55});
+  }
   async function markCity(event) {
     event.preventDefault();
     if (!city.trim() || !country.trim() || formBusy) return;
@@ -1578,49 +1610,67 @@ function LifeMapModal({mapData, tracking, ownerMode, busy, error, onClose, onSta
   return <div className="tmv-v42-overlay" onMouseDown={event=>{if(event.target===event.currentTarget)onClose();}}>
     <section className="tmv-v42-panel" role="dialog" aria-modal="true" aria-label="Ahsan's Life Map">
       <div className="tmv-v42-header">
-        <span className="tmv-v42-title-icon"><MapPinned size={21}/></span>
-        <div className="tmv-v42-heading"><h2>Ahsan's Life Map</h2><p>Live location &amp; places visited</p></div>
+        <span className="tmv-v42-title-icon"><MapPinned size={20}/></span>
+        <div className="tmv-v42-heading"><span className="tmv-v43-eyebrow">PRIVATE FAMILY MAP</span><h2>Ahsan's Life Map</h2><p>Where Ahsan is &amp; where he's been</p></div>
         <button type="button" className="tmv-v42-close" onClick={onClose} aria-label="Close Life Map"><X size={19}/></button>
       </div>
       <div className="tmv-v42-summary">
-        <span className={`tmv-v42-live-status${active?' is-live':''}`}><span className="tmv-v42-live-dot"/>{active?'Live now':'Not live'}</span>
-        <span><MapPin size={13}/> {visits.length} visited {visits.length===1?'city':'cities'}</span>
+        <span className={`tmv-v42-live-status${fresh?' is-live':''}`}><span className="tmv-v42-live-dot"/>{fresh?'Live now':sharing?(tracking?'Finding GPS':'Last shared'):'Not sharing'}</span>
+        <span><MapPin size={13}/> {visits.length} {visits.length===1?'city':'cities'}</span>
         <span><Globe2 size={13}/> {countries.length} {countries.length===1?'country':'countries'}</span>
       </div>
       <div className="tmv-v42-map-wrap">
-        <div ref={mapHolder} className="tmv-v42-map" role="application" aria-label="Interactive worldwide visited cities and live location map"/>
-        {!ready && <div className="tmv-v42-map-loading"><Globe2 size={23}/>{mapError || 'Opening world map…'}</div>}
+        <div ref={mapHolder} className="tmv-v42-map" role="application" aria-label="World map with current GPS marker and visited city markers"/>
+        {!ready && <div className="tmv-v42-map-loading"><Globe2 size={22}/>{mapError || 'Opening your map…'}</div>}
+        {ready && live && <button type="button" className="tmv-v43-locate" onClick={focusOnGPS} title="Center map on Ahsan's latest GPS position" aria-label="Center on Ahsan's location"><Navigation size={15}/> <span>My location</span></button>}
+        <div className="tmv-v43-map-key" aria-label="Map legend"><i className="tmv-v43-key-live"/>GPS <i className="tmv-v43-key-city"/>Visited</div>
+      </div>
+      <div className="tmv-v43-address" aria-live="polite">
+        <span className="tmv-v43-address-icon"><MapPin size={18}/></span>
+        <div className="tmv-v43-address-copy">
+          <div className="tmv-v43-address-top"><strong>{live?locationLabel:'Shared location'}</strong>{live && <small>{fresh?'Live GPS':'Last reported'}</small>}</div>
+          {live ? <>
+            <p>{address || 'Street address not available yet — showing GPS coordinates.'}</p>
+            <div className="tmv-v43-address-meta">
+              <span>{live.lat.toFixed(6)}, {live.lng.toFixed(6)}</span>
+              <span>Accuracy {accuracy === null ? 'unknown' : `±${accuracy} m`}</span>
+              <span>Updated {new Date(live.seenAt).toLocaleString([],{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}</span>
+            </div>
+          </> : <p>{sharing ? 'Waiting for a GPS update from Ahsan’s device.' : 'Ahsan can share his location using Start Live.'}</p>}
+        </div>
       </div>
       <div className="tmv-v42-actions">
-        {ownerMode ? (tracking ?
-          <button type="button" className="tmv-v42-stop" onClick={onStop} disabled={busy}><Radio size={15}/> Stop Live</button> :
-          <button type="button" className="tmv-v42-start" onClick={onStart} disabled={busy}><Navigation size={15}/> Start Live</button>) :
-          <span className="tmv-v42-viewer-note">Owner can enable live sharing</span>}
-        <span className="tmv-v42-hint">GPS updates while the owner's app is open. No 24/7 background tracking.</span>
+        {ownerMode ? <>
+          {!tracking && <button type="button" className="tmv-v42-start" onClick={onStart} disabled={busy}><Navigation size={15}/> {sharing?'Update my location':'Start Live'}</button>}
+          {(tracking || sharing) && <button type="button" className="tmv-v42-stop" onClick={onStop} disabled={busy}><Radio size={15}/> Stop sharing</button>}
+        </> : <span className="tmv-v42-viewer-note">Shared privately by Ahsan</span>}
+        <span className="tmv-v42-hint">GPS refreshes while Ahsan's app is open. The last shared position stays visible until he stops; background GPS isn't available in this web app.</span>
       </div>
       {error && <p className="tmv-v42-error" role="status">{error}</p>}
-      {active && live && <p className="tmv-v42-lastseen"><Radio size={12}/> Updated {new Date(live.seenAt).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})} · Accuracy ±{Math.round(live.accuracy)} m</p>}
-      <div className="tmv-v42-city-heading"><strong>Visited places</strong><span>Automatically saved when a new city is detected</span></div>
+      {live && accuracy !== null && accuracy > 100 && <p className="tmv-v43-accuracy-tip"><Navigation size={12}/> Approximate GPS (±{accuracy} m). For greater precision, open Track Me on a GPS-enabled phone and allow Precise Location.</p>}
+      <div className="tmv-v42-city-heading"><strong>Places visited</strong><span>City history, separate from live GPS</span></div>
       {countries.length > 1 && <div className="tmv-v42-country-filters" aria-label="Filter visited countries">
         {['All',...countries].map(name=><button type="button" className={countryFilter===name?'is-active':''} key={name} onClick={()=>selectCountry(name)}>{name}</button>)}
       </div>}
       <div className="tmv-v42-city-list">
         {displayed.length ? [...displayed].reverse().map(place=><button type="button" key={place.key} className="tmv-v42-city-chip"
-          onClick={()=>instance.current?.setView([place.lat,place.lng],11)} title={`View ${place.city}, ${place.country} on the map`}>
+          onClick={()=>focusVisited(place)} title={`View visited ${place.city}, ${place.country}`}>
           <MapPin size={12}/><span>{place.city}</span><small>{place.country}</small>
-        </button>):<p className="tmv-v42-empty">No visited cities recorded yet. Enable Live on Ahsan's phone to start his journey.</p>}
+        </button>):<p className="tmv-v42-empty">No cities visited yet.</p>}
       </div>
-      {ownerMode && <div className="tmv-v42-owner-extra">
-        <form className="tmv-v42-mark-form" onSubmit={markCity}>
-          <span className="tmv-v42-mark-label">Mark current city</span>
-          <input aria-label="Current city" placeholder="City" maxLength={72} value={city} onChange={e=>setCity(e.target.value)}/>
-          <input aria-label="Country" placeholder="Country" maxLength={72} value={country} onChange={e=>setCountry(e.target.value)}/>
-          <button type="submit" disabled={formBusy||!active||!city.trim()||!country.trim()} title="Save this city using the current GPS coordinates"><Plus size={14}/> Save</button>
-        </form>
-        <button className="tmv-v42-clear" type="button" onClick={onClear} disabled={busy||(!visits.length&&!active)}>
-          <Trash2 size={13}/> Erase map history</button>
-      </div>}
-      <p className="tmv-v42-privacy"><LockKeyhole size={12}/> Private to signed-in family. Starting Live shares your current GPS position with them. Map tiles and occasional city lookups use OpenStreetMap services.</p>
+      {ownerMode && <details className="tmv-v43-manage">
+        <summary>Manage visited places</summary>
+        <div className="tmv-v42-owner-extra">
+          <form className="tmv-v42-mark-form" onSubmit={markCity}>
+            <span className="tmv-v42-mark-label">Save current city</span>
+            <input aria-label="Current city" placeholder="City" maxLength={72} value={city} onChange={e=>setCity(e.target.value)}/>
+            <input aria-label="Country" placeholder="Country" maxLength={72} value={country} onChange={e=>setCountry(e.target.value)}/>
+            <button type="submit" disabled={formBusy||!sharing||!live||!city.trim()||!country.trim()} title="Save this city using the last shared GPS position"><Plus size={14}/> Save</button>
+          </form>
+          <button className="tmv-v42-clear" type="button" onClick={onClear} disabled={busy||(!visits.length&&!sharing)}><Trash2 size={13}/> Erase map history</button>
+        </div>
+      </details>}
+      <p className="tmv-v42-privacy"><LockKeyhole size={12}/> Visible only to signed-in family. GPS and approximate street names use OpenStreetMap services; an address may describe the nearest mapped road, not an exact building.</p>
     </section>
   </div>;
 }
@@ -2136,35 +2186,38 @@ export default function TrackMe() {
       setLifeMapTracking(false);
       return undefined;
     }
-    let active=true, inFlight=false, lastAt=0, lastLat=null, lastLng=null;
+    let active=true, inFlight=false, lastAt=0, lastLat=null, lastLng=null, lastAccuracy=Infinity;
     const sendPosition = async position => {
       if (!active || document.visibilityState === 'hidden' || inFlight) return;
       const {latitude:lat,longitude:lng,accuracy} = position.coords || {};
       if (![lat,lng,accuracy].every(Number.isFinite)) return;
-      const currentTime=Date.now();
-      if (currentTime-lastAt < 30000) return;
-      if (lastLat !== null && currentTime-lastAt < 105000) {
-        const distance=Math.hypot((lat-lastLat)*111000,(lng-lastLng)*111000*Math.cos(lat*Math.PI/180));
-        if (distance < 40) return;
+      if (accuracy > 1500) {
+        setLifeMapError(`GPS is too approximate (±${Math.round(accuracy)} m). Enable precise location on your phone.`);
+        return;
       }
+      if (Date.now() - Number(position.timestamp || 0) > 30000) return;
+      const currentTime=Date.now();
+      const distance=lastLat === null ? Infinity : Math.hypot((lat-lastLat)*111000,(lng-lastLng)*111000*Math.cos(lat*Math.PI/180));
+      const significantlyBetter=accuracy < lastAccuracy * 0.62;
+      if (!significantlyBetter && ((currentTime-lastAt < 10000) || (distance < 25 && currentTime-lastAt < 55000))) return;
       inFlight=true;
       try {
         const data=await api({action:'life_map_update',pin:creationPin,token:lifeMapToken,lat,lng,accuracy});
-        if (active) {lastAt=Date.now();lastLat=lat;lastLng=lng;setLifeMapData(data);setLifeMapError('');}
+        if (active) {lastAt=Date.now();lastLat=lat;lastLng=lng;lastAccuracy=accuracy;setLifeMapData(data);setLifeMapError('');}
       } catch(err) {if(active) setLifeMapError(err.message||'Could not share the location.');}
       finally {inFlight=false;}
     };
     const onError = error => {
       if (!active) return;
-      setLifeMapError(error?.code===1?'Location permission denied. Allow location in your browser settings.':
-        error?.code===2?'Device location unavailable. Turn on GPS and try again.':'Waiting for GPS signal…');
+      setLifeMapError(error?.code===1?'Location permission denied. Allow precise location in your browser settings.':
+        error?.code===2?'Device location unavailable. Turn on GPS and try again.':'Waiting for a reliable GPS signal…');
       if (error?.code === 1) setLifeMapTracking(false);
     };
-    const options={enableHighAccuracy:true,maximumAge:15000,timeout:20000};
+    const options={enableHighAccuracy:true,maximumAge:0,timeout:25000};
     const watchId=navigator.geolocation.watchPosition(sendPosition,onError,options);
     const timer=window.setInterval(()=>{
       if(active && document.visibilityState === 'visible') navigator.geolocation.getCurrentPosition(sendPosition,onError,options);
-    },85000);
+    },45000);
     return ()=>{active=false;window.clearInterval(timer);navigator.geolocation.clearWatch(watchId);};
   },[lifeMapTracking,ownerMode,authenticated,creationPin,lifeMapToken]);
 
