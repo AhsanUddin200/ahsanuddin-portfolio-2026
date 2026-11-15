@@ -116,6 +116,8 @@ function parseLoveNames(result) {
 }
 
 
+// V44 questions are identified by the server-signed family login, never a submitted name.
+const FAMILY_QUESTIONS_KEY = 'ahsan:private-track:family-questions:v1';
 const COOKIE = "ahsan_track_session";
 
 /* V30 FAMILY VIEWER PASSWORDS */
@@ -1281,6 +1283,60 @@ export default async function handler(
         await redis('EXPIRE',LIFE_MAP_ACTIVE_KEY,900);
         return res.status(200).json(lifeMapOutput(state,activeToken));
       }
+    }
+
+/* V44 Family Question Inbox */
+    if (['family_questions_get','family_questions_ask','family_questions_reply'].includes(action)) {
+      const viewer = authenticatedViewer(req);
+      const ownerPIN = process.env.TRACK_TASK_PIN || '';
+      const hasPIN = typeof body.pin === 'string' && body.pin.length > 0;
+      const needsOwner = action === 'family_questions_reply' || (action === 'family_questions_get' && hasPIN);
+      if (needsOwner) {
+        if (ownerPIN.length < 6) return error(res,503,'Owner access is not configured.');
+        const verified = await checkSecret(req,'pin',hasPIN ? body.pin : '',ownerPIN);
+        if (!verified.ok) return error(res,verified.status,verified.error);
+      }
+      if (action === 'family_questions_ask') {
+        if (!LOVE_VIEWERS.includes(viewer)) return error(res,403,'Sign in with your individual family password to ask Ahsan.');
+        const date = typeof body.date === 'string' ? body.date : '';
+        if (!validDate(date) || Math.abs(Date.parse(date + 'T12:00:00Z')-Date.now()) > 36*60*60*1000)
+          return error(res,400,'Ask your question for today.');
+        const question = typeof body.question === 'string' ? body.question.trim() : '';
+        if (question.length < 3 || question.length > 280) return error(res,400,'Use 3–280 characters for your question.');
+        const id = date + ':' + viewer;
+        const item = {id, date, viewer, question, askedAt:now(), reply:'', repliedAt:null};
+        const added = await redis('HSETNX',FAMILY_QUESTIONS_KEY,id,JSON.stringify(item));
+        if (Number(added) !== 1) return error(res,409,'You already asked a question today.');
+        return res.status(200).json({item});
+      }
+      if (action === 'family_questions_reply') {
+        const id = typeof body.id === 'string' ? body.id : '';
+        if (!/^\d{4}-\d{2}-\d{2}:(nasir|talat|happa|yamna)$/.test(id))
+          return error(res,400,'Invalid question.');
+        const reply = typeof body.reply === 'string' ? body.reply.trim() : '';
+        if (reply.length < 2 || reply.length > 500) return error(res,400,'Reply must be 2–500 characters.');
+        const saved = await redis('HGET',FAMILY_QUESTIONS_KEY,id);
+        if (typeof saved !== 'string') return error(res,404,'Question not found.');
+        let item;
+        try { item=JSON.parse(saved); } catch { return error(res,500,'Saved question is unreadable.'); }
+        if (item.id !== id) return error(res,400,'Question ID mismatch.');
+        item.reply = reply;
+        item.repliedAt = now();
+        await redis('HSET',FAMILY_QUESTIONS_KEY,id,JSON.stringify(item));
+        return res.status(200).json({item});
+      }
+      // Owner sees all questions. Individual family members see ONLY their own.
+      const raw = await redis('HGETALL',FAMILY_QUESTIONS_KEY);
+      const records = Array.isArray(raw)
+        ? Array.from({length:Math.floor(raw.length/2)},(_,i)=>raw[i*2+1])
+        : raw && typeof raw === 'object' ? Object.values(raw) : [];
+      const all = records.map(value=>{try{return JSON.parse(value);}catch{return null;}})
+        .filter(item=>item && typeof item.id==='string' && LOVE_VIEWERS.includes(item.viewer) &&
+          validDate(item.date) && typeof item.question==='string')
+        .sort((a,b)=>String(b.askedAt || '').localeCompare(String(a.askedAt || '')));
+      const owner = needsOwner;
+      const items = (owner ? all : all.filter(item=>item.viewer===viewer)).slice(0,100);
+      return res.status(200).json({items, pending:owner ? all.filter(item=>!item.reply).length : 0, owner});
     }
 
     /* V31 reminder actions: authenticated signed family session is the only identity source. */
