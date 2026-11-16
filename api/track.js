@@ -130,7 +130,10 @@ const familyLoginAccounts = () => [
   { viewer: 'yamna', password: process.env.TRACK_YAMNA_PASSWORD },
   { viewer: 'family', password: process.env.TRACK_ME_PASSWORD },
 ].filter(account => typeof account.password === 'string' && account.password.length >= 1);
-const familyViewerNames = new Set(['nasir','talat','happa','yamna','family']);
+/* V47 Single Login Role Guard */
+const familyViewerNames = new Set(['nasir','talat','happa','yamna','family','owner']);
+const FAMILY_READ_ACTIONS = new Set(['load','summary','moment_get','life_map_get','love_get','love_set',
+  'family_questions_get','family_questions_ask','reminder_config','reminder_touch','reminder_subscribe','reminder_unsubscribe']);
 
 /* V31: Separate reminder records; no existing task/prayer/Quran keys change. */
 const REMINDER_PREFIX = 'ahsan:track:family-reminders:v1:';
@@ -288,11 +291,18 @@ function signature(value) {
     .digest("base64url");
 }
 
+function ownerSessionStamp() {
+  const code = process.env.TRACK_TASK_PIN || '';
+  if (code.length < 6) return null;
+  return createHmac('sha256', process.env.TRACK_SESSION_SECRET)
+    .update('track-me-session:' + code).digest('hex').slice(0,32);
+}
 function makeSession(viewer = "family") {
   const payload = Buffer.from(
     JSON.stringify({
       exp: Date.now() + SESSION_SECONDS * 1000,
       viewer,
+      ...(viewer === 'owner' ? {ownerStamp: ownerSessionStamp()} : {}),
     })
   ).toString("base64url");
 
@@ -352,7 +362,8 @@ function authenticated(req) {
 
     return (
       Number.isSafeInteger(obj.exp) &&
-      obj.exp > Date.now()
+      obj.exp > Date.now() &&
+      (obj.viewer !== 'owner' || (Boolean(ownerSessionStamp()) && equals(obj.ownerStamp, ownerSessionStamp())))
     );
   } catch {
     return false;
@@ -1100,20 +1111,20 @@ export default async function handler(
 
     if (action === "login") {
       const supplied = typeof body.password === 'string' ? body.password : '';
-      // Constant-time digests are used for every configured candidate.
-      const matches = familyLoginAccounts().filter(account => equals(supplied, account.password));
-      // Duplicate passwords must never select an arbitrary family member.
-      const account = matches.length === 1 ? matches[0] : null;
+      const familyMatches = familyLoginAccounts().filter(account => equals(supplied, account.password));
+      const editorPassword = process.env.TRACK_TASK_PIN || '';
+      const editorMatches = editorPassword.length >= 6 && equals(supplied, editorPassword);
+      // Shared passwords must never elevate a family member's permissions.
+      const account = editorMatches && familyMatches.length === 0 ? {viewer:'owner'}
+        : (!editorMatches && familyMatches.length === 1 ? familyMatches[0] : null);
       const invalidPlaceholder = 'invalid:' + process.env.TRACK_SESSION_SECRET;
-      const check = await checkSecret(req, 'login', supplied,
-        account ? account.password : invalidPlaceholder);
+      const check = await checkSecret(req, 'login', supplied, account ? supplied : invalidPlaceholder);
       if (!check.ok) return error(res, check.status, check.error);
-
-      res.setHeader('Set-Cookie',cookieValue(makeSession(account.viewer),req,SESSION_SECONDS));
+      res.setHeader('Set-Cookie', cookieValue(makeSession(account.viewer), req, SESSION_SECONDS));
       return res.status(200).json({ authenticated: true, viewer: account.viewer });
     }
 
-    /* =====================================================
+        /* =====================================================
        LOGOUT
     ===================================================== */
 
@@ -1160,6 +1171,11 @@ export default async function handler(
        LOAD ALL TRACKING DATA
     ===================================================== */
 
+    // Every write is checked on the server, not by a visible button or a client PIN.
+    const signedViewer = authenticatedViewer(req);
+    if (signedViewer !== 'owner' && !FAMILY_READ_ACTIONS.has(action))
+      return error(res,403,'This action is not available for this account.');
+
     /* V41: one private image per selected date. Owner PIN required to write. */
     if (['moment_get','moment_save','moment_delete'].includes(action)) {
       const date = typeof body.date === 'string' ? body.date : '';
@@ -1169,11 +1185,6 @@ export default async function handler(
         const saved = await readJSON(key, {});
         return res.status(200).json({photo: saved.image || null});
       }
-      const ownerPIN = process.env.TRACK_TASK_PIN || '';
-      if (ownerPIN.length < 6) return error(res, 503, 'Owner access code is not configured.');
-      const code = typeof body.pin === 'string' ? body.pin : '';
-      const check = await checkSecret(req, 'pin', code, ownerPIN);
-      if (!check.ok) return error(res, check.status, check.error);
       if (action === 'moment_delete') {
         await redis('DEL', key);
         return res.status(200).json({photo:null});
@@ -1197,10 +1208,6 @@ export default async function handler(
         const activeToken = await redis('GET',LIFE_MAP_ACTIVE_KEY);
         return res.status(200).json(lifeMapOutput(state,activeToken));
       }
-      const secret = process.env.TRACK_TASK_PIN || '';
-      if (secret.length < 6) return error(res,503,'Owner access code is not configured.');
-      const check = await checkSecret(req,'pin',typeof body.pin === 'string' ? body.pin : '',secret);
-      if (!check.ok) return error(res,check.status,check.error);
       if (action === 'life_map_start') {
         const token = randomUUID();
         state.sharing = true; state.token = token; // Keep the previously shared GPS/address until the next fresh fix.
@@ -1288,14 +1295,10 @@ export default async function handler(
 /* V44 Family Question Inbox */
     if (['family_questions_get','family_questions_ask','family_questions_reply'].includes(action)) {
       const viewer = authenticatedViewer(req);
-      const ownerPIN = process.env.TRACK_TASK_PIN || '';
-      const hasPIN = typeof body.pin === 'string' && body.pin.length > 0;
-      const needsOwner = action === 'family_questions_reply' || (action === 'family_questions_get' && hasPIN);
-      if (needsOwner) {
-        if (ownerPIN.length < 6) return error(res,503,'Owner access is not configured.');
-        const verified = await checkSecret(req,'pin',hasPIN ? body.pin : '',ownerPIN);
-        if (!verified.ok) return error(res,verified.status,verified.error);
-      }
+      // Server identity decides question visibility and reply permissions.
+      const needsOwner = viewer === 'owner';
+      if (action === 'family_questions_reply' && !needsOwner)
+        return error(res,403,'This action is not available for this account.');
       if (action === 'family_questions_ask') {
         if (!LOVE_VIEWERS.includes(viewer)) return error(res,403,'Sign in with your individual family password to ask Ahsan.');
         const date = typeof body.date === 'string' ? body.date : '';
@@ -1426,50 +1429,9 @@ export default async function handler(
        requires the separate TRACK_TASK_PIN.
     ===================================================== */
 
-    if (
-      action === "verify_create_pin" ||
-      action === "create"
-    ) {
-      if (
-        !process.env.TRACK_TASK_PIN ||
-        process.env.TRACK_TASK_PIN.length < 6
-      ) {
-        return error(
-          res,
-          503,
-          "Set TRACK_TASK_PIN (at least 6 characters) in Vercel Production settings."
-        );
-      }
+    if (action === "verify_create_pin") return res.status(200).json({authorized:true});
 
-      const check = await checkSecret(
-        req,
-        "pin",
-
-        typeof body.pin === "string"
-          ? body.pin
-          : "",
-
-        process.env.TRACK_TASK_PIN
-      );
-
-      if (!check.ok) {
-        return error(
-          res,
-          check.status,
-          check.error
-        );
-      }
-
-      if (
-        action === "verify_create_pin"
-      ) {
-        return res.status(200).json({
-          authorized: true,
-        });
-      }
-    }
-
-    /* =====================================================
+        /* =====================================================
        CREATE NEW TASK
     ===================================================== */
 

@@ -7,6 +7,7 @@ import {
   Bell, Send, ShieldAlert, ShieldCheck, Sparkles, Trash2, TrendingUp, X, Home, Menu, MessageSquareText, Sun, Moon, Volume2, VolumeX, Smartphone, UserRound, MapPinned, MapPin, Globe2, Radio, Navigation,
 } from 'lucide-react';
 import './TrackMe.css';
+/* V47 Single Login UI */
 
 // Real family photo supplied by the owner (stored in /public).
 const PROFILE_PHOTO = '/ahsan-family-photo.png';
@@ -515,7 +516,7 @@ function FamilyProfileSilhouette({ gender }) {
   return <UserRound size={22} strokeWidth={1.7} aria-hidden="true"/>;
 }
 function FamilyIdentity({ viewer }) {
-  const person = FAMILY_IDENTITY[viewer] || {name: 'Family', gender: 'other'};
+  const person = viewer === 'owner' ? {name:'Ahsan',gender:'male'} : (FAMILY_IDENTITY[viewer] || {name: 'Family', gender: 'other'});
   return <span className="tmv-v37-identity" role="img" title={`Signed in: ${person.name}`} aria-label={`Signed in as ${person.name}`}>
     <span className="tmv-v38-avatar"><FamilyProfileSilhouette gender={person.gender}/></span>
     <span className="tmv-v38-name">{person.name}</span>
@@ -606,27 +607,6 @@ function CautionWelcome({ viewer = 'family', onContinue }) {
     </div>
   );
 }
-function PinModal({ busy, onVerify, onClose, error }) {
-  const [pin, setPin] = useState('');
-  const [show, setShow] = useState(false);
-  return (
-    <div className="tm-modal-backdrop" onMouseDown={e => e.target === e.currentTarget && onClose()}>
-      <section className="tm-modal tm-pin-modal" role="dialog" aria-modal="true" aria-label="New task secret code">
-        <button className="tm-close" type="button" onClick={onClose} aria-label="Close"><X size={21}/></button>
-        <div className="tm-lock-icon"><LockKeyhole size={26}/></div>
-        <h2>Owner Access Code</h2>
-        <p className="tm-muted">Only Ahsan can update this page. Enter the private owner code to edit daily records.</p>
-        <form className="tm-stack" onSubmit={e => {e.preventDefault(); onVerify(pin);}}>
-          <label className="tm-field"><span>Secret code</span><div className="tm-input-icon"><KeyRound size={18}/><input required autoFocus maxLength={200} autoComplete="off" type={show ? 'text' : 'password'} value={pin} onChange={e => setPin(e.target.value)} placeholder="Enter code"/><button type="button" onClick={() => setShow(x => !x)} aria-label="Show or hide code">{show ? <EyeOff size={20}/> : <Eye size={20}/>}</button></div></label>
-          {error && <div className="tm-error" role="alert">{error}</div>}
-          <button type="submit" disabled={busy} className="tm-primary tm-wide">{busy ? 'Checking...' : 'Continue'} <ArrowRight size={19}/></button>
-          <button className="tm-text-button" type="button" onClick={onClose}>Cancel</button>
-        </form>
-      </section>
-    </div>
-  );
-}
-
 function TaskEditor({ initial, saving, onClose, onSave }) {
   const [form, setForm] = useState({ ...initial, meta: { ...initial.meta } });
   const change = (k, v) => setForm(old => ({ ...old, [k]: v }));
@@ -2200,7 +2180,7 @@ function PrayerPanel({ ownerMode, date, setDate, days, busy, onToggle }) {
   const marked=PRAYERS.filter(([key])=>record.group?.[key]||record.makeup?.[key]).length;
   return <section className="tmv-detail-view"><div className="tmv-detail-heading"><CategoryArtwork type="prayer"/><div><h2>Prayer Record</h2><p>Daily prayers, as recorded by <AhsanName/>.</p></div></div>
     <DayNavigator value={date} setValue={setDate}/>
-    {ownerMode ? <div className="tmv-owner-section"><p className="tmv-owner-label">OWNER EDITING · Changes save immediately</p><div className="tmv-prayer-edit-list">{PRAYERS.map(([key,label])=>{
+    {ownerMode ? <div className="tmv-owner-section"><p className="tmv-owner-label">Changes save immediately</p><div className="tmv-prayer-edit-list">{PRAYERS.map(([key,label])=>{
        const group=Boolean(record.group?.[key]), makeup=Boolean(record.makeup?.[key]);
        return <div className="tmv-edit-prayer-row" key={key}><strong>{label}</strong><button type="button" className={group?'tmv-selected':''} disabled={busy} aria-pressed={group} onClick={()=>onToggle({date,prayer:key,kind:'group',checked:!group})}>{group?<Check size={18}/>:null} Jamaat</button><button type="button" className={makeup?'tmv-selected':''} disabled={busy} aria-pressed={makeup} onClick={()=>onToggle({date,prayer:key,kind:'makeup',checked:!makeup})}>{makeup?<Check size={18}/>:null} Qaza</button></div>;
     })}</div></div> : <PrayerReadout date={date} days={days}/>}
@@ -2277,8 +2257,6 @@ export default function TrackMe() {
   const [prayerDate,setPrayerDate]=useState(dayISO());
   const [busy,setBusy]=useState(false);
   const [notice,setNotice]=useState('');
-  const [pinOpen,setPinOpen]=useState(false);
-  const [pinError,setPinError]=useState('');
   const [creationPin,setCreationPin]=useState('');
   const [ownerMode,setOwnerMode]=useState(false);
   const [questionOpen,setQuestionOpen]=useState(false);
@@ -2348,7 +2326,7 @@ export default function TrackMe() {
   },[lifeMapTracking,ownerMode,authenticated,creationPin,lifeMapToken]);
 
   async function startLifeMap() {
-    if (!ownerMode || !creationPin) {setLifeMapError('Unlock owner updates before enabling live location.');return;}
+    if (!ownerMode || !creationPin) {setLifeMapError('Sign in to manage live location.');return;}
     if (!navigator.geolocation || !window.isSecureContext) {setLifeMapError('HTTPS and a GPS-enabled browser are required.');return;}
     setLifeMapError('');setLifeMapBusy(true);
     try {
@@ -2446,7 +2424,7 @@ export default function TrackMe() {
   }, [authenticated,ownerMode,creationPin]);
   useEffect(()=>{
     let mounted=true;
-    api().then(data=>{if(mounted){setAuthenticated(Boolean(data.authenticated));setFamilyViewer(data.viewer||'family');setEntries(data.entries||[]);setPrayerDays(data.prayerDays||{});setQuranEntries(data.quranEntries||[]);}})
+    api().then(data=>{if(mounted){setAuthenticated(Boolean(data.authenticated));setFamilyViewer(data.viewer||'family');setOwnerMode(data.viewer==='owner');setCreationPin(data.viewer==='owner'?'verified-session':'');setEntries(data.entries||[]);setPrayerDays(data.prayerDays||{});setQuranEntries(data.quranEntries||[]);}})
       .catch(err=>{if(mounted)setLoginError(err.message);}).finally(()=>{if(mounted)setLoading(false);});
     return ()=>{mounted=false;};
   },[]);
@@ -2479,7 +2457,7 @@ export default function TrackMe() {
       await api({action:'login',password:suppliedPassword});
       const data=await api();
       setEntries(data.entries||[]);setPrayerDays(data.prayerDays||{});setQuranEntries(data.quranEntries||[]);
-      setAuthenticated(true);setFamilyViewer(data.viewer||'family');setPassword('');setWelcome(true);
+      setAuthenticated(true);setFamilyViewer(data.viewer||'family');setOwnerMode(data.viewer==='owner');setCreationPin(data.viewer==='owner'?'verified-session':'');setPassword('');setWelcome(data.viewer!=='owner');
     } catch(err) {
       // Do not show an error for an older, incomplete input if typing resumed.
       if (latestPasswordRef.current === suppliedPassword) setLoginError(err.message);
@@ -2489,10 +2467,7 @@ export default function TrackMe() {
     }
   }
   async function signOut(){try{if(lifeMapTracking&&creationPin){setLifeMapTracking(false);setLifeMapToken('');await api({action:'life_map_stop',pin:creationPin}).catch(()=>{});}await api({action:'logout'});loginAttemptRef.current.last='';setAuthenticated(false);setFamilyViewer('family');setOwnerMode(false);setCreationPin('');setQuestionOpen(false);setEntries([]);setPrayerDays({});setQuranEntries([]);setWelcome(false);setEditor(null);setNotice('');setSection('overview');}catch(err){fail(err);}}
-  function openOwner(){if(ownerMode)return;setPinError('');setPinOpen(true);}
-  async function verifyPin(pin){setBusy(true);setPinError('');try{await api({action:'verify_create_pin',pin});setCreationPin(pin);setOwnerMode(true);setPinOpen(false);setNotice('Owner mode is on. You can update every section without entering the code again. Select Finish editing when done.');}catch(err){setPinError(err.message);}finally{setBusy(false);}}
-  function lockOwner(){if(lifeMapTracking)void stopLifeMap();setOwnerMode(false);setCreationPin('');setEditor(null);setExpanded(null);setNotice('Owner editing is off.');}
-  function newTask(target='office'){if(!ownerMode){openOwner();return;}setEditor(initialTask(target));}
+  function newTask(target='office'){if(!ownerMode)return;setEditor(initialTask(target));}
   async function saveTask(form){setBusy(true);setNotice('');try{const editing=Boolean(editor?.id);const data=await api({action:editing?'update':'create',...(editing?{id:editor.id}:{pin:creationPin}),item:form});setEntries(list=>editing?list.map(x=>x.id===data.item.id?data.item:x):[data.item,...list]);setEditor(null);setNotice(editing?'Updated successfully.':'New task saved.');}catch(err){fail(err);}finally{setBusy(false);}}
   async function updateTask(item,status){setBusy(true);try{const data=await api({action:'update',id:item.id,item:{...item,status}});setEntries(list=>list.map(x=>x.id===item.id?data.item:x));}catch(err){fail(err);}finally{setBusy(false);}}
   async function addNote(id){if(!note.trim())return;setBusy(true);try{const data=await api({action:'note',id,note});setEntries(list=>list.map(x=>x.id===id?data.item:x));setNote('');setNotice('Daily update saved.');}catch(err){fail(err);}finally{setBusy(false);}}
@@ -2509,14 +2484,13 @@ export default function TrackMe() {
     <header className="tmv-header"><button type="button" className="tmv-brand" onClick={()=>go('overview')} aria-label="Go to Ahsan's daily updates"><AhsanAvatar className="tmv-avatar-header"/><span><strong><AhsanName/>’s Updates</strong><small>Family journal</small></span></button><div className="tmv-mini-header-actions"><FamilySevenDayReminder viewer={familyViewer}/><FamilyIdentity viewer={familyViewer}/><button type="button" className="tmv-logout" onClick={signOut}><LogOut size={18}/><span>Log out</span></button></div></header>
     {section!=='overview'&&<button type="button" className="tmv-back" onClick={()=>go('overview')}><ArrowLeft size={20}/> Back to daily updates</button>}
     {notice&&<div className="tmv-notice" role="status"><CheckCircle2 size={19}/><span>{notice}</span><button type="button" onClick={()=>setNotice('')} aria-label="Dismiss"><X size={17}/></button></div>}
-    {ownerMode&&<div className="tmv-owner-banner"><span><LockKeyhole size={16}/> Owner mode · all sections unlocked</span><button type="button" onClick={lockOwner}>Finish editing</button></div>}
     {section==='overview'&&<FamilyToday entries={entries} days={prayerDays} quran={quranEntries} viewDate={viewDate} setViewDate={setViewDate} onOpen={go} ownerMode={ownerMode} onNew={newTask} onOpenSummary={()=>setSummaryOpen(true)}
       love={love.date === viewDate ? love : {date:viewDate,liked:false,count:0,names:[]}} loveBusy={loveBusy} onLove={toggleLove} ownerPin={creationPin} onOpenLifeMap={()=>{setLifeMapError('');setLifeMapOpen(true);}}
       onOpenQuestions={()=>setQuestionOpen(true)} questionsPending={questionsPending}/>}
     {['office','personal','university'].includes(section)&&<WorkPanel section={section} ownerMode={ownerMode} entries={entries} busy={busy} search={search} setSearch={setSearch} filter={filter} setFilter={setFilter} expanded={expanded} setExpanded={setExpanded} note={note} setNote={setNote} onNew={newTask} onNote={addNote} onEdit={item=>setEditor({...item})} onDelete={deleteTask} onStatus={updateTask}/>}
     {section==='prayer'&&<PrayerPanel ownerMode={ownerMode} date={prayerDate} setDate={setPrayerDate} days={prayerDays} busy={busy} onToggle={togglePrayer}/>}
     {section==='quran'&&<QuranPanel ownerMode={ownerMode} quran={quranEntries} busy={busy} onAdd={addQuran} onDelete={deleteQuran}/>}
-    <div className="tmv-bottom"><button type="button" className="tmv-owner-link" onClick={ownerMode?lockOwner:openOwner}><LockKeyhole size={16}/>{ownerMode?'Finish owner updates':'Owner updates (private code)'}</button><p>Only for <AhsanName/>’s family.</p></div>
+    <div className="tmv-bottom"><p>Only for <AhsanName/>’s family.</p></div>
     <div className="tmv-install-footer"><InstallShortcut/></div>
   </div>
   {questionOpen&&<FamilyQuestionsModal viewer={familyViewer} ownerMode={ownerMode} ownerPin={creationPin}
@@ -2524,7 +2498,6 @@ export default function TrackMe() {
   {lifeMapOpen&&<LifeMapModal mapData={lifeMapData} tracking={lifeMapTracking} ownerMode={ownerMode}
     busy={lifeMapBusy} error={lifeMapError} onClose={()=>setLifeMapOpen(false)}
     onStart={startLifeMap} onStop={stopLifeMap} onMark={lifeMapMarkCity} onClear={lifeMapClear}/>}
-  {pinOpen&&<PinModal busy={busy} onVerify={verifyPin} onClose={()=>setPinOpen(false)} error={pinError}/>}
   {editor&&<TaskEditor key={editor.id||`new-${editor.section}`} initial={editor} saving={busy} onClose={()=>setEditor(null)} onSave={saveTask}/>}
   {summaryOpen&&<SummaryChat entries={entries} prayerDays={prayerDays} quranEntries={quranEntries} selectedDate={viewDate} onClose={()=>setSummaryOpen(false)} onSessionError={fail}/>}
   </main>;
