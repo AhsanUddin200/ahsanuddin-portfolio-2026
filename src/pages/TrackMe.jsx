@@ -4,7 +4,7 @@ import {
   ArrowLeft, ArrowRight, BookOpen, BriefcaseBusiness, CalendarDays, Check,
   CheckCircle2, ChevronLeft, ChevronRight, Clock3, Edit3, Eye, EyeOff,
   GraduationCap, Heart, Camera, Image as ImageIcon, MessageCircleQuestion, ArrowLeftRight, KeyRound, LockKeyhole, LogOut, Plus, Search,
-  Bell, Send, ShieldAlert, ShieldCheck, Sparkles, Trash2, TrendingUp, X, Home, Menu, MessageSquareText, Sun, Moon, Volume2, VolumeX, Smartphone, UserRound, MapPinned, MapPin, Globe2, Radio, Navigation,
+  Bell, Play, Pause, Send, ShieldAlert, ShieldCheck, Sparkles, Trash2, TrendingUp, X, Home, Menu, MessageSquareText, Sun, Moon, Volume2, VolumeX, Smartphone, UserRound, MapPinned, MapPin, Globe2, Radio, Navigation,
 } from 'lucide-react';
 import './TrackMe.css';
 /* V47 Single Login UI */
@@ -1952,6 +1952,115 @@ function SeenByWeekModal({onClose}) {
   </div>;
 }
 
+/* V49: compact family greeting and 30-second daily recap */
+function FamilyTimeGreeting({viewer}) {
+  const [hour,setHour]=useState(()=>new Date().getHours());
+  useEffect(()=>{
+    const refresh=()=>setHour(new Date().getHours());
+    const timer=window.setInterval(refresh,60000);
+    window.addEventListener('focus',refresh);
+    document.addEventListener('visibilitychange',refresh);
+    return ()=>{window.clearInterval(timer);window.removeEventListener('focus',refresh);document.removeEventListener('visibilitychange',refresh);};
+  },[]);
+  const greeting=hour<5?'Good night':hour<12?'Good morning':hour<17?'Good afternoon':hour<21?'Good evening':'Good night';
+  return <>{greeting}, {FAMILY_IDENTITY[viewer]?.name || 'Family'}!</>;
+}
+
+/* No new API or storage: recap uses already-loaded, real daily records.
+   Six slides x five seconds cover Today's Moment and each journal category. */
+function AhsanToday30Modal({entries,prayerDays,quran,onClose}) {
+  const [date]=useState(()=>dayISO());
+  const [slide,setSlide]=useState(0);
+  const [playing,setPlaying]=useState(true);
+  const [finished,setFinished]=useState(false);
+  const [photo,setPhoto]=useState(null);
+  useEffect(()=>{
+    let active=true;
+    api({action:'moment_get',date}).then(result=>{
+      if(active && typeof result.photo==='string' && result.photo.startsWith('data:image/jpeg;base64,'))setPhoto(result.photo);
+    }).catch(()=>{});
+    return ()=>{active=false;};
+  },[date]);
+  const slides=useMemo(()=>{
+    const saved=Array.isArray(entries)?entries:[];
+    const prayer=prayerDays?.[date]||{};
+    const count=PRAYERS.filter(([key])=>prayer.group?.[key]||prayer.makeup?.[key]).length;
+    const readings=(quran||[]).filter(item=>item.date===date);
+    const pages=readings.reduce((sum,item)=>sum+Math.max(0,Number(item.pagesRead)||0),0);
+    const changed=saved.filter(item=>
+      (item.createdAt&&dayISO(item.createdAt)===date)||
+      (item.updatedAt&&dayISO(item.updatedAt)===date)||
+      (item.logs||[]).some(note=>note.createdAt&&dayISO(note.createdAt)===date)).length;
+    const getReport=topic=>buildFamilyReport({entries:saved,prayerDays,quranEntries:quran||[],
+      period:'selected',topic,selectedDate:date}).map(row=>row.en).filter(Boolean).join(' ');
+    return [
+      {title:'Ahsan’s Today',eyebrow:'THE DAILY SNAPSHOT',text:`${count} of 5 prayers recorded · ${pages} Quran pages · ${changed} work/life records updated today. Here is the complete section-by-section recap.`},
+      {title:'Prayer',eyebrow:'01 / PRAYER',text:getReport('prayer')},
+      {title:'Quran Reading',eyebrow:'02 / QURAN',text:getReport('quran')},
+      {title:'Office Work',eyebrow:'03 / OFFICE',text:getReport('office')},
+      {title:'University',eyebrow:'04 / UNIVERSITY',text:getReport('university')},
+      {title:'Personal Life',eyebrow:'05 / PERSONAL',text:getReport('personal')},
+    ];
+  },[entries,prayerDays,quran,date]);
+  useEffect(()=>{
+    if(!playing)return undefined;
+    const timer=window.setTimeout(()=>{
+      if(slide>=slides.length-1){setPlaying(false);setFinished(true);}
+      else setSlide(value=>value+1);
+    },5000);
+    return ()=>window.clearTimeout(timer);
+  },[playing,slide,slides.length]);
+  useEffect(()=>{
+    const onKey=event=>{
+      if(event.key==='Escape')onClose();
+      if(event.key==='ArrowRight')setSlide(i=>Math.min(slides.length-1,i+1));
+      if(event.key==='ArrowLeft')setSlide(i=>Math.max(0,i-1));
+    };
+    const onVisibility=()=>{if(document.visibilityState==='hidden')setPlaying(false);};
+    document.addEventListener('keydown',onKey);
+    document.addEventListener('visibilitychange',onVisibility);
+    return ()=>{document.removeEventListener('keydown',onKey);document.removeEventListener('visibilitychange',onVisibility);};
+  },[onClose,slides.length]);
+  const current=slides[slide]||slides[0];
+  const navButton={display:'inline-flex',alignItems:'center',justifyContent:'center',gap:6,
+    border:'1px solid #d6e7db',borderRadius:9,background:'#f5faf6',color:'#245c43',
+    padding:'8px 12px',minHeight:34,fontSize:12,fontWeight:600};
+  return <div className="tmv-v44-question-backdrop" onMouseDown={event=>{if(event.target===event.currentTarget)onClose();}}>
+    <section className="tmv-v44-question-panel" role="dialog" aria-modal="true" aria-label="Ahsan's Today in 30 Seconds">
+      <header className="tmv-v44-question-head">
+        <span className="tmv-v44-question-mark"><Play size={18}/></span>
+        <span className="tmv-v44-question-heading"><strong>Today in 30 seconds</strong><small>{prettyDate(date)} · 6 short chapters</small></span>
+        <button type="button" className="tmv-v44-question-close" onClick={onClose} aria-label="Close recap"><X size={19}/></button>
+      </header>
+      <div className="tmv-v44-question-body" style={{padding:'14px 16px 16px'}}>
+        <div style={{display:'flex',gap:4,marginBottom:14}} aria-label={`Chapter ${slide+1} of ${slides.length}`}>
+          {slides.map((item,i)=><span key={item.title} style={{height:4,flex:1,borderRadius:8,
+            background:i<=slide?'#337e5b':'#e0ebe3'}}/>) }
+        </div>
+        <div style={{height:225,display:'flex',flexDirection:'column',justifyContent:'center',gap:12,overflow:'hidden'}}>
+          <small style={{color:'#518063',fontWeight:750,fontSize:10,letterSpacing:'.10em'}}>{current.eyebrow}</small>
+          <h2 style={{fontSize:22,fontWeight:750,margin:0,color:'#173c2d'}}>{current.title}</h2>
+          {slide===0&&photo&&<img src={photo} alt="Today's Moment" style={{width:67,height:67,objectFit:'cover',borderRadius:11}}/>}
+          <p style={{fontSize:13,lineHeight:1.65,color:'#46594d',margin:0,overflowY:'auto',overflowWrap:'anywhere'}}>
+            {current.text}
+          </p>
+        </div>
+        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:8,marginTop:12}}>
+          <button type="button" style={navButton} onClick={()=>{setSlide(i=>Math.max(0,i-1));setFinished(false);}} disabled={slide===0} aria-label="Previous chapter"><ChevronLeft size={16}/></button>
+          <button type="button" style={navButton} onClick={()=>{
+            if(finished){setSlide(0);setFinished(false);setPlaying(true);}
+            else setPlaying(value=>!value);
+          }} aria-label={finished?'Replay recap':playing?'Pause recap':'Play recap'}>
+            {finished?<><Play size={15}/> Replay</>:playing?<><Pause size={15}/> Pause</>:<><Play size={15}/> Play</>}
+          </button>
+          <button type="button" style={navButton} onClick={()=>{setSlide(i=>Math.min(slides.length-1,i+1));setFinished(false);}} disabled={slide===slides.length-1} aria-label="Next chapter"><ChevronRight size={16}/></button>
+        </div>
+        <p style={{fontSize:10,color:'#799082',textAlign:'center',marginTop:9}}>Only today's saved updates · Pause or use arrows for details</p>
+      </div>
+    </section>
+  </div>;
+}
+
 /* V44 — family question inbox. Uses existing individual family logins and owner PIN. */
 function FamilyQuestionsModal({ viewer, ownerMode, ownerPin, onPendingChange, onClose, love }) {
   const [items, setItems] = useState([]);
@@ -2044,7 +2153,7 @@ function FamilyQuestionsModal({ viewer, ownerMode, ownerPin, onPendingChange, on
   </div>;
 }
 
-function FamilyToday({ entries, days, quran, viewDate, setViewDate, onOpen, onOpenSummary, ownerMode, onNew, love, loveBusy, onLove, ownerPin, onOpenLifeMap, onOpenQuestions, questionsPending, onOpenSeen }) {
+function FamilyToday({ entries, days, quran, viewDate, setViewDate, onOpen, onOpenSummary, ownerMode, onNew, love, loveBusy, onLove, ownerPin, onOpenLifeMap, onOpenQuestions, questionsPending, onOpenSeen, viewer, onOpenToday30 }) {
   const [expanded, setExpanded] = useState(null);
   useEffect(() => { setExpanded(null); }, [viewDate]);
   const read = quran.filter(item => item.date === viewDate)
@@ -2131,7 +2240,13 @@ function FamilyToday({ entries, days, quran, viewDate, setViewDate, onOpen, onOp
   }
   return <div className="tmv-family-view tmv-v32-home">
     <div className="tmv-v32-intro">
-      <span className="tmv-v32-kicker">THE DAILY JOURNAL</span>
+      <span className="tmv-v32-kicker" style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:7}}>
+        {ownerMode ? 'THE DAILY JOURNAL' : <FamilyTimeGreeting viewer={viewer}/>}
+        {!ownerMode&&<button type="button" onClick={onOpenToday30} title="Ahsan's Today in 30 Seconds"
+          aria-label="Watch Ahsan's Today in 30 Seconds" style={{display:'inline-flex',alignItems:'center',gap:3,
+            background:'transparent',border:0,padding:'2px 4px',color:'#27684d',fontSize:11,fontWeight:750,
+            letterSpacing:0,whiteSpace:'nowrap',cursor:'pointer'}}><Play size={12}/>30s</button>}
+      </span>
       <div className="tmv-v32-titleline">
         <div><h1 className="tmv-v33-script-title">Ahsan’s day<span className="tmv-v32-dot">.</span></h1><p>Just the important moments, in one place.</p></div>
         <div className="tmv-v37-quick-actions">
@@ -2309,6 +2424,7 @@ export default function TrackMe() {
   const [ownerMode,setOwnerMode]=useState(false);
   const [questionOpen,setQuestionOpen]=useState(false);
   const [seenOpen,setSeenOpen]=useState(false);
+  const [today30Open,setToday30Open]=useState(false);
   const [questionsPending,setQuestionsPending]=useState(0);
   /* V42: Owner-initiated GPS, scoped to this open browser tab only. */
   const [lifeMapOpen,setLifeMapOpen] = useState(false);
@@ -2524,7 +2640,7 @@ export default function TrackMe() {
       setBusy(false);
     }
   }
-  async function signOut(){setSeenOpen(false);try{if(lifeMapTracking&&creationPin){setLifeMapTracking(false);setLifeMapToken('');await api({action:'life_map_stop',pin:creationPin}).catch(()=>{});}await api({action:'logout'});loginAttemptRef.current.last='';setAuthenticated(false);setFamilyViewer('family');setOwnerMode(false);setCreationPin('');setQuestionOpen(false);setEntries([]);setPrayerDays({});setQuranEntries([]);setWelcome(false);setEditor(null);setNotice('');setSection('overview');}catch(err){fail(err);}}
+  async function signOut(){setSeenOpen(false);setToday30Open(false);try{if(lifeMapTracking&&creationPin){setLifeMapTracking(false);setLifeMapToken('');await api({action:'life_map_stop',pin:creationPin}).catch(()=>{});}await api({action:'logout'});loginAttemptRef.current.last='';setAuthenticated(false);setFamilyViewer('family');setOwnerMode(false);setCreationPin('');setQuestionOpen(false);setEntries([]);setPrayerDays({});setQuranEntries([]);setWelcome(false);setEditor(null);setNotice('');setSection('overview');}catch(err){fail(err);}}
   function newTask(target='office'){if(!ownerMode)return;setEditor(initialTask(target));}
   async function saveTask(form){setBusy(true);setNotice('');try{const editing=Boolean(editor?.id);const data=await api({action:editing?'update':'create',...(editing?{id:editor.id}:{pin:creationPin}),item:form});setEntries(list=>editing?list.map(x=>x.id===data.item.id?data.item:x):[data.item,...list]);setEditor(null);setNotice(editing?'Updated successfully.':'New task saved.');}catch(err){fail(err);}finally{setBusy(false);}}
   async function updateTask(item,status){setBusy(true);try{const data=await api({action:'update',id:item.id,item:{...item,status}});setEntries(list=>list.map(x=>x.id===item.id?data.item:x));}catch(err){fail(err);}finally{setBusy(false);}}
@@ -2544,7 +2660,8 @@ export default function TrackMe() {
     {notice&&<div className="tmv-notice" role="status"><CheckCircle2 size={19}/><span>{notice}</span><button type="button" onClick={()=>setNotice('')} aria-label="Dismiss"><X size={17}/></button></div>}
     {section==='overview'&&<FamilyToday entries={entries} days={prayerDays} quran={quranEntries} viewDate={viewDate} setViewDate={setViewDate} onOpen={go} ownerMode={ownerMode} onNew={newTask} onOpenSummary={()=>setSummaryOpen(true)}
       love={love.date === viewDate ? love : {date:viewDate,liked:false,count:0,names:[]}} loveBusy={loveBusy} onLove={toggleLove} ownerPin={creationPin} onOpenLifeMap={()=>{setLifeMapError('');setLifeMapOpen(true);}}
-      onOpenQuestions={()=>setQuestionOpen(true)} questionsPending={questionsPending} onOpenSeen={()=>setSeenOpen(true)}/>}
+      onOpenQuestions={()=>setQuestionOpen(true)} questionsPending={questionsPending} onOpenSeen={()=>setSeenOpen(true)}
+      viewer={familyViewer} onOpenToday30={()=>setToday30Open(true)}/>}
     {['office','personal','university'].includes(section)&&<WorkPanel section={section} ownerMode={ownerMode} entries={entries} busy={busy} search={search} setSearch={setSearch} filter={filter} setFilter={setFilter} expanded={expanded} setExpanded={setExpanded} note={note} setNote={setNote} onNew={newTask} onNote={addNote} onEdit={item=>setEditor({...item})} onDelete={deleteTask} onStatus={updateTask}/>}
     {section==='prayer'&&<PrayerPanel ownerMode={ownerMode} date={prayerDate} setDate={setPrayerDate} days={prayerDays} busy={busy} onToggle={togglePrayer}/>}
     {section==='quran'&&<QuranPanel ownerMode={ownerMode} quran={quranEntries} busy={busy} onAdd={addQuran} onDelete={deleteQuran}/>}
@@ -2552,6 +2669,7 @@ export default function TrackMe() {
     <div className="tmv-install-footer"><InstallShortcut/></div>
   </div>
   {seenOpen && ownerMode && <SeenByWeekModal onClose={()=>setSeenOpen(false)}/>}
+  {today30Open && !ownerMode && <AhsanToday30Modal entries={entries} prayerDays={prayerDays} quran={quranEntries} onClose={()=>setToday30Open(false)}/>}
   {questionOpen&&<FamilyQuestionsModal viewer={familyViewer} ownerMode={ownerMode} ownerPin={creationPin}
     love={love.date===viewDate?love:null} onPendingChange={setQuestionsPending} onClose={()=>setQuestionOpen(false)}/>}
   {lifeMapOpen&&<LifeMapModal mapData={lifeMapData} tracking={lifeMapTracking} ownerMode={ownerMode}
