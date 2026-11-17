@@ -1253,7 +1253,7 @@ function SummaryChat({ entries, prayerDays, quranEntries, selectedDate, onClose,
           {step !== 'done' && <div className="tmv-chat-quick" aria-label="Suggested replies">
             {options.map(option => <button type="button" key={option.id} onClick={() => submit(step === 'topic' ? option.number : option.id === 'selected' ? 'selected date' : option.id === 'today' ? '1' : option.id === 'week' ? '2' : '3')}>
               {step === 'period' && option.id !== 'selected' && <span className="tmv-chat-choice-num">{option.id === 'today' ? '1.' : option.id === 'week' ? '2.' : '3.'}</span>}
-              {step === 'topic' && <span className="tmv-chat-choice-num">{option.number}.</span>
+              {step === 'topic' && <span className="tmv-chat-choice-num">{option.number}.</span>}
               <span>{option.en}</span><span className="tmv-chat-choice-urdu" lang="ur" dir="rtl">{option.ur}</span>
             </button>)}
           </div>}
