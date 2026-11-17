@@ -2199,6 +2199,297 @@ function AhsanToday30Modal({entries,prayerDays,quran,onClose}) {
   </div>;
 }
 
+/* V51: Family-only language and automatic plain-language display.
+   Original React records, editor fields and the underlying saved values remain untouched. */
+const FAMILY_SCREEN_URDU = Object.freeze({
+  'Family journal':'خاندانی روزنامچہ', 'Log out':'لاگ آؤٹ', 'Back to daily updates':'روزانہ کی اپڈیٹس پر واپس',
+  'DAILY JOURNAL':'روزانہ کا احوال', 'THE DAILY JOURNAL':'روزانہ کا احوال',
+  'Just the important moments, in one place.':'دن کی تمام اہم باتیں ایک جگہ۔',
+  'Daily Life':'روزمرہ زندگی', 'Simple daily overview':'آج کا مختصر احوال',
+  'Prayer':'نماز', 'Prayer Record':'نماز کا ریکارڈ', 'See prayer history':'نماز کی تاریخ دیکھیں',
+  'Life & Progress':'زندگی اور پیش رفت', 'Life and progress':'زندگی اور پیش رفت',
+  'Only what matters':'صرف اہم باتیں', 'Quran Reading':'قرآن کی تلاوت', 'Quran':'قرآن',
+  'Office Work':'دفتر کا کام', 'Office':'دفتر', 'University':'یونیورسٹی',
+  'Personal Life':'ذاتی زندگی', 'Personal Work':'ذاتی کام', 'Personal':'ذاتی',
+  'Quick AI summary':'آسان خلاصہ', 'Daily summary assistant':'روزانہ کی معلومات کا معاون',
+  'FAMILY UPDATE ASSISTANT':'خاندانی اپڈیٹس کا معاون',
+  'English':'انگریزی', 'Today':'آج', 'Last 7 days':'پچھلے سات دن',
+  'Last 30 days':'پچھلے تیس دن', 'Everything':'سب کچھ', 'Prayer today':'آج کی نماز',
+  'Office work':'دفتری کام', 'Personal work':'ذاتی کام',
+  'Listen in English':'انگریزی میں سنیں', 'Stop':'روکیں', 'Optional short AI note':'AI سے مختصر وضاحت',
+  'Start another summary':'دوسرا خلاصہ دیکھیں', 'Privacy note':'رازداری کی معلومات',
+  'Type a message':'پیغام لکھیں', 'Send message':'پیغام بھیجیں',
+  'Ahsan’s day':'احسن کا دن', 'Ahsan’s Today':'احسن کا آج',
+  'Today in 30 seconds':'آج کا احوال ۳۰ سیکنڈ میں',
+  'THE DAILY SNAPSHOT':'آج کی مختصر جھلک',
+  'No update':'نئی اپڈیٹ نہیں', 'Recorded':'درج شدہ',
+  'Read more':'مزید پڑھیں', 'Read less':'کم دکھائیں',
+  'Daily prayers, as recorded by':'روزانہ کی نمازیں، جیسا کہ درج ہیں',
+  'Past 7 days':'گزشتہ سات دن', 'Jamaat':'جماعت', 'Qaza':'قضا',
+  'Fajr':'فجر', 'Dhuhr':'ظہر', 'Asr':'عصر', 'Maghrib':'مغرب', 'Isha':'عشاء',
+  'Progress in the 15-line Quran, saved by':'پندرہ سطری قرآن کی محفوظ تلاوت، درج کی گئی',
+  'Reading history':'تلاوت کی تاریخ', 'pages recorded in total':'کل ریکارڈ شدہ صفحات',
+  'Para':'پارہ', 'Page':'صفحہ', 'Pages':'صفحات',
+  'Projects, daily work and progress.':'پروجیکٹس، روزانہ کا کام اور پیش رفت۔',
+  'Applications, interviews and important dates.':'درخواستیں، انٹرویوز اور اہم تاریخیں۔',
+  'Personal goals and updates.':'ذاتی مقاصد اور اپڈیٹس۔',
+  'No activities saved here yet.':'یہاں ابھی کوئی سرگرمی محفوظ نہیں ہوئی۔',
+  'No Quran readings have been recorded yet.':'ابھی قرآن کی کوئی تلاوت محفوظ نہیں ہوئی۔',
+  'Find a specific activity':'کوئی خاص سرگرمی تلاش کریں',
+  'Search':'تلاش', 'Progress':'پیش رفت', 'All':'تمام',
+  'To Do':'کرنا باقی ہے', 'In Progress':'کام جاری ہے', 'Completed':'مکمل',
+  'Planning':'منصوبہ بندی', 'Applied':'درخواست جمع ہو گئی',
+  'Interview':'انٹرویو', 'Waiting':'انتظار',
+  'Latest update':'تازہ اپڈیٹ', 'More details (optional)':'مزید تفصیل (اختیاری)',
+  'No updates yet today':'آج ابھی کوئی اپڈیٹ نہیں ہوئی',
+  'No updates recorded for this date':'اس تاریخ کے لیے کوئی اپڈیٹ محفوظ نہیں',
+  'Family Questions':'گھر والوں کے سوالات', 'Ask Ahsan':'احسن سے پوچھیں',
+  'Your private family inbox':'خاندان کے سوالات',
+  'One little question, every day':'ہر روز ایک چھوٹا سا سوال',
+  'Reply to question':'سوال کا جواب دیں', 'Edit reply':'جواب میں تبدیلی',
+  'Send question':'سوال بھیجیں', 'Your question has been sent to Ahsan.':'آپ کا سوال احسن کو بھیج دیا گیا ہے۔',
+  'Awaiting Ahsan’s reply':'احسن کے جواب کا انتظار',
+  'Send love':'محبت بھیجیں', 'Remove love':'محبت واپس لیں',
+  'Life Map':'زندگی کا نقشہ', 'Visited places':'دیکھی ہوئی جگہیں',
+  'Live location':'موجودہ مقام', 'Current location':'موجودہ مقام',
+  'Show more':'مزید دکھائیں', 'Close':'بند کریں',
+  'Good morning':'صبح بخیر', 'Good afternoon':'دوپہر بخیر',
+  'Good evening':'شام بخیر', 'Good night':'شب بخیر',
+  'Today’s Moment':'آج کی یاد', "Today's Moment":'آج کی یاد',
+  'Date':'تاریخ', 'No data':'کوئی معلومات نہیں',
+  'Yesterday':'کل', 'Today vs Yesterday':'آج اور کل کا موازنہ',
+  'A private family journal':'ایک نجی خاندانی روزنامچہ',
+  'Family sign in':'خاندان کا لاگ اِن', 'Welcome back.':'واپسی پر خوش آمدید',
+  'Save':'محفوظ کریں', 'Cancel':'منسوخ کریں', 'Delete':'حذف کریں',
+  'Pause':'روکیں', 'Play':'چلائیں', 'Replay':'دوبارہ چلائیں',
+  'Previous chapter':'پچھلا حصہ', 'Next chapter':'اگلا حصہ',
+  '30s':'۳۰ ثانیے'
+});
+const FAMILY_TECH_TERMS = Object.freeze([
+  ['ERP','business management software','کاروبار چلانے والا سافٹ ویئر'],
+  ['SaaS','software used through the internet','انٹرنیٹ کے ذریعے استعمال ہونے والا سافٹ ویئر'],
+  ['API','a way for two software systems to exchange information','دو سافٹ ویئر کے درمیان معلومات پہنچانے کا طریقہ'],
+  ['webhook','an automatic message between systems','سسٹمز کے درمیان خودکار اطلاع'],
+  ['deployment','making an app available to use','ایپ کو استعمال کے لیے جاری کرنا'],
+  ['deploy','make the app live','ایپ کو آن لائن چلانا'],
+  ['migration','moving software or data to a new system','پرانے نظام سے نئے نظام میں منتقلی'],
+  ['database','a place where information is stored','معلومات محفوظ کرنے کی جگہ'],
+  ['server','a computer that runs an online service','آن لائن سروس چلانے والا کمپیوٹر'],
+  ['backend','the part of an app that works behind the scenes','ایپ کا پس منظر میں کام کرنے والا حصہ'],
+  ['frontend','the part of an app that users see','ایپ کا نظر آنے والا حصہ'],
+  ['UI','the app screen and controls','ایپ کی سکرین اور بٹن'],
+  ['UX','how easy an app is to use','ایپ استعمال کرنے کی سہولت'],
+  ['authentication','checking who is signing in','لاگ اِن کرنے والے کی شناخت کی جانچ'],
+  ['authorization','checking what a user is allowed to do','صارف کو کس کام کی اجازت ہے اس کی جانچ'],
+  ['OAuth','secure sign-in through another service','دوسری سروس کے ذریعے محفوظ لاگ اِن'],
+  ['SSL','security that protects information sent online','انٹرنیٹ پر معلومات کو محفوظ رکھنے کا نظام'],
+  ['HTTPS','a secure connection to a website','ویب سائٹ کا محفوظ رابطہ'],
+  ['DNS','the system that finds websites by their names','ویب سائٹ کے نام سے اس کا پتہ تلاش کرنے کا نظام'],
+  ['domain','the web address name','ویب سائٹ کا نام یا پتہ'],
+  ['hosting','keeping a website available online','ویب سائٹ کو انٹرنیٹ پر چلانے کی سہولت'],
+  ['GitHub','a service for storing and managing code','پروگرام کا کوڈ محفوظ رکھنے کی سروس'],
+  ['Git','a way to track code changes','کوڈ میں تبدیلیوں کا ریکارڈ'],
+  ['repository','a project code collection','پروجیکٹ کے کوڈ کا ذخیرہ'],
+  ['commit','a saved code change','کوڈ میں محفوظ کردہ تبدیلی'],
+  ['pull request','a request to review a code change','کوڈ میں تبدیلی کی منظوری کی درخواست'],
+  ['bug','a software problem','سافٹ ویئر کی خرابی'],
+  ['debug','find and fix a software problem','سافٹ ویئر کی خرابی تلاش کرکے درست کرنا'],
+  ['integration','connecting two systems','دو سسٹمز کو آپس میں ملانا'],
+  ['automation','making repeated tasks happen automatically','کام کا خود بخود ہونا'],
+  ['cloud','computers and services available on the internet','انٹرنیٹ پر دستیاب کمپیوٹر اور سروسز'],
+  ['CRM','software for managing customer relationships','گاہکوں کے ریکارڈ اور رابطے کا نظام'],
+  ['SDK','tools for building software','سافٹ ویئر بنانے کے اوزار'],
+  ['JSON','a structured way to share data','معلومات کو ترتیب سے لکھنے کا طریقہ'],
+  ['CSV','a simple spreadsheet-style data file','جدول کی شکل میں ڈیٹا کی فائل'],
+  ['AI','software that can help understand or generate information','معلومات سمجھنے میں مدد دینے والی مصنوعی ذہانت'],
+  ['LLM','an AI system that understands and writes text','متن سمجھنے اور لکھنے والا AI نظام'],
+  ['algorithm','a set of steps for completing a task','کام مکمل کرنے کے مرحلہ وار اصول'],
+  ['cache','temporarily saved information for faster use','تیز استعمال کے لیے عارضی محفوظ معلومات'],
+  ['sync','keeping information matched between places','دو جگہوں کی معلومات ایک جیسی رکھنا'],
+  ['analytics','understanding results using data','ڈیٹا سے نتائج سمجھنے کا طریقہ'],
+  ['dashboard','a screen showing important information','اہم معلومات دکھانے والی سکرین'],
+  ['module','an individual feature or part of a system','سسٹم کا الگ حصہ یا سہولت'],
+  ['customization','changing software for a specific need','ضرورت کے مطابق سافٹ ویئر میں تبدیلی'],
+  ['framework','basic tools used to build an app','ایپ بنانے کا بنیادی ڈھانچہ'],
+  ['codebase','all the code that makes up the app','ایپ کا مکمل کوڈ'],
+  ['build','preparing software to run','سافٹ ویئر چلانے کے لیے تیار کرنا'],
+  ['runtime','when a software program is running','جب پروگرام چل رہا ہو'],
+  ['Vite','a tool for building web applications','ویب ایپ تیار کرنے کا اوزار'],
+  ['React','a tool for making website screens','ویب سائٹ کی سکرینیں بنانے والا ٹول'],
+  ['Odoo','business management software','کاروباری انتظام کا سافٹ ویئر'],
+]);
+const FAMILY_TECH_RE = /\b(?:ERP|SaaS|API|webhook|deployment|deploy|migration|database|server|backend|frontend|UI|UX|authentication|authorization|OAuth|SSL|HTTPS|DNS|domain|hosting|GitHub|Git|repository|commit|pull request|bug|debug|integration|automation|cloud|CRM|SDK|JSON|CSV|AI|LLM|algorithm|cache|sync|analytics|dashboard|module|customization|framework|codebase|build|runtime|Vite|React|Odoo)\b/i;
+const FAMILY_TEXT_CACHE = new Map();
+const FAMILY_TEXT_PENDING = new Map();
+let familyQueue = [];
+let familyQueueTimer = null;
+function familySimplifyKnown(source,language){
+  const terms=[];
+  for(const [term,en,ur] of FAMILY_TECH_TERMS){
+    const esc=term.replace(/[.*+?^${}()|[\]\\]/g,'\\/* V44 — family question inbox. Uses existing individual family logins and owner PIN. */');
+    if(new RegExp('(^|[^a-z0-9])'+esc+'(?=$|[^a-z0-9])','i').test(source)) terms.push(`${term}: ${language==='ur'?ur:en}`);
+    if(terms.length===2)break;
+  }
+  if(!terms.length)return source;
+  // Compact inline explanation: no extra cards, popups or additional layout sections.
+  return source+' ('+terms.join('; ')+')';
+}
+function familyQueueRewrite(source,language){
+  const key=language+'\u0000'+source;
+  if(FAMILY_TEXT_CACHE.has(key))return Promise.resolve(FAMILY_TEXT_CACHE.get(key));
+  if(FAMILY_TEXT_PENDING.has(key))return FAMILY_TEXT_PENDING.get(key);
+  const promise=new Promise(resolve=>{
+    familyQueue.push({key,source,language,resolve});
+    if(familyQueueTimer===null)familyQueueTimer=window.setTimeout(async()=>{
+      familyQueueTimer=null;
+      const queued=familyQueue;familyQueue=[];
+      for(let k=0;k<queued.length;){
+        const batch=[];
+        let chars=0;
+        while(k<queued.length&&batch.length<7&&(chars+queued[k].source.length<=2600||!batch.length)){
+          batch.push(queued[k]);chars+=queued[k].source.length;k+=1;
+        }
+        const groups=new Map();
+        batch.forEach(item=>{const arr=groups.get(item.language)||[];arr.push(item);groups.set(item.language,arr);});
+        await Promise.all([...groups.entries()].map(async([lang,items])=>{
+          try {
+            const result=await api({action:'family_text',language:lang,texts:items.map(x=>x.source)});
+            const translated=Array.isArray(result.texts)?result.texts:[];
+            items.forEach((item,index)=>{
+              const value=typeof translated[index]==='string'&&translated[index].trim()?translated[index]:item.source;
+              FAMILY_TEXT_CACHE.set(item.key,value);item.resolve(value);FAMILY_TEXT_PENDING.delete(item.key);
+            });
+          }catch(_){items.forEach(item=>{item.resolve(item.source);FAMILY_TEXT_PENDING.delete(item.key);});}
+        }));
+      }
+    },120);
+  });
+  FAMILY_TEXT_PENDING.set(key,promise);
+  return promise;
+}
+function familyScreenTransform(root,language){
+  const seen=new WeakMap();
+  const touched=new Set();
+  const hidden=[];
+  const attributes=new Map();
+  let active=true;
+  const excluded='script,style,noscript,textarea,input,select,option,[contenteditable="true"],[data-family-lang-ignore="true"]';
+  const shouldExplain=(value,el)=>isDynamic(el)&&value.length>3&&FAMILY_TECH_RE.test(value);
+  const isDynamic=(el)=>Boolean(el?.closest('.tmv-task-title,.tmv-task-description,.tmv-task-meta,.tmv-task-update,.tmv-log-entry,.tmv-v32-row,.tmv-v32-life,.tmv-ai-insight,.tmv-chat-report-line,.tmv-v44-question-item,.tmv-reading-history'));
+  function convertNode(node){
+    if(!active||!node?.parentElement||node.parentElement.closest(excluded))return;
+    const element=node.parentElement;
+    const originalValue=node.nodeValue||'';
+    const previous=seen.get(node);
+    if(previous&&originalValue===previous.applied)return;
+    const source=previous&&originalValue===previous.source?previous.source:originalValue;
+    const trimmed=source.trim();
+    if(!trimmed||!/[A-Za-z\u0600-\u06ff]/.test(trimmed))return;
+    if(trimmed.length>3500)return;
+    const isUrdu=/[\u0600-\u06ff]/.test(trimmed);
+    const leading=source.match(/^\s*/)?.[0]||'';
+    const trailing=source.match(/\s*$/)?.[0]||'';
+    let base=trimmed;
+    if(language==='ur'&&FAMILY_SCREEN_URDU[trimmed])base=FAMILY_SCREEN_URDU[trimmed];
+    else if(language==='en'&&shouldExplain(trimmed,element))base=familySimplifyKnown(trimmed,'en');
+    else if(language==='ur'&&isUrdu&&FAMILY_TECH_RE.test(trimmed))base=familySimplifyKnown(trimmed,'ur');
+    const entry={source,applied:leading+base+trailing};
+    seen.set(node,entry);touched.add(node);
+    if(node.nodeValue!==entry.applied)node.nodeValue=entry.applied;
+    // Full Urdu translation of new/free-form content and English jargon simplification.
+    const needsAI=(language==='ur'&&!isUrdu&&!FAMILY_SCREEN_URDU[trimmed]) ||
+      (language==='en'&&isDynamic(element)&&!isUrdu&&!FAMILY_SCREEN_URDU[trimmed]&&trimmed.length>=8);
+    if(!needsAI||trimmed.length<4)return;
+    const chunks=[];
+    let remaining=trimmed;
+    while(remaining.length>950){
+      let split=remaining.lastIndexOf(' ',900);
+      if(split<500)split=900;
+      chunks.push(remaining.slice(0,split).trim());
+      remaining=remaining.slice(split).trim();
+    }
+    if(remaining)chunks.push(remaining);
+    Promise.all(chunks.map(chunk=>familyQueueRewrite(chunk,language))).then(parts=>{
+      const output=parts.join(' ');
+      if(!active||!node.isConnected||seen.get(node)!==entry||node.nodeValue!==entry.applied)return;
+      let next=String(output||trimmed).trim();
+      if(!next||next===trimmed){if(language==='en')next=familySimplifyKnown(trimmed,'en');}
+      entry.applied=leading+next+trailing;
+      node.nodeValue=entry.applied;
+    });
+  }
+  function scan(base){
+    if(!base)return;
+    if(base.nodeType===3){convertNode(base);return;}
+    if(base.nodeType!==1)return;
+    if(base.closest?.(excluded))return;
+    const walker=document.createTreeWalker(base,NodeFilter.SHOW_TEXT);
+    let node;
+    while((node=walker.nextNode()))convertNode(node);
+  }
+  function scanAttributes(base){
+    const list=base.nodeType===1 ? [base,...base.querySelectorAll('[placeholder],[title],[aria-label]')] : [];
+    for(const el of list){
+      if(el.closest('[data-family-lang-ignore="true"],[contenteditable="true"]'))continue;
+      for(const field of ['placeholder','title','aria-label']){
+        if(!el.hasAttribute(field))continue;
+        const current=el.getAttribute(field);
+        const key=field+'::'+current;
+        const prior=attributes.get(el)?.[field];
+        if(prior && prior.applied===current)continue;
+        const source=current||'';
+        if(!source.trim()||source.length>160)continue;
+        const base=FAMILY_SCREEN_URDU[source]||source;
+        const next=language==='ur'?base:source;
+        if(!attributes.has(el))attributes.set(el,{});
+        attributes.get(el)[field]={source,applied:next};
+        if(next!==source)el.setAttribute(field,next);
+        if(language==='ur'&&next===source&&/[A-Za-z]/.test(source)&&source.length>=4){
+          const tracked=attributes.get(el)[field];
+          familyQueueRewrite(source,'ur').then(value=>{
+            if(!active||!el.isConnected||attributes.get(el)?.[field]!==tracked||el.getAttribute(field)!==tracked.applied)return;
+            if(typeof value==='string'&&value.trim()){tracked.applied=value.trim();el.setAttribute(field,tracked.applied);}
+          });
+        }
+      }
+    }
+  }
+  // The existing bilingual AI chat keeps its data unchanged, but shows only the chosen language.
+  function applyChatLanguage(){
+    root.querySelectorAll('.tmv-chat-message .tmv-chat-bubble > p[lang],.tmv-chat-report-line > p[lang]').forEach(el=>{
+      const expected=el.getAttribute('lang')===language;
+      if(!hidden.some(x=>x.el===el))hidden.push({el,display:el.style.display});
+      el.style.display=expected?'':'none';
+    });
+  }
+  scan(root);scanAttributes(root);applyChatLanguage();
+  let scheduled=false;
+  let queuedMutations=[];
+  const observer=new MutationObserver(mutations=>{
+    if(!active)return;
+    queuedMutations.push(...mutations);
+    if(scheduled)return;
+    scheduled=true;
+    window.requestAnimationFrame(()=>{
+      scheduled=false;
+      if(!active)return;
+      const batch=queuedMutations;queuedMutations=[];
+      for(const m of batch){
+        if(m.type==='characterData')convertNode(m.target);
+        else for(const node of m.addedNodes){scan(node);if(node.nodeType===1)scanAttributes(node);}
+      }
+      applyChatLanguage();
+    });
+  });
+  observer.observe(root,{subtree:true,childList:true,characterData:true});
+  return ()=>{
+    active=false;observer.disconnect();
+    for(const node of touched){const record=seen.get(node);if(record&&node.isConnected&&node.nodeValue===record.applied)node.nodeValue=record.source;}
+    for(const row of hidden){if(row.el.isConnected)row.el.style.display=row.display;}
+    for(const [el,fields] of attributes)if(el.isConnected)for(const [key,record] of Object.entries(fields)){if(el.getAttribute(key)===record.applied)el.setAttribute(key,record.source);}
+  };
+}
+
 /* V44 — family question inbox. Uses existing individual family logins and owner PIN. */
 function FamilyQuestionsModal({ viewer, ownerMode, ownerPin, onPendingChange, onClose, love }) {
   const [items, setItems] = useState([]);
@@ -2667,6 +2958,18 @@ export default function TrackMe() {
   const [search,setSearch]=useState('');
   const [filter,setFilter]=useState('all');
   const [summaryOpen,setSummaryOpen]=useState(false);
+  const [familyLang,setFamilyLang]=useState(()=>{
+    try{return window.localStorage.getItem('tm-family-language')==='ur'?'ur':'en';}catch(_){return 'en';}
+  });
+  const familySmartRootRef=useRef(null);
+  useEffect(()=>{
+    if(!authenticated||ownerMode||welcome||!familySmartRootRef.current)return undefined;
+    return familyScreenTransform(familySmartRootRef.current,familyLang);
+  },[authenticated,ownerMode,welcome,familyLang,section,summaryOpen,questionOpen,lifeMapOpen,today30Open]);
+  useEffect(()=>{
+    if(!authenticated||ownerMode)return;
+    try{window.localStorage.setItem('tm-family-language',familyLang);}catch(_){}
+  },[authenticated,ownerMode,familyLang]);
   /* V37: One saved heart per family member and selected calendar day. */
   const [love, setLove] = useState({date:null, liked:false, count:0, names:[]});
   const [loveBusy, setLoveBusy] = useState(false);
@@ -2792,8 +3095,12 @@ export default function TrackMe() {
   if(loading)return <main className="tm-page tm-loading" role="status"><div className="tm-spinner"/><p>Opening family updates…</p></main>;
   if(!authenticated)return <main className="tm-page"><LoginScreen password={password} setPassword={setPassword} onSubmit={signIn} busy={busy} error={loginError}/></main>;
   if(welcome)return <main className="tm-page"><CautionWelcome viewer={familyViewer} onContinue={()=>setWelcome(false)}/></main>;
-  return <main className="tm-page tmv-family"><div className="tm-shell tmv-shell">
-    <header className="tmv-header"><button type="button" className="tmv-brand" onClick={()=>go('overview')} aria-label="Go to Ahsan's daily updates"><AhsanAvatar className="tmv-avatar-header"/><span><strong><AhsanName/>’s Updates</strong><small>Family journal</small></span></button><div className="tmv-mini-header-actions"><FamilySevenDayReminder viewer={familyViewer}/><FamilyIdentity viewer={familyViewer}/><button type="button" className="tmv-logout" onClick={signOut}><LogOut size={18}/><span>Log out</span></button></div></header>
+  return <main ref={familySmartRootRef} className="tm-page tmv-family"><div className="tm-shell tmv-shell">
+    <header className="tmv-header"><button type="button" className="tmv-brand" onClick={()=>go('overview')} aria-label="Go to Ahsan's daily updates"><AhsanAvatar className="tmv-avatar-header"/><span><strong><AhsanName/>’s Updates</strong><small>Family journal</small></span></button><div className="tmv-mini-header-actions">{!ownerMode&&<div data-family-lang-ignore="true" role="group" aria-label="Family language" style={{display:'inline-flex',alignItems:'center',gap:2,whiteSpace:'nowrap',padding:'2px 4px',border:'1px solid #d9e8df',borderRadius:8,background:'#f5faf6',fontSize:10}}>
+      <button type="button" aria-pressed={familyLang==='en'} onClick={()=>setFamilyLang('en')} style={{border:0,background:'transparent',color:familyLang==='en'?'#145b3d':'#88998d',fontWeight:familyLang==='en'?800:500,padding:'3px 2px',cursor:'pointer'}}>EN</button>
+      <span aria-hidden="true" style={{color:'#9aa99f'}}>|</span>
+      <button type="button" lang="ur" aria-pressed={familyLang==='ur'} onClick={()=>setFamilyLang('ur')} style={{border:0,background:'transparent',color:familyLang==='ur'?'#145b3d':'#88998d',fontWeight:familyLang==='ur'?800:500,padding:'3px 2px',cursor:'pointer'}}>اردو</button>
+      </div>}<FamilySevenDayReminder viewer={familyViewer}/><FamilyIdentity viewer={familyViewer}/><button type="button" className="tmv-logout" onClick={signOut}><LogOut size={18}/><span>Log out</span></button></div></header>
     {section!=='overview'&&<button type="button" className="tmv-back" onClick={()=>go('overview')}><ArrowLeft size={20}/> Back to daily updates</button>}
     {notice&&<div className="tmv-notice" role="status"><CheckCircle2 size={19}/><span>{notice}</span><button type="button" onClick={()=>setNotice('')} aria-label="Dismiss"><X size={17}/></button></div>}
     {section==='overview'&&<FamilyToday entries={entries} days={prayerDays} quran={quranEntries} viewDate={viewDate} setViewDate={setViewDate} onOpen={go} ownerMode={ownerMode} onNew={newTask} onOpenSummary={()=>setSummaryOpen(true)}
