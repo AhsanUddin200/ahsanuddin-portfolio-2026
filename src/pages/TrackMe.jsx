@@ -738,11 +738,146 @@ function hasTaskEventInPeriod(task, inPeriod) {
     (task?.logs || []).some(note => inPeriod(note.createdAt));
 }
 
+/* V50: Date-by-date complete summaries for the requested 7/30-day window.
+   Reads existing saved entries only; never guesses that unmarked prayers
+   were missed or that an old task's current status is today's work. */
+function buildCompleteWindowReport({entries, prayerDays, quranEntries, period, topic}) {
+  const length = period === 'week' ? 7 : 30;
+  const today = dayISO();
+  const tasks = Array.isArray(entries) ? entries : [];
+  const readings = Array.isArray(quranEntries) ? quranEntries : [];
+  const prayers = prayerDays || {};
+  const lines = [];
+  const wants = type => topic === 'all' || topic === type;
+  const clean = value => String(value ?? '').replace(/\s+/g, ' ').trim();
+  const dateOf = value => {
+    if (!value) return '';
+    if (/^\d{4}-\d{2}-\d{2}$/.test(String(value))) return String(value);
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime()) ? '' : dayISO(parsed);
+  };
+  const label = task => {
+    const title = clean(task.title || 'Untitled task');
+    const project = clean(task.meta?.project);
+    return project && project.toLowerCase() !== title.toLowerCase() ? `${project} — ${title}` : title;
+  };
+  const add = (en, ur, noUpdates = false) => lines.push({en,ur,...(noUpdates ? {noUpdates:true} : {})});
+  const prayersUr = {fajr:'فجر',dhuhr:'ظہر',asr:'عصر',maghrib:'مغرب',isha:'عشاء'};
+  const categories = [
+    {key:'office',en:'Office',ur:'دفتر'},
+    {key:'university',en:'University',ur:'یونیورسٹی'},
+    {key:'personal',en:'Personal',ur:'ذاتی کام'},
+  ];
+  const currentStatus = {planned:'To do',in_progress:'In progress',done:'Completed'};
+  for (let offset = 0; offset < length; offset += 1) {
+    const date = shiftDay(today,-offset);
+    const heading = prettyDate(date);
+    const dayLines = [];
+    const recordedCategories = new Set();
+    const addDay = (en,ur) => dayLines.push({en:`${heading} · ${en}`,ur:`${heading} · ${ur}`});
+    if (wants('prayer')) {
+      const saved = prayers[date] || {};
+      const group = PRAYERS.filter(([key]) => saved.group?.[key]).map(([key]) => key);
+      const makeup = PRAYERS.filter(([key]) => !saved.group?.[key] && saved.makeup?.[key]).map(([key]) => key);
+      if (group.length || makeup.length) {
+        const enParts = [];
+        const urParts = [];
+        if (group.length) {
+          enParts.push(`Jamaat: ${group.map(k => PRAYERS.find(([id]) => id === k)?.[1] || k).join(', ')}`);
+          urParts.push(`جماعت: ${group.map(k => prayersUr[k]).join('، ')}`);
+        }
+        if (makeup.length) {
+          enParts.push(`Qaza: ${makeup.map(k => PRAYERS.find(([id]) => id === k)?.[1] || k).join(', ')}`);
+          urParts.push(`قضا: ${makeup.map(k => prayersUr[k]).join('، ')}`);
+        }
+        const notRecorded = PRAYERS.filter(([key]) => !group.includes(key) && !makeup.includes(key)).map(([key]) => key);
+        if (notRecorded.length) {
+          enParts.push(`Not recorded: ${notRecorded.map(k => PRAYERS.find(([id]) => id === k)?.[1] || k).join(', ')}`);
+          urParts.push(`ریکارڈ نہیں: ${notRecorded.map(k => prayersUr[k]).join('، ')}`);
+        }
+        addDay(`Prayer — ${enParts.join('; ')}.`,`نماز — ${urParts.join('؛ ')}۔`);
+        recordedCategories.add('prayer');
+      }
+    }
+    if (wants('quran')) {
+      const daily = readings.filter(reading => dateOf(reading.date) === date)
+        .sort((a,b) => String(a.createdAt || '').localeCompare(String(b.createdAt || '')));
+      if (daily.length) recordedCategories.add('quran');
+      for (const reading of daily) {
+        const para = clean(reading.para) || 'not specified';
+        const pages = Number(reading.pagesRead) || 0;
+        const pageRange = reading.fromPage || reading.toPage ? ` (pages ${clean(reading.fromPage) || '?'}–${clean(reading.toPage) || '?'})` : '';
+        const note = clean(reading.note);
+        addDay(`Quran — Para ${para}, ${pages} page${pages === 1 ? '' : 's'}${pageRange}${note ? `; note: ${note}` : ''}.`,
+          `قرآن — پارہ ${para}، ${pages} صفحات${pageRange}${note ? `؛ نوٹ: ${note}` : ''}۔`);
+      }
+    }
+    for (const category of categories) {
+      if (!wants(category.key)) continue;
+      for (const task of tasks.filter(row => row.section === category.key)) {
+        const notes = (Array.isArray(task.logs) ? task.logs : [])
+          .filter(note => dateOf(note.createdAt) === date)
+          .sort((a,b) => String(a.createdAt || '').localeCompare(String(b.createdAt || '')));
+        const created = dateOf(task.createdAt) === date;
+        const updated = dateOf(task.updatedAt) === date;
+        if (!created && !updated && !notes.length) continue;
+        recordedCategories.add(category.key);
+        const taskName = label(task);
+        const m = task.meta || {};
+        const uniName = clean(m.university);
+        const program = clean(m.program);
+        const country = clean(m.country);
+        const uniDetails = category.key === 'university'
+          ? [uniName && `University: ${uniName}`,program && `Program: ${program}`,country && `Country: ${country}`].filter(Boolean).join('; ')
+          : '';
+        const head = `${category.en} — ${taskName}${uniDetails ? ` (${uniDetails})` : ''}`;
+        const urHead = `${category.ur} — ${taskName}${uniDetails ? ` (${uniDetails})` : ''}`;
+        // Metadata and descriptions are current saved values, not a historic snapshot.
+        const savedDetails = [
+          clean(task.detail) && `current details: ${clean(task.detail)}`,
+          clean(task.dueDate) && `target date: ${clean(task.dueDate)}`,
+          category.key === 'university' && clean(m.applicationStatus) && `current application status: ${clean(m.applicationStatus)}`,
+          category.key === 'university' && clean(m.applicationDate) && `application date: ${clean(m.applicationDate)}`,
+          category.key === 'university' && clean(m.upcomingDate) && `next date: ${clean(m.upcomingDate)}`,
+        ].filter(Boolean).join('; ');
+        const detailSuffix = savedDetails ? ` (${savedDetails})` : '';
+        if (created) addDay(`${head}: new task/record created${detailSuffix}.`, `${urHead}: نیا ریکارڈ بنایا گیا${detailSuffix}۔`);
+        // If there are saved notes, show every one, not only the newest two.
+        for (const note of notes) {
+          const content = clean(note.note);
+          if (content) addDay(`${head}: progress note — ${content}`, `${urHead}: پیش رفت — ${content}`);
+        }
+        // This can mean a field was edited; it does not prove work was performed.
+        if (updated && !created && !notes.length) {
+          const state = currentStatus[task.status] || 'Recorded';
+          addDay(`${head}: record edited (current status: ${state})${detailSuffix}.`,
+            `${urHead}: ریکارڈ میں تبدیلی (موجودہ حیثیت: ${state})${detailSuffix}۔`);
+        }
+      }
+    }
+    if (dayLines.length) {
+      // A brief missing-category note completes the picture without five empty cards.
+      if (topic === 'all') {
+        const names = {prayer:'Prayer',quran:'Quran',office:'Office',university:'University',personal:'Personal'};
+        const missing = Object.keys(names).filter(key => !recordedCategories.has(key)).map(key => names[key]);
+        if (missing.length) dayLines.push({en:`${heading} · No saved record under: ${missing.join(', ')}.`,
+          ur:`${heading} · ان حصوں میں نئی اپڈیٹ محفوظ نہیں: ${missing.join('، ')}۔`,noUpdates:true});
+      }
+      lines.push(...dayLines);
+    }
+    else add(`${heading} · No ${topic === 'all' ? 'updates' : topic + ' updates'} saved for this day.`,
+      `${heading} · اس دن ${topic === 'all' ? 'کوئی اپڈیٹ' : 'اس موضوع کی کوئی اپڈیٹ'} محفوظ نہیں ہوئی۔`, true);
+  }
+  return lines;
+}
+
 // Clear bilingual family updates based on saved records only.
 // Give the actual task, what changed, the university/program and next date.
 // A current status without a note is never described as work done today.
 // This uses only existing data and does not change the API or database.
 function buildFamilyReport({ entries, prayerDays, quranEntries, period, topic, selectedDate }) {
+  if (period === 'week' || period === 'month')
+    return buildCompleteWindowReport({entries,prayerDays,quranEntries,period,topic});
   const days = period === 'selected' ? 1 : (CHAT_PERIODS.find(x => x.id === period)?.days || 7);
   const end = period === 'selected' ? selectedDate : dayISO();
   const start = shiftDay(end, -(days - 1));
@@ -1000,8 +1135,9 @@ function SummaryChat({ entries, prayerDays, quranEntries, selectedDate, onClose,
       : CHAT_PERIODS.find(x => x.id === selectedPeriod);
     const s = CHAT_TOPICS.find(x => x.id === selectedTopic);
     const lines = buildFamilyReport({ entries, prayerDays, quranEntries, period: selectedPeriod, topic: selectedTopic, selectedDate: exactDate });
-    setReportEmpty(lines.some(line => line.noUpdates));
-    const report = {role:'bot',en:`${p.en} · ${s.en} — saved updates.`,ur:`${p.ur} · ${s.ur} — محفوظ شدہ اپڈیٹس:`,lines};
+    setReportEmpty(lines.length === 0 || lines.every(line => line.noUpdates));
+    const range = p.days && p.days > 1 ? ` (${prettyDate(shiftDay(dayISO(),-(p.days-1)))} – ${prettyDate(dayISO())})` : '';
+    const report = {role:'bot',en:`${p.en}${range} · ${s.en} — saved updates.`,ur:`${p.ur}${range} · ${s.ur} — محفوظ شدہ اپڈیٹس:`,lines};
     spokenTextRef.current = report;
     setMessages([...seedMessages, report]);
   }
@@ -1037,8 +1173,8 @@ function SummaryChat({ entries, prayerDays, quranEntries, selectedDate, onClose,
     setText('');
     const next = [...messages, {role:'user', text:value}];
     const isSingleOption = /^[1-6۱-۶١-٦]$/.test(value);
-    const dateInfo = parseChatDate(value, selectedDate);
-    const topicInfo = parseChatTopic(value);
+    const dateInfo = (step === 'period' || !isSingleOption) ? parseChatDate(value, selectedDate) : null;
+    const topicInfo = (step === 'period' && isSingleOption) ? null : parseChatTopic(value);
 
     // At the initial period step, a *natural question* with a category
     // goes directly to the matching dated report. It never asks for a
@@ -1064,7 +1200,8 @@ function SummaryChat({ entries, prayerDays, quranEntries, selectedDate, onClose,
         return;
       }
       setStep('topic');
-      setMessages([...next, {role:'bot',en:'What would you like to know about?',ur:'آپ کس چیز کی سمری چاہتے ہیں؟'}]);
+      const chosenLabel = CHAT_PERIODS.find(x => x.id === dateInfo.period);
+      setMessages([...next, {role:'bot',en:`${chosenLabel?.en || prettyDate(dateInfo.date || selectedDate)} selected. What would you like to know about?`,ur:`${chosenLabel?.ur || 'منتخب تاریخ'} منتخب۔ آپ کس چیز کی سمری چاہتے ہیں؟`}]);
       return;
     }
 
@@ -1115,7 +1252,8 @@ function SummaryChat({ entries, prayerDays, quranEntries, selectedDate, onClose,
           </div>)}
           {step !== 'done' && <div className="tmv-chat-quick" aria-label="Suggested replies">
             {options.map(option => <button type="button" key={option.id} onClick={() => submit(step === 'topic' ? option.number : option.id === 'selected' ? 'selected date' : option.id === 'today' ? '1' : option.id === 'week' ? '2' : '3')}>
-              {step === 'topic' && <span className="tmv-chat-choice-num">{option.number}.</span>}
+              {step === 'period' && option.id !== 'selected' && <span className="tmv-chat-choice-num">{option.id === 'today' ? '1.' : option.id === 'week' ? '2.' : '3.'}</span>}
+              {step === 'topic' && <span className="tmv-chat-choice-num">{option.number}.</span>
               <span>{option.en}</span><span className="tmv-chat-choice-urdu" lang="ur" dir="rtl">{option.ur}</span>
             </button>)}
           </div>}
