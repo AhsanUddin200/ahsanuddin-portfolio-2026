@@ -1906,6 +1906,52 @@ function MonthlyProgress({ entries, days, quran, selectedDate, onSelectDate }) {
 }
 
 
+/* V48: Weekly Seen by — Ahsan only */
+const SEEN_NAMES={nasir:'Nasir',talat:'Talat',happa:'Happa',yamna:'Yamna'};
+const seenTimeFmt = at => new Intl.DateTimeFormat('en-PK',{
+  timeZone:'Asia/Karachi',hour:'numeric',minute:'2-digit',hour12:true}).format(new Date(at));
+const seenDayFmt = at => new Intl.DateTimeFormat('en-PK',{
+  timeZone:'Asia/Karachi',weekday:'short',day:'numeric',month:'short'}).format(new Date(at));
+function SeenByWeekModal({onClose}) {
+  const [data,setData]=useState(null);
+  const [busy,setBusy]=useState(true);
+  const [problem,setProblem]=useState('');
+  useEffect(()=>{
+    let active=true;
+    api({action:'seen_get'}).then(value=>{if(active)setData(value);})
+      .catch(error=>{if(active)setProblem(error?.message||'Could not load visits.');})
+      .finally(()=>{if(active)setBusy(false);});
+    const onKey=event=>{if(event.key==='Escape')onClose();};
+    document.addEventListener('keydown',onKey);
+    return ()=>{active=false;document.removeEventListener('keydown',onKey);};
+  },[onClose]);
+  const visits=Array.isArray(data?.visits)?data.visits:[];
+  const grouped=Object.entries(visits.reduce((rows,v)=>{
+    if(!SEEN_NAMES[v.viewer])return rows;
+    (rows[v.viewer] ||= []).push(v);
+    return rows;
+  },{})).sort(([a],[b])=>Object.keys(SEEN_NAMES).indexOf(a)-Object.keys(SEEN_NAMES).indexOf(b));
+  return <div className="tmv-v44-question-backdrop" onMouseDown={event=>{if(event.target===event.currentTarget)onClose();}}>
+    <section className="tmv-v44-question-panel" role="dialog" aria-modal="true" aria-label="Seen by this week">
+      <header className="tmv-v44-question-head">
+        <span className="tmv-v44-question-mark"><Eye size={20}/></span>
+        <span className="tmv-v44-question-heading"><strong>Seen by</strong><small>This week's family visits</small></span>
+        <button type="button" className="tmv-v44-question-close" onClick={onClose} aria-label="Close Seen by"><X size={19}/></button>
+      </header>
+      {data && <div className="tmv-v44-questions-summary"><span>{data.weekStart} – {data.weekEnd}</span><span>Resets every Monday</span></div>}
+      <div className="tmv-v44-question-body">
+        {busy && <p className="tmv-v44-question-empty">Loading visits…</p>}
+        {!busy && problem && <p className="tmv-v44-question-error" role="alert">{problem}</p>}
+        {!busy && !problem && !visits.length && <p className="tmv-v44-question-empty">No visits recorded this week yet.</p>}
+        {grouped.map(([viewer,rows])=><article className="tmv-v44-question-item" key={viewer}>
+          <div className="tmv-v44-question-meta"><strong>{SEEN_NAMES[viewer]}</strong><span>{rows.length} visit{rows.length===1?'':'s'} this week</span></div>
+          {rows.map((visit,i)=><p key={visit.at+'-'+i} style={{fontSize:'12px',margin:'5px 0'}}>{seenDayFmt(visit.at)} · {seenTimeFmt(visit.at)}</p>)}
+        </article>)}
+      </div>
+    </section>
+  </div>;
+}
+
 /* V44 — family question inbox. Uses existing individual family logins and owner PIN. */
 function FamilyQuestionsModal({ viewer, ownerMode, ownerPin, onPendingChange, onClose, love }) {
   const [items, setItems] = useState([]);
@@ -1998,7 +2044,7 @@ function FamilyQuestionsModal({ viewer, ownerMode, ownerPin, onPendingChange, on
   </div>;
 }
 
-function FamilyToday({ entries, days, quran, viewDate, setViewDate, onOpen, onOpenSummary, ownerMode, onNew, love, loveBusy, onLove, ownerPin, onOpenLifeMap, onOpenQuestions, questionsPending }) {
+function FamilyToday({ entries, days, quran, viewDate, setViewDate, onOpen, onOpenSummary, ownerMode, onNew, love, loveBusy, onLove, ownerPin, onOpenLifeMap, onOpenQuestions, questionsPending, onOpenSeen }) {
   const [expanded, setExpanded] = useState(null);
   useEffect(() => { setExpanded(null); }, [viewDate]);
   const read = quran.filter(item => item.date === viewDate)
@@ -2096,6 +2142,8 @@ function FamilyToday({ entries, days, quran, viewDate, setViewDate, onOpen, onOp
             <Heart size={17} fill={love?.liked ? 'currentColor' : 'none'} strokeWidth={1.8}/>
             {love?.count > 0 && <span className="tmv-v37-love-count">{love.count}</span>}
           </button>
+          {ownerMode && <button type="button" className="tmv-v37-icon-action" onClick={onOpenSeen}
+            title="Seen by · this week" aria-label="Who viewed this week"><Eye size={17}/></button>}
           <button type="button" className="tmv-v37-icon-action tmv-v44-question-trigger"
             onClick={onOpenQuestions} title={ownerMode ? 'Open family questions' : 'Ask Ahsan a question'}
             aria-label={ownerMode ? `Family questions, ${questionsPending} awaiting reply` : 'Ask Ahsan a question'}>
@@ -2260,6 +2308,7 @@ export default function TrackMe() {
   const [creationPin,setCreationPin]=useState('');
   const [ownerMode,setOwnerMode]=useState(false);
   const [questionOpen,setQuestionOpen]=useState(false);
+  const [seenOpen,setSeenOpen]=useState(false);
   const [questionsPending,setQuestionsPending]=useState(0);
   /* V42: Owner-initiated GPS, scoped to this open browser tab only. */
   const [lifeMapOpen,setLifeMapOpen] = useState(false);
@@ -2407,6 +2456,15 @@ export default function TrackMe() {
     window.addEventListener('focus', touch);
     return () => { document.removeEventListener('visibilitychange', touch); window.removeEventListener('focus', touch); };
   }, [loading,authenticated,familyViewer]);
+  /* Record a verified family visit when the app opens or returns to foreground.
+     Redis discards the week's records at the Monday boundary. */
+  useEffect(()=>{
+    if(loading||!authenticated||!['nasir','talat','happa','yamna'].includes(familyViewer))return undefined;
+    const record=()=>{if(document.visibilityState==='visible')api({action:'seen_record'}).catch(()=>{});};
+    record();
+    document.addEventListener('visibilitychange',record);
+    return ()=>document.removeEventListener('visibilitychange',record);
+  },[loading,authenticated,familyViewer]);
   /* V44: tiny owner inbox badge; no background polling for ordinary family visitors. */
   useEffect(() => {
     if (!authenticated || !ownerMode || !creationPin) { setQuestionsPending(0); return undefined; }
@@ -2466,7 +2524,7 @@ export default function TrackMe() {
       setBusy(false);
     }
   }
-  async function signOut(){try{if(lifeMapTracking&&creationPin){setLifeMapTracking(false);setLifeMapToken('');await api({action:'life_map_stop',pin:creationPin}).catch(()=>{});}await api({action:'logout'});loginAttemptRef.current.last='';setAuthenticated(false);setFamilyViewer('family');setOwnerMode(false);setCreationPin('');setQuestionOpen(false);setEntries([]);setPrayerDays({});setQuranEntries([]);setWelcome(false);setEditor(null);setNotice('');setSection('overview');}catch(err){fail(err);}}
+  async function signOut(){setSeenOpen(false);try{if(lifeMapTracking&&creationPin){setLifeMapTracking(false);setLifeMapToken('');await api({action:'life_map_stop',pin:creationPin}).catch(()=>{});}await api({action:'logout'});loginAttemptRef.current.last='';setAuthenticated(false);setFamilyViewer('family');setOwnerMode(false);setCreationPin('');setQuestionOpen(false);setEntries([]);setPrayerDays({});setQuranEntries([]);setWelcome(false);setEditor(null);setNotice('');setSection('overview');}catch(err){fail(err);}}
   function newTask(target='office'){if(!ownerMode)return;setEditor(initialTask(target));}
   async function saveTask(form){setBusy(true);setNotice('');try{const editing=Boolean(editor?.id);const data=await api({action:editing?'update':'create',...(editing?{id:editor.id}:{pin:creationPin}),item:form});setEntries(list=>editing?list.map(x=>x.id===data.item.id?data.item:x):[data.item,...list]);setEditor(null);setNotice(editing?'Updated successfully.':'New task saved.');}catch(err){fail(err);}finally{setBusy(false);}}
   async function updateTask(item,status){setBusy(true);try{const data=await api({action:'update',id:item.id,item:{...item,status}});setEntries(list=>list.map(x=>x.id===item.id?data.item:x));}catch(err){fail(err);}finally{setBusy(false);}}
@@ -2486,13 +2544,14 @@ export default function TrackMe() {
     {notice&&<div className="tmv-notice" role="status"><CheckCircle2 size={19}/><span>{notice}</span><button type="button" onClick={()=>setNotice('')} aria-label="Dismiss"><X size={17}/></button></div>}
     {section==='overview'&&<FamilyToday entries={entries} days={prayerDays} quran={quranEntries} viewDate={viewDate} setViewDate={setViewDate} onOpen={go} ownerMode={ownerMode} onNew={newTask} onOpenSummary={()=>setSummaryOpen(true)}
       love={love.date === viewDate ? love : {date:viewDate,liked:false,count:0,names:[]}} loveBusy={loveBusy} onLove={toggleLove} ownerPin={creationPin} onOpenLifeMap={()=>{setLifeMapError('');setLifeMapOpen(true);}}
-      onOpenQuestions={()=>setQuestionOpen(true)} questionsPending={questionsPending}/>}
+      onOpenQuestions={()=>setQuestionOpen(true)} questionsPending={questionsPending} onOpenSeen={()=>setSeenOpen(true)}/>}
     {['office','personal','university'].includes(section)&&<WorkPanel section={section} ownerMode={ownerMode} entries={entries} busy={busy} search={search} setSearch={setSearch} filter={filter} setFilter={setFilter} expanded={expanded} setExpanded={setExpanded} note={note} setNote={setNote} onNew={newTask} onNote={addNote} onEdit={item=>setEditor({...item})} onDelete={deleteTask} onStatus={updateTask}/>}
     {section==='prayer'&&<PrayerPanel ownerMode={ownerMode} date={prayerDate} setDate={setPrayerDate} days={prayerDays} busy={busy} onToggle={togglePrayer}/>}
     {section==='quran'&&<QuranPanel ownerMode={ownerMode} quran={quranEntries} busy={busy} onAdd={addQuran} onDelete={deleteQuran}/>}
     <div className="tmv-bottom"><p>Only for <AhsanName/>’s family.</p></div>
     <div className="tmv-install-footer"><InstallShortcut/></div>
   </div>
+  {seenOpen && ownerMode && <SeenByWeekModal onClose={()=>setSeenOpen(false)}/>}
   {questionOpen&&<FamilyQuestionsModal viewer={familyViewer} ownerMode={ownerMode} ownerPin={creationPin}
     love={love.date===viewDate?love:null} onPendingChange={setQuestionsPending} onClose={()=>setQuestionOpen(false)}/>}
   {lifeMapOpen&&<LifeMapModal mapData={lifeMapData} tracking={lifeMapTracking} ownerMode={ownerMode}

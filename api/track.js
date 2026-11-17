@@ -133,7 +133,22 @@ const familyLoginAccounts = () => [
 /* V47 Single Login Role Guard */
 const familyViewerNames = new Set(['nasir','talat','happa','yamna','family','owner']);
 const FAMILY_READ_ACTIONS = new Set(['load','summary','moment_get','life_map_get','love_get','love_set',
-  'family_questions_get','family_questions_ask','reminder_config','reminder_touch','reminder_subscribe','reminder_unsubscribe']);
+  'family_questions_get','family_questions_ask','reminder_config','reminder_touch','reminder_subscribe','reminder_unsubscribe','seen_record','seen_get']);
+/* V48: private weekly Seen by records */
+const SEEN_WEEK_PREFIX='ahsan:private-track:seen:v1:';
+const SEEN_FAMILY=new Set(['nasir','talat','happa','yamna']);
+const PK_OFFSET_MS=5*60*60*1000;
+function seenWeekBounds(time=Date.now()) {
+  const localDayMs=time+PK_OFFSET_MS;
+  const dayIndex=Math.floor(localDayMs/86400000);
+  const weekday=(new Date(dayIndex*86400000).getUTCDay()+6)%7;
+  const startDay=dayIndex-weekday;
+  const endDay=startDay+7;
+  const dateAtDay=d=>new Date(d*86400000).toISOString().slice(0,10);
+  return {start:dateAtDay(startDay),end:dateAtDay(endDay-1),
+    expiresAt:Math.floor((endDay*86400000-PK_OFFSET_MS)/1000)};
+}
+
 
 /* V31: Separate reminder records; no existing task/prayer/Quran keys change. */
 const REMINDER_PREFIX = 'ahsan:track:family-reminders:v1:';
@@ -1175,6 +1190,33 @@ export default async function handler(
     const signedViewer = authenticatedViewer(req);
     if (signedViewer !== 'owner' && !FAMILY_READ_ACTIONS.has(action))
       return error(res,403,'This action is not available for this account.');
+
+    /* V48: secure visits based solely on the signed family session. */
+    if (action === 'seen_record' || action === 'seen_get') {
+      const week=seenWeekBounds();
+      const key=SEEN_WEEK_PREFIX+week.start;
+      if(action === 'seen_get') {
+        if(signedViewer !== 'owner') return error(res,403,'Not available for this account.');
+        const raw=await redis('ZREVRANGE',key,0,499);
+        const visits=(Array.isArray(raw)?raw:[]).map(value=>{
+          try {const data=JSON.parse(value);
+            return SEEN_FAMILY.has(data.viewer) && typeof data.at==='string' &&
+              Number.isFinite(Date.parse(data.at)) ? {viewer:data.viewer,at:data.at} : null;
+          } catch {return null;}
+        }).filter(Boolean);
+        return res.status(200).json({weekStart:week.start,weekEnd:week.end,visits});
+      }
+      if(!SEEN_FAMILY.has(signedViewer)) return error(res,403,'Family sign-in required.');
+      const guard=key+':recent:'+signedViewer;
+      // If the app gains focus repeatedly within two minutes, record once.
+      const isNew=await redis('SET',guard,'1','EX',120,'NX');
+      if(isNew==='OK') {
+        const at=new Date().toISOString();
+        await redis('ZADD',key,Date.now(),JSON.stringify({viewer:signedViewer,at,id:randomUUID()}));
+        await redis('EXPIREAT',key,week.expiresAt);
+      }
+      return res.status(200).json({recorded:isNew==='OK'});
+    }
 
     /* V41: one private image per selected date. Owner PIN required to write. */
     if (['moment_get','moment_save','moment_delete'].includes(action)) {
