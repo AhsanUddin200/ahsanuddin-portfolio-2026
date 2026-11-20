@@ -133,7 +133,7 @@ const familyLoginAccounts = () => [
 /* V47 Single Login Role Guard */
 const familyViewerNames = new Set(['nasir','talat','happa','yamna','family','owner']);
 const FAMILY_READ_ACTIONS = new Set(['load','summary','moment_get','life_map_get','love_get','love_set',
-  'family_questions_get','family_questions_ask','reminder_config','reminder_touch','reminder_subscribe','reminder_unsubscribe','seen_record','seen_get','family_text']);
+  'family_questions_get','family_questions_ask','reminder_config','reminder_touch','reminder_subscribe','reminder_unsubscribe','seen_record','seen_get','family_text','urdu_cloud_voice']);
 /* V48: private weekly Seen by records */
 const SEEN_WEEK_PREFIX='ahsan:private-track:seen:v1:';
 const SEEN_FAMILY=new Set(['nasir','talat','happa','yamna']);
@@ -1190,6 +1190,41 @@ export default async function handler(
     const signedViewer = authenticatedViewer(req);
     if (signedViewer !== 'owner' && !FAMILY_READ_ACTIONS.has(action))
       return error(res,403,'This action is not available for this account.');
+
+    /* V54: Keyless Urdu neural audio for signed-in Track Me family. */
+    if (action === 'urdu_cloud_voice') {
+      const words = typeof body.text === 'string' ? body.text.trim() : '';
+      if (!words || words.length > 950) return error(res,400,'Urdu voice text must contain 1-950 characters.');
+      const bucket='ahsan:private-track:tts:v2:'+signedViewer+':'+Math.floor(Date.now()/3600000);
+      const requests=Number(await redis('INCR',bucket))||0;
+      if(requests===1)await redis('EXPIRE',bucket,3600);
+      if(requests>100)return error(res,429,'Urdu voice hourly usage limit reached.');
+      let synthesizer;
+      try {
+        // MIT licensed, server-only package. Never bundle into the React browser.
+        const {MsEdgeTTS,OUTPUT_FORMAT}=await import('msedge-tts');
+        synthesizer=new MsEdgeTTS({connectionTimeoutMs:9000,synthesisTimeoutMs:18000});
+        await synthesizer.setMetadata('ur-PK-UzmaNeural',OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3);
+        // Package builds SSML from text. Escape XML to keep recorded notes inert.
+        const text=words.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+          .replace(/"/g,'&quot;').replace(/'/g,'&apos;');
+        const {audioStream}=synthesizer.toStream(text,{rate:0.94});
+        const chunks=[];
+        let bytes=0;
+        for await(const part of audioStream){
+          bytes+=part.length;
+          if(bytes>2000000)throw Error('Urdu audio exceeds limit');
+          chunks.push(Buffer.from(part));
+        }
+        if(bytes<80)return error(res,503,'No Urdu audio was returned. Please retry later.');
+        res.setHeader('Cache-Control','private, no-store, max-age=0');
+        return res.status(200).json({format:'audio/mpeg',audio:Buffer.concat(chunks).toString('base64')});
+      } catch(_) {
+        return error(res,503,'Online Urdu voice is temporarily unavailable. Try again later.');
+      } finally {
+        try {synthesizer?.close();} catch(_){}
+      }
+    }
 
     /* V51 family-only, read-only text assistance. No task or language settings are saved. */
     if (action === 'family_text') {
