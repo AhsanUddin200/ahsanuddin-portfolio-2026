@@ -1050,6 +1050,104 @@ function buildFamilyReport({ entries, prayerDays, quranEntries, period, topic, s
   return rows;
 }
 
+/* V52: Urdu Voice Reading — existing family buttons, browser speech only. */
+function trackVoiceChunks(value, limit = 170) {
+  let remaining = String(value || '').replace(/\s+/g, ' ').trim();
+  const result = [];
+  while (remaining.length > limit) {
+    const punctuation = ['۔','؟','.','!','?',',','،','؛'].reduce((pos,mark) =>
+      Math.max(pos, remaining.lastIndexOf(mark, limit)), -1);
+    let cut = punctuation >= Math.round(limit * 0.55) ? punctuation + 1 : remaining.lastIndexOf(' ', limit);
+    if (cut < Math.round(limit * 0.4)) cut = limit;
+    const part = remaining.slice(0,cut).trim();
+    if (part) result.push(part);
+    remaining = remaining.slice(cut).trim();
+  }
+  if (remaining) result.push(remaining);
+  return result;
+}
+function trackFindSpeechVoice(voices, language) {
+  const list = Array.isArray(voices) ? voices : Array.from(voices || []);
+  const urdu = language === 'ur';
+  const filtered = list.filter(voice => urdu
+    ? /^ur(?:[-_]|$)/i.test(voice.lang || '') || /\burdu\b/i.test(voice.name || '')
+    : /^en(?:[-_]|$)/i.test(voice.lang || ''));
+  return filtered.sort((a,b) => {
+    const score = voice =>
+      (urdu && /^ur[-_]PK$/i.test(voice.lang || '') ? 30 : 0) +
+      (urdu && /^ur[-_]IN$/i.test(voice.lang || '') ? 20 : 0) +
+      (!urdu && /^en[-_]US$/i.test(voice.lang || '') ? 10 : 0) +
+      (/natural|neural|google/i.test(voice.name || '') ? 3 : 0);
+    return score(b) - score(a);
+  })[0] || null;
+}
+function trackStartSpeech(text, language, onFinished, onFailure) {
+  const unsupported = 'Voice reading is not supported by this browser. / اس براؤزر میں آواز کی سہولت دستیاب نہیں۔';
+  if (typeof window === 'undefined' || !('speechSynthesis' in window) ||
+      typeof window.SpeechSynthesisUtterance !== 'function') {
+    return {error:unsupported,stop:()=>{}};
+  }
+  const synth = window.speechSynthesis;
+  const parts = trackVoiceChunks(text);
+  if (!parts.length) return {error:'No saved updates to read. / پڑھنے کے لیے کوئی اپڈیٹ موجود نہیں۔',stop:()=>{}};
+  let stopped = false;
+  let index = 0;
+  let utterance = null;
+  let loadTimer = null;
+  let selectedVoice = null;
+  const clearVoiceWait = () => {
+    if (loadTimer !== null) { window.clearTimeout(loadTimer); loadTimer = null; }
+    if (typeof synth.removeEventListener === 'function')
+      synth.removeEventListener('voiceschanged', tryVoice);
+  };
+  const stop = () => {
+    if (stopped) return;
+    stopped = true;
+    clearVoiceWait();
+    if (utterance) { utterance.onend = null; utterance.onerror = null; utterance = null; }
+    try { synth.cancel(); } catch (_) { /* Do not disrupt the app if audio was stopped by the OS. */ }
+  };
+  const finish = () => {if (stopped) return;stop();onFinished?.();};
+  const fail = message => {if (stopped) return;stop();onFailure?.(message);};
+  const speakNext = () => {
+    if (stopped) return;
+    if (index >= parts.length) { finish(); return; }
+    const current = new window.SpeechSynthesisUtterance(parts[index++]);
+    utterance = current; // Keep a live reference for Chrome and mobile browsers.
+    current.lang = language === 'ur' ? (selectedVoice?.lang || 'ur-PK') : (selectedVoice?.lang || 'en-US');
+    if (selectedVoice) current.voice = selectedVoice;
+    current.rate = language === 'ur' ? 0.87 : 0.93;
+    current.pitch = 1;
+    current.onend = () => {if (!stopped && utterance === current) speakNext();};
+    current.onerror = event => {
+      if (stopped || utterance !== current) return;
+      if (event?.error === 'canceled' || event?.error === 'interrupted') {finish(); return;}
+      fail('Voice playback was interrupted. / آواز بند ہو گئی، دوبارہ کوشش کریں۔');
+    };
+    try { synth.speak(current); }
+    catch (_) { fail('Unable to play voice on this device. / اس ڈیوائس پر آواز نہیں چل سکی۔'); }
+  };
+  function tryVoice() {
+    if (stopped) return false;
+    const voice = trackFindSpeechVoice(synth.getVoices(), language);
+    if (language === 'ur' && !voice) return false;
+    selectedVoice = voice;
+    clearVoiceWait();
+    speakNext();
+    return true;
+  }
+  try { synth.cancel(); }
+  catch (_) { return {error:unsupported,stop:()=>{}}; }
+  if (!tryVoice()) {
+    // Some browsers populate their voice list a moment after the first request.
+    if (typeof synth.addEventListener === 'function') synth.addEventListener('voiceschanged',tryVoice);
+    loadTimer = window.setTimeout(() => {
+      if (!tryVoice()) fail('Urdu voice is not installed on this device. Add an Urdu voice in your phone or computer speech settings. / اس ڈیوائس میں اردو آواز موجود نہیں، براہِ کرم اردو آواز انسٹال کریں۔');
+    }, 1200);
+  }
+  return {stop};
+}
+
 function SummaryChat({ entries, prayerDays, quranEntries, selectedDate, onClose, onSessionError }) {
   const [messages, setMessages] = useState([BOT_INTRO]);
   const [step, setStep] = useState('period');
@@ -1068,40 +1166,35 @@ function SummaryChat({ entries, prayerDays, quranEntries, selectedDate, onClose,
   const scrollRef = useRef(null);
   const reportRef = useRef(null);
 
+  const trackChatSpeech = useRef(null);
   useEffect(() => () => {
-    // Never continue reading private updates after the chatbot closes.
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) window.speechSynthesis.cancel();
+    // Speech must stop when private family summaries are closed.
+    trackChatSpeech.current?.stop();
+    trackChatSpeech.current = null;
   }, []);
   function stopReading() {
-    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    trackChatSpeech.current?.stop();
+    trackChatSpeech.current = null;
     setSpeaking('');
   }
   function readAloud(language) {
     setVoiceError('');
-    if (!('speechSynthesis' in window) || typeof window.SpeechSynthesisUtterance === 'undefined') {
-      setVoiceError('Read aloud is not supported on this browser. / اس براؤزر میں آواز کی سہولت دستیاب نہیں۔');
-      return;
-    }
     if (speaking === language) { stopReading(); return; }
     stopReading();
-    const voices = window.speechSynthesis.getVoices();
-    const voice = voices.find(v => language === 'ur' ? /^ur(?:-|$)/i.test(v.lang) : /^en(?:-|$)/i.test(v.lang));
-    if (language === 'ur' && !voice) {
-      setVoiceError('An Urdu voice is not available on this device. Please install an Urdu speech voice in your phone settings. / اس فون میں اردو آواز موجود نہیں ہے۔');
-      return;
-    }
     const report = spokenTextRef.current;
     if (!report) return;
-    const content = [language === 'ur' ? report.ur : report.en, ...report.lines.map(line => language === 'ur' ? line.ur : line.en)].join('. ');
-    const utter = new window.SpeechSynthesisUtterance(content);
-    utter.lang = language === 'ur' ? 'ur-PK' : 'en-US';
-    if (voice) utter.voice = voice;
-    utter.rate = language === 'ur' ? 0.86 : 0.92;
-    utter.onend = () => setSpeaking('');
-    utter.onerror = () => { setSpeaking(''); setVoiceError('Unable to play audio on this device. / اس فون پر آواز نہیں چل سکی۔'); };
+    const content = [language === 'ur' ? report.ur : report.en,
+      ...(report.lines || []).map(line => language === 'ur' ? line.ur : line.en)]
+      .filter(value => typeof value === 'string' && value.trim())
+      .join(language === 'ur' ? '۔ ' : ' ');
+    const controller = trackStartSpeech(content, language,
+      () => { trackChatSpeech.current = null; setSpeaking(''); },
+      message => { trackChatSpeech.current = null; setSpeaking(''); setVoiceError(message); });
+    if (controller.error) { setVoiceError(controller.error); return; }
+    trackChatSpeech.current = controller;
     setSpeaking(language);
-    window.speechSynthesis.speak(utter);
   }
+
   useEffect(() => {
     const onKey = event => { if (event.key === 'Escape') onClose(); };
     document.addEventListener('keydown', onKey);
@@ -2582,7 +2675,7 @@ function FamilyQuestionsModal({ viewer, ownerMode, ownerPin, onPendingChange, on
   </div>;
 }
 
-function FamilyToday({ entries, days, quran, viewDate, setViewDate, onOpen, onOpenSummary, ownerMode, onNew, love, loveBusy, onLove, ownerPin, onOpenLifeMap, onOpenQuestions, questionsPending, onOpenSeen, viewer, onOpenToday30 }) {
+function FamilyToday({ entries, days, quran, viewDate, setViewDate, onOpen, onOpenSummary, ownerMode, onNew, love, loveBusy, onLove, ownerPin, onOpenLifeMap, onOpenQuestions, questionsPending, onOpenSeen, viewer, onOpenToday30, language = 'en' }) {
   const [expanded, setExpanded] = useState(null);
   useEffect(() => { setExpanded(null); }, [viewDate]);
   const read = quran.filter(item => item.date === viewDate)
@@ -2625,48 +2718,47 @@ function FamilyToday({ entries, days, quran, viewDate, setViewDate, onOpen, onOp
   useEffect(() => {
     setReadingDay(false);
     return () => {
-    window.clearTimeout(listenTimer.current);
-    if (activeSpeech.current && 'speechSynthesis' in window) window.speechSynthesis.cancel();
-    activeSpeech.current = null;
-    };
-  }, [viewDate]);
-  function readSelectedDay() {
-    if (!('speechSynthesis' in window) || typeof window.SpeechSynthesisUtterance === 'undefined') {
-      setListenError('Read aloud is not available on this device.');
       window.clearTimeout(listenTimer.current);
-      listenTimer.current = window.setTimeout(() => setListenError(''), 2500);
-      return;
-    }
+      activeSpeech.current?.stop();
+      activeSpeech.current = null;
+    };
+  }, [viewDate, language]);
+  function readSelectedDay() {
+    window.clearTimeout(listenTimer.current);
+    setListenError('');
     if (activeSpeech.current) {
-      window.speechSynthesis.cancel();
+      activeSpeech.current.stop();
       activeSpeech.current = null;
       setReadingDay(false);
       return;
     }
+    const readLanguage = !ownerMode && language === 'ur' ? 'ur' : 'en';
     const lines = buildFamilyReport({entries, prayerDays: days, quranEntries: quran,
       period:'selected', topic:'everything', selectedDate:viewDate});
-    const content = [`Ahsan's updates for ${prettyDate(viewDate)}.`, ...lines.map(line => line.en)].join(' ');
-    const utter = new window.SpeechSynthesisUtterance(content);
-    utter.lang = 'en-US';
-    utter.rate = 0.93;
-    const voice = window.speechSynthesis.getVoices().find(item => /^en(?:-|$)/i.test(item.lang));
-    if (voice) utter.voice = voice;
-    utter.onend = () => { if (activeSpeech.current === utter) { activeSpeech.current = null; setReadingDay(false); } };
-    utter.onerror = event => {
-      if (activeSpeech.current !== utter) return;
-      activeSpeech.current = null;
-      setReadingDay(false);
-      if (event.error !== 'canceled' && event.error !== 'interrupted') {
-        setListenError('Audio is unavailable. Please try again.');
+    const title = readLanguage === 'ur'
+      ? `احسن کی ${prettyDate(viewDate)} کی روزانہ اپڈیٹس۔`
+      : `Ahsan's updates for ${prettyDate(viewDate)}.`;
+    const content = [title,...lines.map(line => readLanguage === 'ur' ? line.ur : line.en)]
+      .filter(value => typeof value === 'string' && value.trim())
+      .join(readLanguage === 'ur' ? '۔ ' : ' ');
+    const controller = trackStartSpeech(content, readLanguage,
+      () => { activeSpeech.current = null; setReadingDay(false); },
+      message => {
+        activeSpeech.current = null;
+        setReadingDay(false);
+        setListenError(message);
         window.clearTimeout(listenTimer.current);
-        listenTimer.current = window.setTimeout(() => setListenError(''), 2500);
-      }
-    };
-    activeSpeech.current = utter;
+        listenTimer.current = window.setTimeout(() => setListenError(''), 7500);
+      });
+    if (controller.error) {
+      setListenError(controller.error);
+      listenTimer.current = window.setTimeout(() => setListenError(''), 7500);
+      return;
+    }
+    activeSpeech.current = controller;
     setReadingDay(true);
-    window.speechSynthesis.cancel();
-    window.speechSynthesis.speak(utter);
   }
+
   return <div className="tmv-family-view tmv-v32-home">
     <div className="tmv-v32-intro">
       <span className="tmv-v32-kicker" style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:7}}>
@@ -3106,7 +3198,7 @@ export default function TrackMe() {
     {section==='overview'&&<FamilyToday entries={entries} days={prayerDays} quran={quranEntries} viewDate={viewDate} setViewDate={setViewDate} onOpen={go} ownerMode={ownerMode} onNew={newTask} onOpenSummary={()=>setSummaryOpen(true)}
       love={love.date === viewDate ? love : {date:viewDate,liked:false,count:0,names:[]}} loveBusy={loveBusy} onLove={toggleLove} ownerPin={creationPin} onOpenLifeMap={()=>{setLifeMapError('');setLifeMapOpen(true);}}
       onOpenQuestions={()=>setQuestionOpen(true)} questionsPending={questionsPending} onOpenSeen={()=>setSeenOpen(true)}
-      viewer={familyViewer} onOpenToday30={()=>setToday30Open(true)}/>}
+      viewer={familyViewer} onOpenToday30={()=>setToday30Open(true)} language={ownerMode ? 'en' : familyLang}/>}
     {['office','personal','university'].includes(section)&&<WorkPanel section={section} ownerMode={ownerMode} entries={entries} busy={busy} search={search} setSearch={setSearch} filter={filter} setFilter={setFilter} expanded={expanded} setExpanded={setExpanded} note={note} setNote={setNote} onNew={newTask} onNote={addNote} onEdit={item=>setEditor({...item})} onDelete={deleteTask} onStatus={updateTask}/>}
     {section==='prayer'&&<PrayerPanel ownerMode={ownerMode} date={prayerDate} setDate={setPrayerDate} days={prayerDays} busy={busy} onToggle={togglePrayer}/>}
     {section==='quran'&&<QuranPanel ownerMode={ownerMode} quran={quranEntries} busy={busy} onAdd={addQuran} onDelete={deleteQuran}/>}
