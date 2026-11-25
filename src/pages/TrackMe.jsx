@@ -621,6 +621,14 @@ function TaskEditor({ initial, saving, onClose, onSave }) {
           {form.section === 'university' && <>
             <label className="tm-field"><span>University name</span><input maxLength={140} value={form.meta?.university || ''} onChange={e => changeMeta('university', e.target.value)} placeholder="e.g. XYZ University"/></label>
             <label className="tm-field"><span>Program / Degree</span><input maxLength={140} value={form.meta?.program || ''} onChange={e => changeMeta('program', e.target.value)} placeholder="e.g. BS Computer Science"/></label>
+            <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(150px,1fr))',gap:9}}>
+              <label className="tm-field"><span>Country (optional)</span><input maxLength={72} value={form.meta?.country||''} onChange={e=>changeMeta('country',e.target.value)} placeholder="e.g. UK, UAE, USA"/></label>
+              <label className="tm-field"><span>Degree level</span><select value={form.meta?.level||'masters'} onChange={e=>changeMeta('level',e.target.value)}><option value="masters">Master's</option><option value="bachelors">Bachelor's</option><option value="phd">PhD</option></select></label>
+              
+            </div>
+            <label className="tm-field"><span>Intake year/term (optional)</span><input maxLength={24} value={form.meta?.intake||''} onChange={e=>changeMeta('intake',e.target.value)} placeholder="e.g. Fall 2027"/></label>
+            <label className="tm-field"><span>Official admissions link (optional)</span><input type="url" maxLength={500} value={form.meta?.officialUrl||''} onChange={e=>changeMeta('officialUrl',e.target.value)} placeholder="https://university.edu/..."/></label>
+            <small style={{fontSize:11,color:'#728675'}}>Actual requirements differ by degree and intake. We'll check official pages and show only verifiable criteria.</small>
             <label className="tm-field"><span>Application status</span><select value={form.meta?.applicationStatus || 'planning'} onChange={e => changeMeta('applicationStatus', e.target.value)}>{Object.entries(APP_STATUS).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></label>
             <label className="tm-field"><span>Next interview / test / deadline</span><input type="date" value={form.meta?.upcomingDate || ''} onChange={e => changeMeta('upcomingDate', e.target.value)}/></label>
           </>}
@@ -2804,6 +2812,7 @@ function DailyInspiration({language='en'}) {
 
 function FamilyToday({ entries, days, quran, viewDate, setViewDate, onOpen, onOpenSummary, ownerMode, onNew, love, loveBusy, onLove, ownerPin, onOpenLifeMap, onOpenQuestions, questionsPending, onOpenSeen, viewer, onOpenToday30, language = 'en' }) {
   const [expanded, setExpanded] = useState(null);
+  const hifzStats = hifzProgress(quran);
   useEffect(() => { setExpanded(null); }, [viewDate]);
   const read = quran.filter(item => item.date === viewDate)
     .sort((a,b) => String(b.createdAt).localeCompare(String(a.createdAt)));
@@ -2948,10 +2957,10 @@ function FamilyToday({ entries, days, quran, viewDate, setViewDate, onOpen, onOp
     <div className="tmv-v32-sectiontitle tmv-v32-life-title"><h2>Life &amp; Progress</h2><div className="tmv-v41-life-tray"><span className="tmv-v41-life-hint">Only what matters</span><button type="button" className="tmv-v42-open-map" onClick={onOpenLifeMap} aria-label="Open Ahsan's Life Map" title="Life Map"><MapPinned size={15}/><span>Life Map</span></button><FamilyMoment date={viewDate} ownerMode={ownerMode} ownerPin={ownerPin}/></div></div>
     <section className="tmv-v32-life" aria-label="Life and progress">
       <V32LifeItem type="quran" date={viewDate} title="Quran Reading" summary={quranSummary}
-        status={read.length ? 'Recorded' : 'No update'} extra={quranExtra}
+        status={read.length ? 'Recorded' : 'No update'} extra={[quranExtra, hifzStats.sessions ? `Hifz: ${hifzStats.strong}/${hifzStats.total} strongly reviewed · ${hifzStats.newPages} new · ${hifzStats.revisionPages} revised` : ''].filter(Boolean).join(' · ')}
         expanded={expanded === 'quran'} onToggle={() => toggle('quran')} onOpen={onOpen}>
         {read.length ? read.map(item => <p key={item.id || item.createdAt}>
-          <strong>Para {item.para} · {item.pagesRead} {Number(item.pagesRead) === 1 ? 'page' : 'pages'}</strong>
+          <strong>{item.hifz ? `${item.hifz.newPages} new · ${item.hifz.revisionPages} revised · Mistakes ${item.hifz.newMistakes}/${item.hifz.revisionMistakes}` : `Para ${item.para} · ${item.pagesRead} ${Number(item.pagesRead)===1?'page':'pages'}`}</strong>
           {item.note ? ` — ${item.note}` : ''}
         </p>) : lastQuranReading ? <p>No reading was recorded for this selected day. Last reading: <strong>Para {lastQuranReading.para}, {lastQuranReading.pagesRead} pages</strong> on {prettyDate(lastQuranReading.date)}.</p>
           : <p>No Quran readings recorded for this day yet.</p>}
@@ -2968,6 +2977,76 @@ function FamilyToday({ entries, days, quran, viewDate, setViewDate, onOpen, onOp
   </div>;
 }
 
+/* V56.1 HIDE APPLICANT SCORES: family sees official requirements only. */
+/* V56 ADMISSIONS: compact official evidence, never a fabricated percentage or guaranteed offer. */
+function AdmissionInsight({item,ownerMode}) {
+  const [report,setReport]=useState(null);
+  const [checked,setChecked]=useState(false);
+  const [busy,setBusy]=useState(false);
+  const [message,setMessage]=useState('');
+  useEffect(()=>{
+    let active=true;
+    setChecked(false);setReport(null);setMessage('');
+    api({action:'admission_get',taskId:item.id}).then(result=>{if(active){setReport(result.report||null);setChecked(true);}})
+      .catch(()=>{if(active){setChecked(true);}});
+    return ()=>{active=false;};
+  },[item.id,item.updatedAt]);
+  // The research starts automatically on save. Briefly re-check cached findings
+  // so a family member opening the card can see the result without reloading.
+  useEffect(()=>{
+    if(!checked||report)return undefined;
+    let attempts=0,active=true;
+    const timer=window.setInterval(()=>{
+      if(++attempts>5){window.clearInterval(timer);return;}
+      api({action:'admission_get',taskId:item.id}).then(data=>{
+        if(active&&data.report){setReport(data.report);window.clearInterval(timer);}
+      }).catch(()=>{});
+    },4000);
+    return ()=>{active=false;window.clearInterval(timer);};
+  },[checked,report,item.id]);
+  const reload=async()=>{
+    if(!ownerMode||busy)return;
+    setBusy(true);setMessage('');
+    try{const result=await api({action:'admission_research',taskId:item.id,force:true});setReport(result.report||null);setChecked(true);}
+    catch(error){setMessage(error.message||'Could not check admission criteria right now.');}
+    finally{setBusy(false);}
+  };
+  const small={fontSize:11,color:'#637b6b',lineHeight:1.65};
+  const row={display:'flex',justifyContent:'space-between',alignItems:'center',gap:10,flexWrap:'wrap',fontSize:12,padding:'5px 0'};
+  const tag=(match)=>({display:'inline-block',fontWeight:650,color:match?'#236647':'#9d5b32',background:match?'#edf8f0':'#fff5ed',borderRadius:7,padding:'2px 6px'});
+  const sources=Array.isArray(report?.sources)?report.sources:[];
+  return <details style={{marginTop:9,padding:'8px 10px',background:'#f8fbf9',border:'1px solid #e2ebe4',borderRadius:10}}>
+    <summary style={{fontSize:12,color:'#285d43',cursor:'pointer',fontWeight:700}}>
+      Admission intelligence · Official requirements
+    </summary>
+    <div style={{padding:'8px 1px 3px'}}>
+      <div style={{fontSize:11,fontWeight:700,color:report?.verified?'#26714a':'#927045'}}>
+        {report?.status || (checked?'Official criteria not yet checked':'Loading admission insight…')}
+      </div>
+      {report?.verified && <>
+        <div style={row}><span>CGPA requirement</span>{report.gpa
+          ? <span style={tag(true)}>{report.gpa.minimum.toFixed(2)} published minimum</span>
+          : <span style={small}>Not verified</span>}</div>
+        <div style={row}><span>IELTS requirement</span>{report.ielts
+          ? <span style={tag(true)}>{report.ielts.minimum.toFixed(1)} published minimum</span>
+          : <span style={small}>Not verified</span>}</div>
+      </>}
+      <div style={row}><span>Application deadline</span><strong style={{fontSize:11,color:'#315a44'}}>{report?.deadline?.date||'Not officially verified'}</strong></div>
+      <p style={small}>{report?.notes||'Ahsan can look up official programme requirements and the relevant intake.'}</p>
+      {sources.length>0&&<div style={{display:'flex',gap:7,flexWrap:'wrap',marginTop:8}}>
+        {sources.slice(0,3).map(src=><a key={src.url} href={src.url} target="_blank" rel="noopener noreferrer"
+          style={{fontSize:11,color:'#286e52',textDecoration:'underline'}} title={src.title}>Official source</a>)}
+      </div>}
+      {report?.checkedAt&&<small style={{display:'block',...small,marginTop:6}}>Checked {prettyDate(report.checkedAt)} · Programme-specific evidence only. Other rules (IELTS bands, qualification equivalency, references, capacity) may still apply.</small>}
+      {ownerMode&&<button type="button" onClick={reload} disabled={busy} style={{marginTop:9,border:'1px solid #cee4d4',borderRadius:8,background:'#eff8f1',color:'#226748',fontSize:11,fontWeight:700,padding:'7px 10px'}}>
+        {busy?'Checking official university pages…':'Check / refresh official criteria'}
+      </button>}
+      {message&&<p role="status" style={{...small,color:'#9b563d'}}>{message}</p>}
+      <small style={{display:'block',...small,marginTop:8}}>No percentage-based admission prediction. This checks published overall thresholds, not IELTS band scores or full application eligibility. Unconfirmed requirements stay unverified.</small>
+    </div>
+  </details>;
+}
+
 function TaskCard({ item, ownerMode, expanded, onExpand, note, setNote, busy, onNote, onEdit, onDelete, onStatus }) {
   const meta = item.meta || {};
   const logs = [...(item.logs||[])].sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt)));
@@ -2976,6 +3055,7 @@ function TaskCard({ item, ownerMode, expanded, onExpand, note, setNote, busy, on
     {(meta.project || meta.university || meta.program) && <p className="tmv-task-meta">{[meta.project,meta.university,meta.program].filter(Boolean).join(' · ')}</p>}
     {item.detail && <p className="tmv-task-description">{item.detail}</p>}
     {item.section === 'university' && <p className="tmv-task-description"><strong>{APP_STATUS[meta.applicationStatus]||'Planning'}</strong>{meta.upcomingDate ? ` · Upcoming: ${prettyDate(meta.upcomingDate)}` : ''}</p>}
+    {item.section === 'university' && <AdmissionInsight item={item} ownerMode={ownerMode}/>}
     {item.dueDate && <p className="tmv-task-description">Due: {prettyDate(item.dueDate)}</p>}
     {logs.length > 0 && <div className="tmv-task-update"><small>Latest update · {prettyDate(logs[0].createdAt)}</small><p>{logs[0].note}</p></div>}
     {logs.length > 1 && <details className="tm-details tmv-log-history"><summary>Read {logs.length-1} earlier updates</summary>{logs.slice(1).map(log=><div className="tmv-log-entry" key={log.id}><small>{prettyDate(log.createdAt)}</small><p>{log.note}</p></div>)}</details>}
@@ -3002,14 +3082,164 @@ function PrayerPanel({ ownerMode, date, setDate, days, busy, onToggle }) {
   </section>;
 }
 
+/* V56 HIFZ: a conservative learning-versus-revision progress calculation. */
+function hifzProgress(entries) {
+  const allSessions=(Array.isArray(entries)?entries:[]).filter(x=>['madani-604','indopak-610'].includes(x?.hifz?.layout));
+  const latest=[...allSessions].sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))||String(b.createdAt||'').localeCompare(String(a.createdAt||'')))[0];
+  const layout=latest?.hifz?.layout||'indopak-610';
+  const total=layout==='indopak-610'?610:604;
+  const sessions=allSessions.filter(x=>x.hifz.layout===layout);
+  const pages=new Map();
+  const dates=new Set();
+  let newPages=0,revisionPages=0,newMistakes=0,revisionMistakes=0;
+  const today=dayISO();
+  const since=shiftDay(today,-29);
+  let recentRevision=0;
+  let recentNew=0;
+  const daily=new Set();
+  const recorded=(page)=>{if(!pages.has(page))pages.set(page,{learned:false,reviews:new Map()});return pages.get(page);};
+  const addRange=(from,to,callback)=>{
+    if(!Number.isInteger(from)||!Number.isInteger(to)||from<1||to>total||to<from)return;
+    for(let p=from;p<=to;p++)callback(p);
+  };
+  for(const entry of sessions){
+    const h=entry.hifz,date=String(entry.date||'');
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||date>today)continue;
+    dates.add(date);
+    newPages+=Number(h.newPages)||0;
+    revisionPages+=Number(h.revisionPages)||0;
+    newMistakes+=Number(h.newMistakes)||0;
+    revisionMistakes+=Number(h.revisionMistakes)||0;
+    if(date>=since){recentNew+=Number(h.newPages)||0;recentRevision+=Number(h.revisionPages)||0;daily.add(date);}
+    addRange(h.newFrom,h.newTo,page=>{recorded(page).learned=true;});
+    addRange(h.revisionFrom,h.revisionTo,page=>{
+      const record=recorded(page);
+      const previous=record.reviews.get(date);
+      // A daily session with any mistakes cannot certify every page as error-free.
+      const clean=Number(h.revisionMistakes)===0;
+      record.reviews.set(date,previous===false?false:clean);
+    });
+  }
+  let learnedUnique=0,reviewedUnique=0,strong=0;
+  for(const value of pages.values()){
+    if(value.learned)learnedUnique++;
+    if(value.reviews.size)reviewedUnique++;
+    const reviews=[...value.reviews.entries()].sort(([a],[b])=>a.localeCompare(b));
+    const clean=reviews.filter(([,okay])=>okay).map(([date])=>date);
+    const span=clean.length>=3 ? Math.round((Date.parse(clean.at(-1)+'T12:00:00Z')-Date.parse(clean[0]+'T12:00:00Z'))/86400000):0;
+    if(reviews.length>=3 && clean.length>=3 && span>=7 && reviews.at(-1)[1] && reviews.at(-2)[1])strong++;
+  }
+  const earliestRecent=[...dates].filter(date=>date>=since).sort()[0];
+  const windowDays=earliestRecent?Math.min(30,Math.max(1,Math.floor((Date.parse(today+'T12:00:00Z')-Date.parse(earliestRecent+'T12:00:00Z'))/86400000)+1)):30;
+  const recentDaily=recentRevision/windowDays;
+  const daysLogged=dates.size;
+  // A workload estimate, NOT a prediction of complete or certified Hifz.
+  const expectedDays=daysLogged>=5 && recentDaily>=1
+    ? Math.ceil((total-strong)*3/recentDaily):null;
+  return {sessions:sessions.length,newPages,revisionPages,newMistakes,revisionMistakes,
+    learnedUnique,reviewedUnique,strong,total,layout,expectedDays,
+    avgDailyNew:recentNew/windowDays,avgDailyRevision:recentDaily,
+    newErrorRate:newPages?newMistakes/newPages:null,
+    revisionErrorRate:revisionPages?revisionMistakes/revisionPages:null};
+}
+
+function HifzOverview({quran,ownerMode}){
+  const stats=useMemo(()=>hifzProgress(quran),[quran]);
+  if(!stats.sessions)return <p style={{fontSize:12,color:'#7c9285',margin:'10px 0 0'}}>
+    {ownerMode?'Start Hifz practice entries to see learning, revision and retention.':'Hifz progress will appear after practice entries are recorded.'}
+  </p>;
+  const value=Math.min(100,stats.strong/stats.total*100);
+  const tile={minWidth:105,flex:'1 1 105px',border:'1px solid #e2ebe4',background:'#f9fcfa',borderRadius:9,padding:'9px 10px'};
+  return <section aria-label="Hifz learning and revision progress" style={{margin:'10px 0 13px',padding:'12px 13px',border:'1px solid #dcebe1',borderRadius:13,background:'#fff'}}>
+    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:8,flexWrap:'wrap'}}>
+      <strong style={{fontSize:13,color:'#244b37'}}>Hifz · Learning & Revision</strong>
+      <small style={{fontSize:10,color:'#718b7b'}}>{stats.layout==='indopak-610'?'IndoPak 15-line · 610 pages':'Madani · 604 pages'}</small>
+    </div>
+    <div style={{display:'flex',flexWrap:'wrap',gap:6,margin:'9px 0'}}>
+      <div style={tile}><div style={{fontSize:19,fontWeight:750,color:'#246044'}}>{stats.newPages}</div><small>New-page practice</small></div>
+      <div style={tile}><div style={{fontSize:19,fontWeight:750,color:'#246044'}}>{stats.revisionPages}</div><small>Revision pages</small></div>
+      <div style={tile}><div style={{fontSize:19,fontWeight:750,color:'#246044'}}>{stats.newMistakes} / {stats.revisionMistakes}</div><small>New / Revision mistakes</small></div>
+    </div>
+    <div style={{display:'flex',justifyContent:'space-between',gap:8,fontSize:11,color:'#4b715a'}}>
+      <span>{stats.strong}/{stats.total} strongly reviewed pages*</span><span>{value.toFixed(1)}%</span>
+    </div>
+    <div role="progressbar" aria-valuenow={stats.strong} aria-valuemin={0} aria-valuemax={stats.total} aria-label="Pages meeting review rule"
+      style={{height:6,borderRadius:99,overflow:'hidden',background:'#eaf0eb',margin:'6px 0 7px'}}>
+      <div style={{width:value+'%',height:'100%',background:'linear-gradient(90deg,#58ac7a,#1e6446)',borderRadius:99}}/>
+    </div>
+    <p style={{fontSize:11,lineHeight:1.6,color:'#607c69',margin:0}}>
+      {stats.learnedUnique} unique new pages · {stats.reviewedUnique} unique revision pages.
+      {stats.expectedDays?` Workload estimate: ~${stats.expectedDays} more days at the recent review pace (not a guarantee).`:
+       ' Add at least 5 logged practice days to see a rough workload estimate.'}
+    </p>
+    <small style={{fontSize:10,color:'#8b9c8e',lineHeight:1.5,display:'block',marginTop:5}}>
+      *3 clean review dates spanning at least 7 days, including the last 2 reviews. This is an organizational indicator, not a Hifz certification. Pages without exact page ranges cannot be counted as mastered.
+    </small>
+  </section>;
+}
+
 function QuranPanel({ ownerMode, quran, busy, onAdd, onDelete }) {
   const [form, setForm]=useState({date:dayISO(),para:'1',pagesRead:'1',fromPage:'',toPage:'',note:''});
+  const [hifzMode,setHifzMode]=useState(true);
+  const [hifzError,setHifzError]=useState('');
+  const [hifzForm,setHifzForm]=useState({date:dayISO(),para:'1',layout:'indopak-610',newPages:'0',revisionPages:'0',newMistakes:'0',revisionMistakes:'0',newFrom:'',newTo:'',revisionFrom:'',revisionTo:'',note:''});
+  const updateHifz=(key,value)=>setHifzForm(old=>({...old,[key]:value}));
   const update=(key,value)=>setForm(old=>({...old,[key]:value}));
   const total=quran.reduce((s,x)=>s+Number(x.pagesRead||0),0);
   const sorted=[...quran].sort((a,b)=>String(b.date).localeCompare(String(a.date))||String(b.createdAt).localeCompare(String(a.createdAt)));
   return <section className="tmv-detail-view"><div className="tmv-detail-heading"><CategoryArtwork type="quran"/><div><h2>Quran Reading</h2><p>Progress in the 15-line Quran, saved by <AhsanName/>.</p></div></div>
     <div className="tmv-quran-stat"><strong>{total}</strong><span>pages recorded in total</span></div>
-    {ownerMode && <form className="tmv-owner-quran tm-stack" onSubmit={async e=>{e.preventDefault();const ok=await onAdd(form);if(ok)setForm(old=>({...old,pagesRead:'1',fromPage:'',toPage:'',note:''}));}}>
+    <HifzOverview quran={quran} ownerMode={ownerMode}/>
+    {ownerMode&&<div style={{display:'flex',alignItems:'center',gap:7,margin:'9px 0',flexWrap:'wrap'}}>
+      <button type="button" onClick={()=>setHifzMode(true)} aria-pressed={hifzMode} style={{fontSize:12,border:'1px solid #cfe4d4',borderRadius:9,padding:'6px 10px',background:hifzMode?'#eaf6ee':'#fff',color:'#276144',fontWeight:hifzMode?750:500}}>Hifz practice</button>
+      <button type="button" onClick={()=>setHifzMode(false)} aria-pressed={!hifzMode} style={{fontSize:12,border:'1px solid #cfe4d4',borderRadius:9,padding:'6px 10px',background:!hifzMode?'#eaf6ee':'#fff',color:'#276144',fontWeight:!hifzMode?750:500}}>Normal reading</button>
+    </div>}
+    {ownerMode&&hifzMode&&<form className="tmv-owner-quran tm-stack" onSubmit={async e=>{
+      e.preventDefault();
+      const total=Number(hifzForm.newPages||0)+Number(hifzForm.revisionPages||0);
+      if(total<1){setHifzError('Enter at least one learning or revision page.');return;}
+      setHifzError('');
+      const result=await onAdd({date:hifzForm.date,para:hifzForm.para,pagesRead:total,
+        fromPage:'',toPage:'',note:hifzForm.note,hifz:{
+          newPages:Number(hifzForm.newPages||0),revisionPages:Number(hifzForm.revisionPages||0),
+          newMistakes:Number(hifzForm.newMistakes||0),revisionMistakes:Number(hifzForm.revisionMistakes||0),
+          newFrom:hifzForm.newFrom,newTo:hifzForm.newTo,layout:hifzForm.layout,
+          revisionFrom:hifzForm.revisionFrom,revisionTo:hifzForm.revisionTo}});
+      if(result)setHifzForm(old=>({...old,newPages:'0',revisionPages:'0',newMistakes:'0',revisionMistakes:'0',
+        newFrom:'',newTo:'',revisionFrom:'',revisionTo:'',note:''}));
+    }}>
+      <h3 style={{margin:0,fontSize:14}}>Today's Hifz practice</h3>
+      <p style={{fontSize:11,color:'#718776',margin:0}}>Learning (sabaq) and revision (manzil) are tracked separately. Enter mistakes for each.</p>
+      <label className="tm-field"><span>Your Mushaf layout</span><select value={hifzForm.layout} onChange={e=>updateHifz('layout',e.target.value)}>
+        <option value="indopak-610">IndoPak 15-line · 610 pages</option>
+        <option value="madani-604">Madani · 604 pages</option>
+      </select></label>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(130px,1fr))',gap:9}}>
+        <label className="tm-field"><span>Date</span><input type="date" required value={hifzForm.date} onChange={e=>updateHifz('date',e.target.value)}/></label>
+        <label className="tm-field"><span>Para</span><select value={hifzForm.para} onChange={e=>updateHifz('para',e.target.value)}>{Array.from({length:30},(_,i)=><option key={i+1} value={i+1}>Para {i+1}</option>)}</select></label>
+      </div>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(145px,1fr))',gap:10}}>
+        <div style={{padding:9,borderRadius:10,border:'1px solid #dcece0',background:'#f7fbf8'}}>
+          <strong style={{fontSize:12,color:'#1d6844'}}>New learning</strong>
+          <label className="tm-field"><span>New pages</span><input type="number" required min="0" max="50" value={hifzForm.newPages} onChange={e=>updateHifz('newPages',e.target.value)}/></label>
+          <label className="tm-field"><span>Learning mistakes</span><input type="number" required min="0" max="200" value={hifzForm.newMistakes} onChange={e=>updateHifz('newMistakes',e.target.value)}/></label>
+          <label className="tm-field"><span>Mushaf page from</span><input type="number" min="1" max={hifzForm.layout==='indopak-610'?610:604} placeholder="Optional" value={hifzForm.newFrom} onChange={e=>updateHifz('newFrom',e.target.value)}/></label>
+          <label className="tm-field"><span>To page</span><input type="number" min="1" max={hifzForm.layout==='indopak-610'?610:604} placeholder="Optional" value={hifzForm.newTo} onChange={e=>updateHifz('newTo',e.target.value)}/></label>
+        </div>
+        <div style={{padding:9,borderRadius:10,border:'1px solid #dcece0',background:'#f7fbf8'}}>
+          <strong style={{fontSize:12,color:'#1d6844'}}>Revision</strong>
+          <label className="tm-field"><span>Revision pages</span><input type="number" required min="0" max="100" value={hifzForm.revisionPages} onChange={e=>updateHifz('revisionPages',e.target.value)}/></label>
+          <label className="tm-field"><span>Revision mistakes</span><input type="number" required min="0" max="200" value={hifzForm.revisionMistakes} onChange={e=>updateHifz('revisionMistakes',e.target.value)}/></label>
+          <label className="tm-field"><span>Mushaf page from</span><input type="number" min="1" max={hifzForm.layout==='indopak-610'?610:604} placeholder="Optional" value={hifzForm.revisionFrom} onChange={e=>updateHifz('revisionFrom',e.target.value)}/></label>
+          <label className="tm-field"><span>To page</span><input type="number" min="1" max={hifzForm.layout==='indopak-610'?610:604} placeholder="Optional" value={hifzForm.revisionTo} onChange={e=>updateHifz('revisionTo',e.target.value)}/></label>
+        </div>
+      </div>
+      <label className="tm-field"><span>Practice note (optional)</span><input maxLength={350} value={hifzForm.note} onChange={e=>updateHifz('note',e.target.value)} placeholder="What needs more revision?"/></label>
+      {hifzError&&<small role="alert" style={{color:'#b44737'}}>{hifzError}</small>}
+      <small style={{fontSize:10,color:'#7d9283'}}>If you add ranges, each range must match the entered page count. Without ranges, practice is saved but unique mastered-page credit is not awarded.</small>
+      <button className="tm-primary tm-wide" type="submit" disabled={busy}>Save Hifz practice</button>
+    </form>}
+    {ownerMode && !hifzMode && <form className="tmv-owner-quran tm-stack" onSubmit={async e=>{e.preventDefault();const ok=await onAdd(form);if(ok)setForm(old=>({...old,pagesRead:'1',fromPage:'',toPage:'',note:''}));}}>
       <h3>Add a reading</h3><label className="tm-field"><span>Para</span><select value={form.para} onChange={e=>update('para',e.target.value)}>{Array.from({length:30},(_,i)=><option key={i+1} value={i+1}>Para {i+1}</option>)}</select></label>
       <label className="tm-field"><span>Pages read</span><input type="number" inputMode="numeric" min="1" max="200" required value={form.pagesRead} onChange={e=>update('pagesRead',e.target.value)}/></label>
       <label className="tm-field"><span>Date</span><input type="date" required value={form.date} onChange={e=>update('date',e.target.value)}/></label>
@@ -3017,7 +3247,7 @@ function QuranPanel({ ownerMode, quran, busy, onAdd, onDelete }) {
       <button className="tm-primary tm-wide" type="submit" disabled={busy}>Save reading</button>
     </form>}
     <h3 className="tmv-subheading">Reading history</h3>
-    {sorted.length ? <div className="tmv-history-items">{sorted.map(item=><div className="tmv-reading-history" key={item.id}><span className="tmv-book-symbol"><BookOpen size={19}/></span><div><strong>Para {item.para} · {item.pagesRead} {Number(item.pagesRead)===1?'page':'pages'}</strong><small>{prettyDate(item.date)}{item.fromPage ? ` · Page ${item.fromPage}${item.toPage?`–${item.toPage}`:''}` : ''}</small>{item.note&&<p>{item.note}</p>}</div>{ownerMode&&<button type="button" disabled={busy} aria-label="Delete reading" onClick={()=>onDelete(item)}><Trash2 size={18}/></button>}</div>)}</div>:<p className="tmv-empty-note">No Quran readings have been recorded yet.</p>}
+    {sorted.length ? <div className="tmv-history-items">{sorted.map(item=><div className="tmv-reading-history" key={item.id}><span className="tmv-book-symbol"><BookOpen size={19}/></span><div><strong>{item.hifz ? `Hifz · ${item.hifz.newPages} new · ${item.hifz.revisionPages} revised · Mistakes ${item.hifz.newMistakes}/${item.hifz.revisionMistakes}` : `Para ${item.para} · ${item.pagesRead} ${Number(item.pagesRead)===1?'page':'pages'}`}</strong><small>{prettyDate(item.date)}{item.fromPage ? ` · Page ${item.fromPage}${item.toPage?`–${item.toPage}`:''}` : ''}</small>{item.note&&<p>{item.note}</p>}</div>{ownerMode&&<button type="button" disabled={busy} aria-label="Delete reading" onClick={()=>onDelete(item)}><Trash2 size={18}/></button>}</div>)}</div>:<p className="tmv-empty-note">No Quran readings have been recorded yet.</p>}
   </section>;
 }
 
@@ -3303,7 +3533,7 @@ export default function TrackMe() {
   }
   async function signOut(){setSeenOpen(false);setToday30Open(false);try{if(lifeMapTracking&&creationPin){setLifeMapTracking(false);setLifeMapToken('');await api({action:'life_map_stop',pin:creationPin}).catch(()=>{});}await api({action:'logout'});loginAttemptRef.current.last='';setAuthenticated(false);setFamilyViewer('family');setOwnerMode(false);setCreationPin('');setQuestionOpen(false);setEntries([]);setPrayerDays({});setQuranEntries([]);setWelcome(false);setEditor(null);setNotice('');setSection('overview');}catch(err){fail(err);}}
   function newTask(target='office'){if(!ownerMode)return;setEditor(initialTask(target));}
-  async function saveTask(form){setBusy(true);setNotice('');try{const editing=Boolean(editor?.id);const data=await api({action:editing?'update':'create',...(editing?{id:editor.id}:{pin:creationPin}),item:form});setEntries(list=>editing?list.map(x=>x.id===data.item.id?data.item:x):[data.item,...list]);setEditor(null);setNotice(editing?'Updated successfully.':'New task saved.');}catch(err){fail(err);}finally{setBusy(false);}}
+  async function saveTask(form){setBusy(true);setNotice('');try{const editing=Boolean(editor?.id);const data=await api({action:editing?'update':'create',...(editing?{id:editor.id}:{pin:creationPin}),item:form});setEntries(list=>editing?list.map(x=>x.id===data.item.id?data.item:x):[data.item,...list]);setEditor(null);setNotice(editing?'Updated successfully.':'New task saved.');if(data.item.section==='university')api({action:'admission_research',taskId:data.item.id}).catch(()=>{});}catch(err){fail(err);}finally{setBusy(false);}}
   async function updateTask(item,status){setBusy(true);try{const data=await api({action:'update',id:item.id,item:{...item,status}});setEntries(list=>list.map(x=>x.id===item.id?data.item:x));}catch(err){fail(err);}finally{setBusy(false);}}
   async function addNote(id){if(!note.trim())return;setBusy(true);try{const data=await api({action:'note',id,note});setEntries(list=>list.map(x=>x.id===id?data.item:x));setNote('');setNotice('Daily update saved.');}catch(err){fail(err);}finally{setBusy(false);}}
   async function deleteTask(item){if(!window.confirm(`Delete “${item.title}” and its updates?`))return;setBusy(true);try{await api({action:'delete',id:item.id});setEntries(list=>list.filter(x=>x.id!==item.id));setNotice('Task deleted.');}catch(err){fail(err);}finally{setBusy(false);}}
