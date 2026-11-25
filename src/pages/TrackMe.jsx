@@ -2957,8 +2957,14 @@ function FamilyToday({ entries, days, quran, viewDate, setViewDate, onOpen, onOp
     <div className="tmv-v32-sectiontitle tmv-v32-life-title"><h2>Life &amp; Progress</h2><div className="tmv-v41-life-tray"><span className="tmv-v41-life-hint">Only what matters</span><button type="button" className="tmv-v42-open-map" onClick={onOpenLifeMap} aria-label="Open Ahsan's Life Map" title="Life Map"><MapPinned size={15}/><span>Life Map</span></button><FamilyMoment date={viewDate} ownerMode={ownerMode} ownerPin={ownerPin}/></div></div>
     <section className="tmv-v32-life" aria-label="Life and progress">
       <V32LifeItem type="quran" date={viewDate} title="Quran Reading" summary={quranSummary}
-        status={read.length ? 'Recorded' : 'No update'} extra={[quranExtra, hifzStats.sessions ? `Hifz: ${hifzStats.strong}/${hifzStats.total} strongly reviewed · ${hifzStats.newPages} new · ${hifzStats.revisionPages} revised` : ''].filter(Boolean).join(' · ')}
+        status={read.length ? 'Recorded' : 'No update'} extra={[quranExtra, hifzStats.sessions ? `Hifz: ${hifzStats.strong}/${hifzStats.total} strongly reviewed · ${hifzStats.newPages} new · ${hifzStats.revisionPages} revised` : 'Hifz: no practice logged yet'].filter(Boolean).join(' · ')}
         expanded={expanded === 'quran'} onToggle={() => toggle('quran')} onOpen={onOpen}>
+        <p style={{margin:'0 0 8px',fontSize:12,color:'#315c44'}}>
+          <strong>Hifz · Learning & Revision:</strong>{' '}
+          {hifzStats.sessions
+            ? `${hifzStats.newPages} new pages · ${hifzStats.revisionPages} revised · ${hifzStats.newMistakes} new mistakes · ${hifzStats.revisionMistakes} revision mistakes · ${hifzStats.strong}/${hifzStats.total} strongly reviewed`
+            : 'No structured Hifz practice saved yet. Older normal Quran readings are kept separate.'}
+        </p>
         {read.length ? read.map(item => <p key={item.id || item.createdAt}>
           <strong>{item.hifz ? `${item.hifz.newPages} new · ${item.hifz.revisionPages} revised · Mistakes ${item.hifz.newMistakes}/${item.hifz.revisionMistakes}` : `Para ${item.para} · ${item.pagesRead} ${Number(item.pagesRead)===1?'page':'pages'}`}</strong>
           {item.note ? ` — ${item.note}` : ''}
@@ -2978,6 +2984,7 @@ function FamilyToday({ entries, days, quran, viewDate, setViewDate, onOpen, onOp
 }
 
 /* V56.1 HIDE APPLICANT SCORES: family sees official requirements only. */
+/* V56.2 HIFZ OVERVIEW AND ADMISSION AUTO-CHECK */
 /* V56 ADMISSIONS: compact official evidence, never a fabricated percentage or guaranteed offer. */
 function AdmissionInsight({item,ownerMode}) {
   const [report,setReport]=useState(null);
@@ -2987,10 +2994,26 @@ function AdmissionInsight({item,ownerMode}) {
   useEffect(()=>{
     let active=true;
     setChecked(false);setReport(null);setMessage('');
-    api({action:'admission_get',taskId:item.id}).then(result=>{if(active){setReport(result.report||null);setChecked(true);}})
-      .catch(()=>{if(active){setChecked(true);}});
+    (async()=>{
+      try{
+        const stored=await api({action:'admission_get',taskId:item.id});
+        if(!active)return;
+        if(stored.report){setReport(stored.report);return;}
+        // For legacy entries, the first visit by Ahsan starts automatic
+        // research. Family users can read cached public results only.
+        if(ownerMode){
+          setBusy(true);
+          try{
+            const result=await api({action:'admission_research',taskId:item.id});
+            if(active)setReport(result.report||null);
+          }catch(error){if(active)setMessage(error.message||'Official criteria check is unavailable.');}
+          finally{if(active)setBusy(false);}
+        }
+      }catch(error){if(active)setMessage(error.message||'Could not load admission insight.');}
+      finally{if(active)setChecked(true);}
+    })();
     return ()=>{active=false;};
-  },[item.id,item.updatedAt]);
+  },[item.id,item.updatedAt,ownerMode]);
   // The research starts automatically on save. Briefly re-check cached findings
   // so a family member opening the card can see the result without reloading.
   useEffect(()=>{
@@ -3021,8 +3044,9 @@ function AdmissionInsight({item,ownerMode}) {
     </summary>
     <div style={{padding:'8px 1px 3px'}}>
       <div style={{fontSize:11,fontWeight:700,color:report?.verified?'#26714a':'#927045'}}>
-        {report?.status || (checked?'Official criteria not yet checked':'Loading admission insight…')}
+        {report?.status || (busy?'Checking official university pages…':checked?(ownerMode?'No confirmed official result yet':'Awaiting official check by Ahsan'):'Loading admission insight…')}
       </div>
+      {report?.programFound && <p style={{...small,margin:'5px 0',color:'#286e52'}}>Official programme page located. Specific admission criteria are checked separately.</p>}
       {report?.verified && <>
         <div style={row}><span>CGPA requirement</span>{report.gpa
           ? <span style={tag(true)}>{report.gpa.minimum.toFixed(2)} published minimum</span>
@@ -3146,7 +3170,7 @@ function hifzProgress(entries) {
 function HifzOverview({quran,ownerMode}){
   const stats=useMemo(()=>hifzProgress(quran),[quran]);
   if(!stats.sessions)return <p style={{fontSize:12,color:'#7c9285',margin:'10px 0 0'}}>
-    {ownerMode?'Start Hifz practice entries to see learning, revision and retention.':'Hifz progress will appear after practice entries are recorded.'}
+    {ownerMode?'No Hifz practice logged yet. Use Hifz practice below to enter new pages, revision pages, mistakes and printed page ranges. Existing normal readings are unchanged.':'No Hifz practice logged yet. Older normal readings do not count toward mastered Hifz pages.'}
   </p>;
   const value=Math.min(100,stats.strong/stats.total*100);
   const tile={minWidth:105,flex:'1 1 105px',border:'1px solid #e2ebe4',background:'#f9fcfa',borderRadius:9,padding:'9px 10px'};
