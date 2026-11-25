@@ -2722,6 +2722,86 @@ function FamilyQuestionsModal({ viewer, ownerMode, ownerPin, onPendingChange, on
   </div>;
 }
 
+/* V55: a single compact reflection strip. Family-only, no new card or stylesheet. */
+function DailyInspiration({language='en'}) {
+  const pakistanDay=()=>{
+    const parts=new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Karachi',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
+    const part=type=>parts.find(p=>p.type===type)?.value||'00';
+    return `${part('year')}-${part('month')}-${part('day')}`;
+  };
+  const [date,setDate]=useState(pakistanDay);
+  const [entry,setEntry]=useState(null);
+  const [expanded,setExpanded]=useState(false);
+  const [quoteUrdu,setQuoteUrdu]=useState('');
+  useEffect(()=>{
+    const refresh=()=>setDate(pakistanDay());
+    const ticker=window.setInterval(refresh,60000);
+    document.addEventListener('visibilitychange',refresh);
+    window.addEventListener('focus',refresh);
+    return ()=>{window.clearInterval(ticker);document.removeEventListener('visibilitychange',refresh);window.removeEventListener('focus',refresh);};
+  },[]);
+  useEffect(()=>{
+    let active=true;
+    setEntry(null);setExpanded(false);setQuoteUrdu('');
+    api({action:'daily_inspiration'})
+      .then(data=>{if(active&&data?.date===date)setEntry(data);})
+      .catch(()=>{if(active)setEntry({date,kind:'unavailable',unavailable:true});});
+    return ()=>{active=false;};
+  },[date]);
+  useEffect(()=>{
+    if(language!=='ur'||entry?.kind!=='quote'||!entry.text)return undefined;
+    let active=true;
+    setQuoteUrdu('');
+    api({action:'family_text',language:'ur',texts:[entry.text]})
+      .then(result=>{if(active&&typeof result?.texts?.[0]==='string'&&result.texts[0].trim()!==entry.text)setQuoteUrdu(result.texts[0].trim());})
+      .catch(()=>{});
+    return ()=>{active=false;};
+  },[language,entry?.date,entry?.kind,entry?.text]);
+  if(!entry)return <div data-family-lang-ignore="true" role="status" aria-label="Loading today's reflection" style={{height:54,margin:'0 0 11px',border:'1px solid #e7eee8',borderRadius:11,display:'flex',alignItems:'center',gap:9,padding:'7px 10px',background:'#f8fbf7',color:'#81988a',fontSize:11}}><Sparkles size={15}/>{language==='ur'?'آج کی بات آ رہی ہے…':'Loading today’s reflection…'}</div>;
+  const ur=language==='ur';
+  const ayah=entry.kind==='ayah';
+  const available=!entry.unavailable;
+  const heading=ayah?(ur?'آج کی آیت':'A verse for today'):(ur?'آج کا خیال':'Thought for today');
+  const text=ayah?entry.arabic:entry.text;
+  const translation=ayah?(ur?entry.urdu:entry.english):(ur?quoteUrdu:'');
+  const source=ayah?`${ur?'سورۃ':'Surah'} ${entry.reference||''}`:`— ${entry.author||''}`;
+  const sourceLink=typeof entry.sourceUrl==='string'&&/^https:\/\/(quran\.com|zenquotes\.io)\//.test(entry.sourceUrl)?entry.sourceUrl:'';
+  return <section data-family-lang-ignore="true" aria-label="Daily inspiration" style={{maxWidth:'100%',minWidth:0,
+    border:'1px solid #e0eae3',background:'linear-gradient(115deg,#f8fbf7,#fff)',borderRadius:11,
+    padding:'7px 10px',margin:'0 0 11px',boxShadow:'0 1px 3px rgba(15,53,34,.03)'}}>
+    <div style={{display:'flex',alignItems:'center',gap:10,minWidth:0}}>
+      <span aria-hidden="true" style={{display:'grid',placeItems:'center',width:28,height:28,flexShrink:0,
+        borderRadius:8,background:'#eaf3ec',color:'#2c7553'}}>{ayah?<BookOpen size={15}/>:<Sparkles size={15}/>}</span>
+      <div style={{flex:'1 1 auto',minWidth:0,overflow:'hidden'}}>
+        <div style={{display:'flex',alignItems:'center',gap:6,minWidth:0}}>
+          <span style={{fontSize:10,color:'#468263',fontWeight:750,whiteSpace:'nowrap',letterSpacing:'.025em'}}>{heading}</span>
+          {source&&<small style={{fontSize:10,color:'#8b9f91',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{source}</small>}
+          {!ayah&&entry.source==='ZenQuotes'&&<a href="https://zenquotes.io/" target="_blank" rel="noopener noreferrer" style={{color:'#5b876f',fontSize:9,whiteSpace:'nowrap',textDecoration:'underline'}}>ZenQuotes</a>}
+        </div>
+        {available ? <>
+          <div lang={ayah?'ar':'en'} dir={ayah?'rtl':'ltr'} style={{fontSize:ayah?14:12.5,fontWeight:ayah?550:600,
+            fontFamily:ayah?"'Noto Naskh Arabic','Noto Sans Arabic',serif":'inherit',color:'#243d30',
+            lineHeight:1.5,whiteSpace:expanded?'normal':'nowrap',overflow:'hidden',textOverflow:'ellipsis',minWidth:0}}>{text}</div>
+          {translation&&<div lang={ur?'ur':'en'} dir={ur?'rtl':'ltr'} style={{fontSize:11,color:'#698271',lineHeight:1.55,
+            fontFamily:ur?"'Noto Naskh Arabic','Noto Sans Arabic',serif":'inherit',
+            whiteSpace:expanded?'normal':'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{translation}</div>}
+        </> : <small style={{color:'#809488',fontSize:11}}>{ur?'آج کی آیت ابھی دستیاب نہیں۔':'Today’s reflection is temporarily unavailable.'}</small>}
+      </div>
+      <button type="button" aria-label={expanded?'Collapse daily reflection':'Expand daily reflection'} aria-expanded={expanded}
+        onClick={()=>setExpanded(x=>!x)} style={{flex:'0 0 auto',height:30,width:30,border:'none',borderRadius:8,
+          display:'grid',placeItems:'center',background:'transparent',color:'#7c9785',cursor:'pointer'}}>
+        <ChevronRight size={16} style={{transform:expanded?'rotate(90deg)':'none',transition:'transform .18s'}}/>
+      </button>
+    </div>
+    {expanded&&available&&<div style={{padding:'5px 0 1px 38px',display:'flex',gap:8,flexWrap:'wrap',alignItems:'center',
+      fontSize:10,color:'#8a9c91'}}>
+      {ayah?<span>{ur?'اردو: فتح محمد جالندھری · English: Saheeh International':'Urdu: F. M. Jalandhry · English: Saheeh International'}</span>:null}
+      {sourceLink&&<a href={sourceLink} target="_blank" rel="noopener noreferrer" style={{color:'#36765b',textDecoration:'underline'}}>
+        {ayah?(ur?'آیت کا حوالہ':'Verse source'):'Quotes by ZenQuotes'}</a>}
+    </div>}
+  </section>;
+}
+
 function FamilyToday({ entries, days, quran, viewDate, setViewDate, onOpen, onOpenSummary, ownerMode, onNew, love, loveBusy, onLove, ownerPin, onOpenLifeMap, onOpenQuestions, questionsPending, onOpenSeen, viewer, onOpenToday30, language = 'en' }) {
   const [expanded, setExpanded] = useState(null);
   useEffect(() => { setExpanded(null); }, [viewDate]);
@@ -2843,6 +2923,7 @@ function FamilyToday({ entries, days, quran, viewDate, setViewDate, onOpen, onOp
         </div>
       </div>
     </div>
+    {!ownerMode&&<DailyInspiration language={language}/>}
     {listenError && <div className="tmv-mini-toast" role="status">{listenError}</div>}
     {ownerMode && love?.names?.length > 0 && <small className="tmv-v37-owner-love">❤️ Loved by {love.names.map(name => FAMILY_IDENTITY[name]?.name || name).join(', ')}</small>}
     <div className="tmv-v32-sectiontitle tmv-v34-sectiontitle"><h2>Daily Life</h2><span>Simple daily overview</span></div>

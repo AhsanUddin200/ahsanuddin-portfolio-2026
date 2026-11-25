@@ -133,7 +133,7 @@ const familyLoginAccounts = () => [
 /* V47 Single Login Role Guard */
 const familyViewerNames = new Set(['nasir','talat','happa','yamna','family','owner']);
 const FAMILY_READ_ACTIONS = new Set(['load','summary','moment_get','life_map_get','love_get','love_set',
-  'family_questions_get','family_questions_ask','reminder_config','reminder_touch','reminder_subscribe','reminder_unsubscribe','seen_record','seen_get','family_text','urdu_cloud_voice']);
+  'family_questions_get','family_questions_ask','reminder_config','reminder_touch','reminder_subscribe','reminder_unsubscribe','seen_record','seen_get','family_text','urdu_cloud_voice','daily_inspiration']);
 /* V48: private weekly Seen by records */
 const SEEN_WEEK_PREFIX='ahsan:private-track:seen:v1:';
 const SEEN_FAMILY=new Set(['nasir','talat','happa','yamna']);
@@ -1190,6 +1190,74 @@ export default async function handler(
     const signedViewer = authenticatedViewer(req);
     if (signedViewer !== 'owner' && !FAMILY_READ_ACTIONS.has(action))
       return error(res,403,'This action is not available for this account.');
+
+    /* V55: One compact daily reflection, alternating ayah / English quote.
+       The session is already verified above; no private journal data leaves this service. */
+    if (action === 'daily_inspiration') {
+      const parts=new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Karachi',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
+      const pick=type=>parts.find(part=>part.type===type)?.value||'0';
+      const year=Number(pick('year')),month=Number(pick('month')),day=Number(pick('day'));
+      const date=`${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+      const dayNumber=Math.floor(Date.UTC(year,month-1,day)/86400000);
+      const isAyah=dayNumber%2===0;
+      const key='ahsan:private-track:daily-inspiration:v1:'+date;
+      let saved=null;
+      try {saved=await readJSON(key,null);}catch(_){}
+      if(saved&&saved.date===date&&saved.kind===(isAyah?'ayah':'quote'))
+        return res.status(200).json(saved);
+      const result={date,kind:isAyah?'ayah':'quote'};
+      if(isAyah) {
+        // Entire short verses only. Never manufacture or machine-translate Quran text.
+        const verses=['94:5','94:6','94:7','94:8','93:5','93:11','87:17','99:7','99:8','53:39',
+          '112:1','112:2','96:5','103:1','103:2','93:3','93:4','55:13','108:1','1:5'];
+        const verseKey=verses[Math.floor(dayNumber/2)%verses.length];
+        const refUrl=`https://quran.com/${verseKey.replace(':','/')}`;
+        try {
+          const url=`https://api.alquran.cloud/v1/ayah/${verseKey}/editions/quran-uthmani,en.sahih,ur.jalandhry`;
+          const response=await fetch(url,{headers:{Accept:'application/json'},signal:AbortSignal.timeout(8000)});
+          if(!response.ok)throw Error('Quran source unavailable');
+          const payload=await response.json();
+          const records=Array.isArray(payload.data)?payload.data:[];
+          const get=identifier=>records.find(x=>x.edition?.identifier===identifier)?.text?.trim();
+          const arabic=get('quran-uthmani'),english=get('en.sahih'),urdu=get('ur.jalandhry');
+          if(!arabic||!english||!urdu)throw Error('Missing verified translations');
+          Object.assign(result,{reference:verseKey,arabic,english,urdu,
+            sourceUrl:refUrl,englishCredit:'Saheeh International',urduCredit:'Fateh Muhammad Jalandhry'});
+        }catch(_){Object.assign(result,{unavailable:true,reference:verseKey,sourceUrl:refUrl});}
+      }else{
+        // Original local fallback is used only if the quote provider is offline.
+        const fallback=[
+          'A little progress today is still progress.',
+          'Make room for small wins.',
+          'Kind words can change the direction of a day.',
+          'The best time to begin is the moment you are ready.',
+          'A steady step can carry you farther than a perfect plan.',
+          'Learn something small, and tomorrow becomes a little brighter.',
+          'A good day is built one thoughtful choice at a time.',
+          'Rest when you need to, then begin again.'
+        ];
+        try {
+          const response=await fetch('https://zenquotes.io/api/random',{
+            headers:{Accept:'application/json'},signal:AbortSignal.timeout(7000)});
+          if(!response.ok)throw Error('Quote source unavailable');
+          const json=await response.json();
+          const quote=Array.isArray(json)?json[0]:null;
+          const value=typeof quote?.q==='string'?quote.q.trim():'';
+          if(!value||value.length>235||/too many requests|zenquotes/i.test(value))throw Error('Unexpected quote');
+          Object.assign(result,{text:value,author:typeof quote?.a==='string'?quote.a.slice(0,90):'Unknown',
+            source:'ZenQuotes',sourceUrl:'https://zenquotes.io/'});
+        }catch(_){
+          Object.assign(result,{text:fallback[Math.floor(dayNumber/2)%fallback.length],
+            author:'Ahsan’s Updates',source:'Original reflection',sourceUrl:''});
+        }
+      }
+      // One shared quote per Pakistan calendar date. First cache write wins.
+      try {
+        await redis('SET',key,JSON.stringify(result),'EX',172800,'NX');
+        const cached=await readJSON(key,result);
+        return res.status(200).json(cached?.date===date?cached:result);
+      }catch(_){return res.status(200).json(result);}
+    }
 
     /* V54: Keyless Urdu neural audio for signed-in Track Me family. */
     if (action === 'urdu_cloud_voice') {
