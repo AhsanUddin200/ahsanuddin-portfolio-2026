@@ -627,7 +627,7 @@ function TaskEditor({ initial, saving, onClose, onSave }) {
               
             </div>
             <label className="tm-field"><span>Intake year/term (optional)</span><input maxLength={24} value={form.meta?.intake||''} onChange={e=>changeMeta('intake',e.target.value)} placeholder="e.g. Fall 2027"/></label>
-            <label className="tm-field"><span>Official admissions link (optional)</span><input type="url" maxLength={500} value={form.meta?.officialUrl||''} onChange={e=>changeMeta('officialUrl',e.target.value)} placeholder="https://university.edu/..."/></label>
+            
             <small style={{fontSize:11,color:'#728675'}}>Actual requirements differ by degree and intake. We'll check official pages and show only verifiable criteria.</small>
             <label className="tm-field"><span>Application status</span><select value={form.meta?.applicationStatus || 'planning'} onChange={e => changeMeta('applicationStatus', e.target.value)}>{Object.entries(APP_STATUS).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></label>
             <label className="tm-field"><span>Next interview / test / deadline</span><input type="date" value={form.meta?.upcomingDate || ''} onChange={e => changeMeta('upcomingDate', e.target.value)}/></label>
@@ -3044,7 +3044,7 @@ function AdmissionInsight({item,ownerMode}) {
     </summary>
     <div style={{padding:'8px 1px 3px'}}>
       <div style={{fontSize:11,fontWeight:700,color:report?.verified?'#26714a':'#927045'}}>
-        {report?.status || (busy?'Checking official university pages…':checked?(ownerMode?'No confirmed official result yet':'Awaiting official check by Ahsan'):'Loading admission insight…')}
+        {report?.status || (busy?'Checking official university pages…':checked?(ownerMode?'No confirmed official result yet':'Automatic research pending (starts on owner visit)'):'Loading admission insight…')}
       </div>
       {report?.programFound && <p style={{...small,margin:'5px 0',color:'#286e52'}}>Official programme page located. Specific admission criteria are checked separately.</p>}
       {report?.verified && <>
@@ -3055,15 +3055,16 @@ function AdmissionInsight({item,ownerMode}) {
           ? <span style={tag(true)}>{report.ielts.minimum.toFixed(1)} published minimum</span>
           : <span style={small}>Not verified</span>}</div>
       </>}
+      {Array.isArray(report?.requirements)&&report.requirements.length>0&&<div style={{margin:'8px 0'}}><strong style={{fontSize:11,color:'#315a44'}}>Other published requirements</strong>{report.requirements.map((r,i)=><p key={i} style={small}><strong>{r.label}: </strong>{r.evidence} <a href={r.sourceUrl} target="_blank" rel="noopener noreferrer">Source</a></p>)}</div>}
       <div style={row}><span>Application deadline</span><strong style={{fontSize:11,color:'#315a44'}}>{report?.deadline?.date||'Not officially verified'}</strong></div>
-      <p style={small}>{report?.notes||'Ahsan can look up official programme requirements and the relevant intake.'}</p>
+      <p style={small}>{report?.notes||'The system automatically searches official university pages for this programme and intake. No admission criteria need to be entered manually.'}</p>
       {sources.length>0&&<div style={{display:'flex',gap:7,flexWrap:'wrap',marginTop:8}}>
         {sources.slice(0,3).map(src=><a key={src.url} href={src.url} target="_blank" rel="noopener noreferrer"
           style={{fontSize:11,color:'#286e52',textDecoration:'underline'}} title={src.title}>Official source</a>)}
       </div>}
       {report?.checkedAt&&<small style={{display:'block',...small,marginTop:6}}>Checked {prettyDate(report.checkedAt)} · Programme-specific evidence only. Other rules (IELTS bands, qualification equivalency, references, capacity) may still apply.</small>}
       {ownerMode&&<button type="button" onClick={reload} disabled={busy} style={{marginTop:9,border:'1px solid #cee4d4',borderRadius:8,background:'#eff8f1',color:'#226748',fontSize:11,fontWeight:700,padding:'7px 10px'}}>
-        {busy?'Checking official university pages…':'Check / refresh official criteria'}
+        {busy?'Checking official university pages…':'Refresh automatic research'}
       </button>}
       {message&&<p role="status" style={{...small,color:'#9b563d'}}>{message}</p>}
       <small style={{display:'block',...small,marginTop:8}}>No percentage-based admission prediction. This checks published overall thresholds, not IELTS band scores or full application eligibility. Unconfirmed requirements stay unverified.</small>
@@ -3160,7 +3161,26 @@ function hifzProgress(entries) {
   // A workload estimate, NOT a prediction of complete or certified Hifz.
   const expectedDays=daysLogged>=5 && recentDaily>=1
     ? Math.ceil((total-strong)*3/recentDaily):null;
-  return {sessions:sessions.length,newPages,revisionPages,newMistakes,revisionMistakes,
+  /* V57 HIFZ PAGE ROUND FORECAST */
+  // Round counts are based on recorded page volume; the counters wrap automatically
+  // at the current Mushaf page count, while completed round totals are retained.
+  // These are workload rounds, not proof that all unique pages were mastered.
+  const learningRounds=Math.floor(newPages/total);
+  const revisionRounds=Math.floor(revisionPages/total);
+  const learningCurrent=newPages%total;
+  const revisionCurrent=revisionPages%total;
+  const avgNew=recentNew/windowDays;
+  const avgRevision=recentRevision/windowDays;
+  const remainingLearning=learningCurrent===0 && newPages>0?total:total-learningCurrent;
+  const remainingRevision=revisionCurrent===0 && revisionPages>0?total:total-revisionCurrent;
+  const learningDays=avgNew>0?Math.ceil(remainingLearning/avgNew):null;
+  const revisionDays=avgRevision>0?Math.ceil(remainingRevision/avgRevision):null;
+  const projectedDate=days=>days!==null?shiftDay(today,days):null;
+  return {learningRounds,revisionRounds,learningCurrent,revisionCurrent,
+    learningDays,revisionDays,learningDate:projectedDate(learningDays),revisionDate:projectedDate(revisionDays),
+    learningRemaining:remainingLearning,revisionRemaining:remainingRevision,forecastSampleDays:windowDays,
+    learningAvg:avgNew,revisionAvg:avgRevision,
+    sessions:sessions.length,newPages,revisionPages,newMistakes,revisionMistakes,
     learnedUnique,reviewedUnique,strong,total,layout,expectedDays,
     avgDailyNew:recentNew/windowDays,avgDailyRevision:recentDaily,
     newErrorRate:newPages?newMistakes/newPages:null,
@@ -3168,7 +3188,10 @@ function hifzProgress(entries) {
 }
 
 function HifzOverview({quran,ownerMode}){
-  const stats=useMemo(()=>hifzProgress(quran),[quran]);
+  const [forecastDay,setForecastDay]=useState(dayISO());
+  const [forecastRefresh,setForecastRefresh]=useState(0);
+  useEffect(()=>{const timer=window.setInterval(()=>setForecastDay(dayISO()),60000);return ()=>window.clearInterval(timer);},[]);
+  const stats=useMemo(()=>hifzProgress(quran),[quran,forecastDay,forecastRefresh]);
   if(!stats.sessions)return <p style={{fontSize:12,color:'#7c9285',margin:'10px 0 0'}}>
     {ownerMode?'No Hifz practice logged yet. Use Hifz practice below to enter new pages, revision pages, mistakes and printed page ranges. Existing normal readings are unchanged.':'No Hifz practice logged yet. Older normal readings do not count toward mastered Hifz pages.'}
   </p>;
@@ -3177,13 +3200,29 @@ function HifzOverview({quran,ownerMode}){
   return <section aria-label="Hifz learning and revision progress" style={{margin:'10px 0 13px',padding:'12px 13px',border:'1px solid #dcebe1',borderRadius:13,background:'#fff'}}>
     <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:8,flexWrap:'wrap'}}>
       <strong style={{fontSize:13,color:'#244b37'}}>Hifz · Learning & Revision</strong>
-      <small style={{fontSize:10,color:'#718b7b'}}>{stats.layout==='indopak-610'?'IndoPak 15-line · 610 pages':'Madani · 604 pages'}</small>
+      {ownerMode&&<button type="button" onClick={()=>{setForecastDay(dayISO());setForecastRefresh(x=>x+1);}} style={{fontSize:11,border:'1px solid #cee4d4',borderRadius:8,padding:'5px 8px',background:'#eff8f1',color:'#226748'}}>Refresh progress</button>}<small style={{fontSize:10,color:'#718b7b'}}>{stats.layout==='indopak-610'?'IndoPak 15-line · 610 pages':'Madani · 604 pages'}</small>
     </div>
     <div style={{display:'flex',flexWrap:'wrap',gap:6,margin:'9px 0'}}>
       <div style={tile}><div style={{fontSize:19,fontWeight:750,color:'#246044'}}>{stats.newPages}</div><small>New-page practice</small></div>
       <div style={tile}><div style={{fontSize:19,fontWeight:750,color:'#246044'}}>{stats.revisionPages}</div><small>Revision pages</small></div>
       <div style={tile}><div style={{fontSize:19,fontWeight:750,color:'#246044'}}>{stats.newMistakes} / {stats.revisionMistakes}</div><small>New / Revision mistakes</small></div>
     </div>
+    <div style={{display:'flex',flexWrap:'wrap',gap:8,margin:'10px 0',fontSize:11}}>
+      {[{name:'Learning',rounds:stats.learningRounds,current:stats.learningCurrent,avg:stats.learningAvg,
+         remaining:stats.learningRemaining,days:stats.learningDays,date:stats.learningDate},
+        {name:'Revision',rounds:stats.revisionRounds,current:stats.revisionCurrent,avg:stats.revisionAvg,
+         remaining:stats.revisionRemaining,days:stats.revisionDays,date:stats.revisionDate}].map(item=><div key={item.name}
+        style={{...tile,flex:'1 1 200px'}}>
+        <strong style={{color:'#285b41'}}>{item.name} · Quran completed {item.rounds} {item.rounds===1?'time':'times'} (page count)</strong>
+        <div style={{marginTop:4}}>{item.current}/{stats.total} pages · {(item.current/stats.total*30).toFixed(1)}/30 para equivalent · Round {item.rounds+1}</div>
+        <div style={{height:5,background:'#e5eee8',borderRadius:9,overflow:'hidden',margin:'6px 0'}}>
+          <div style={{width:(item.current/stats.total*100)+'%',height:'100%',background:'#3b9369'}}/>
+        </div>
+        <div>Average: {item.avg.toFixed(2)} pages/day · {item.remaining} pages remaining</div>
+        <div>{item.days!==null?('Estimated next round: '+item.days+' days · '+item.date):'Add page entries to estimate the next round'}</div>
+      </div>)}
+    </div>
+    <small style={{fontSize:10,color:'#748779',display:'block',marginBottom:8}}>Automatically recalculated whenever entries change, using recent daily page averages (including days without entries). A full Mushaf page count completes a 30-para-equivalent round; any extra pages carry into the next round. Mistakes and history remain saved. Counts do not certify memorization or unique-page coverage; accurate page ranges and mistake tracking remain important.</small>
     <div style={{display:'flex',justifyContent:'space-between',gap:8,fontSize:11,color:'#4b715a'}}>
       <span>{stats.strong}/{stats.total} strongly reviewed pages*</span><span>{value.toFixed(1)}%</span>
     </div>
