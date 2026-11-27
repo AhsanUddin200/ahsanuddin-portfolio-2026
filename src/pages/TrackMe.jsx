@@ -1,3 +1,4 @@
+import { createPortal as myLifePortal } from 'react-dom';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
@@ -2810,6 +2811,90 @@ function DailyInspiration({language='en'}) {
   </section>;
 }
 
+/* V60 MY LIFE — separate full-screen dashboard; no external dependencies. */
+const MY_LIFE_SECTIONS={finance:['Finance','مالیات','Income, expenses and savings','آمدنی، اخراجات اور بچت','◈'],plans:['Future Plans','مستقبل کے منصوبے','Goals and milestones','اہداف اور کامیابیاں','◎'],books:['Book Reading','کتابیں','Reading progress and lessons','مطالعہ اور سیکھنے کا سفر','▤'],travel:['Travel History','سفر کی تاریخ','Places, trips and memories','مقامات، سفر اور یادیں','✈']};
+function MyLifeLauncher({ownerMode}){
+  const [open,setOpen]=useState(false);
+  return <><button type="button" onClick={()=>setOpen(true)} title="My Life" style={{border:'1px solid #c6ded0',borderRadius:9,background:'#f3faf5',color:'#255c43',fontSize:11,fontWeight:750,padding:'6px 10px',cursor:'pointer',whiteSpace:'nowrap'}}>My Life</button>{open&&myLifePortal(<MyLifeScreen ownerMode={ownerMode} onClose={()=>setOpen(false)}/>,document.body)}</>;
+}
+function MyLifeScreen({ownerMode,onClose}){
+  const [lang,setLang]=useState('en');
+  const t=(en,ur)=>lang==='ur'?ur:en;
+  const [section,setSection]=useState('');
+  const [data,setData]=useState(null),[busy,setBusy]=useState(false),[message,setMessage]=useState('');
+  const [form,setForm]=useState(null);
+  const [month,setMonth]=useState(()=>dayISO().slice(0,7));
+  const today=dayISO();
+  const request=async(payload)=>{setBusy(true);setMessage('');try{const result=await api(payload);setData(result);return true;}catch(e){setMessage(e?.message||'Could not load My Life. Please try again.');return false;}finally{setBusy(false);}};
+  useEffect(()=>{let active=true;setBusy(true);api({action:'my_life_get'}).then(v=>{if(active)setData(v);}).catch(e=>{if(active)setMessage(e?.message||'Could not load My Life.');}).finally(()=>{if(active)setBusy(false);});return ()=>{active=false;};},[ownerMode]);
+  useEffect(()=>{const old=document.body.style.overflow;document.body.style.overflow='hidden';const key=e=>{if(e.key==='Escape')onClose();};window.addEventListener('keydown',key);return()=>{document.body.style.overflow=old;window.removeEventListener('keydown',key);};},[]);
+  const allowed=Array.isArray(data?.sections)?data.sections:[];
+  useEffect(()=>{if(data&&section&&!allowed.includes(section)){setSection('');setForm(null);}},[data,section]);
+  const records=data?.records||{};
+  const list=records[section]||[];
+  const labels=MY_LIFE_SECTIONS[section];
+  const card={background:'#fff',border:'1px solid #dce9df',borderRadius:16,padding:16,minWidth:0};
+  const btn={border:'1px solid #cedfd3',borderRadius:9,background:'#fff',color:'#235a41',padding:'8px 12px',fontWeight:650,cursor:'pointer',fontSize:13};
+  const primary={...btn,background:'#245a40',borderColor:'#245a40',color:'#fff'};
+  const input={boxSizing:'border-box',width:'100%',padding:'10px 12px',border:'1px solid #cddfd3',borderRadius:9,background:'#fff',color:'#183f2d',fontSize:14};
+  const grid={display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(min(100%,205px),1fr))',gap:12};
+  const money=n=>new Intl.NumberFormat(lang==='ur'?'ur-PK':'en-PK',{style:'currency',currency:'PKR',maximumFractionDigits:2}).format(n);
+  const days=(a,b)=>Math.round((Date.parse(b+'T12:00:00Z')-Date.parse(a+'T12:00:00Z'))/86400000);
+  const sum=(arr,kind)=>arr.filter(x=>x.kind===kind).reduce((n,x)=>n+x.amount,0);
+  const finance=records.finance||[];
+  const monthly=finance.filter(x=>x.date?.startsWith(month));
+  const income=sum(monthly,'income'),expenses=sum(monthly,'expense'),balance=sum(finance,'income')-sum(finance,'expense');
+  const target=sum(finance,'target');
+  const planList=records.plans||[],bookList=records.books||[],travelList=records.travel||[];
+  const visited=travelList.filter(x=>x.status==='visited');
+  const countries=new Set(visited.map(x=>x.country.trim().toLowerCase())).size;
+  const cities=new Set(visited.map(x=>x.country.trim().toLowerCase()+'|'+x.city.trim().toLowerCase())).size;
+  const counts={finance:finance.length,plans:planList.length,books:bookList.length,travel:travelList.length};
+  const stat=(label,value)=><div style={{...card,padding:13}}><div style={{fontSize:12,color:'#557664'}}>{label}</div><div style={{fontSize:23,fontWeight:750,marginTop:5,overflowWrap:'anywhere'}}>{value}</div></div>;
+  const bar=p=><div role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.max(0,Math.min(100,p))} style={{height:7,background:'#e5eee7',borderRadius:10,overflow:'hidden',margin:'9px 0'}}><div style={{height:'100%',width:Math.max(0,Math.min(100,p))+'%',background:'#3b8c60'}}/></div>;
+  const empty=()=>({title:'',notes:'',date:today,kind:'expense',amount:'',category:'',target:today,progress:0,horizon:'short',author:'',total:'',pages:0,start:today,end:today,country:'',city:'',status:'visited'});
+  const field=(key,label,type='text',props={})=><label style={{display:'grid',gap:5,fontSize:12,fontWeight:650}}>{label}<input {...props} style={input} type={type} value={form?.[key]??''} onChange={e=>setForm(f=>({...f,[key]:e.target.value}))}/></label>;
+  const select=(key,label,options)=><label style={{display:'grid',gap:5,fontSize:12,fontWeight:650}}>{label}<select style={input} value={form?.[key]??''} onChange={e=>setForm(f=>({...f,[key]:e.target.value}))}>{options.map(([v,en,ur])=><option key={v} value={v}>{t(en,ur)}</option>)}</select></label>;
+  const save=async e=>{e.preventDefault();const record={...form};for(const k of ['amount','progress','total','pages'])if(record[k]!==undefined&&record[k]!=='')record[k]=Number(record[k]);if(await request({action:'my_life_save',section,record}))setForm(null);};
+  const back=()=>{setSection('');setForm(null);setMessage('');};
+  const show=s=>{setSection(s);setForm(null);setMessage('');};
+  const note=(x)=>x.notes&&<p style={{whiteSpace:'pre-wrap',overflowWrap:'anywhere',fontSize:13,color:'#496957',margin:'8px 0 0'}}>{x.notes}</p>;
+  const bookEstimate=x=>{const elapsed=Math.max(1,days(x.start,today)+1);const avg=x.pages/elapsed;return avg>0&&x.pages<x.total?Math.ceil((x.total-x.pages)/avg):null;};
+  const displayList=section==='finance'?list.filter(x=>x.date?.startsWith(month)||x.kind==='target'):list;
+  const expenseGroups=Object.entries(monthly.filter(x=>x.kind==='expense').reduce((a,x)=>{const k=x.category||t('Other','دیگر');a[k]=(a[k]||0)+x.amount;return a;},Object.create(null))).sort((a,b)=>b[1]-a[1]);
+  const pastMonths=[...new Set(finance.filter(x=>x.kind!=='target'&&x.date.slice(0,7)<today.slice(0,7)).map(x=>x.date.slice(0,7)))];
+  const historic=finance.filter(x=>pastMonths.includes(x.date.slice(0,7)));
+  const pace=pastMonths.length?(sum(historic,'income')-sum(historic,'expense'))/pastMonths.length:0;
+  return <div role="dialog" aria-modal="true" aria-label="My Life" dir={lang==='ur'?'rtl':'ltr'} style={{position:'fixed',inset:0,zIndex:2147483000,overflowY:'auto',background:'#f4f8f4',color:'#234b36',fontFamily:'inherit',lineHeight:1.5}}>
+    <main style={{maxWidth:960,margin:'0 auto',padding:'20px 14px 48px'}}>
+      <header style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:8,flexWrap:'wrap',marginBottom:14}}><button type="button" style={btn} onClick={onClose}>← {t('Back to Track Me','ٹریک می پر واپس')}</button><div style={{display:'flex',gap:6}}><button type="button" style={btn} onClick={()=>setLang(l=>l==='en'?'ur':'en')}>{lang==='en'?'اردو':'English'}</button><button type="button" style={btn} disabled={busy} onClick={()=>request({action:'my_life_get'})}>{t('Refresh','تازہ کریں')}</button></div></header>
+      <div style={{background:'linear-gradient(125deg,#153f30,#286345)',color:'#fff',borderRadius:20,padding:'22px 24px',marginBottom:16}}><div style={{fontSize:11,letterSpacing:2,color:'#b9d8c6'}}>{t('LIFE OPERATING SYSTEM','زندگی کا نظام')}</div><h1 style={{fontSize:30,margin:'4px 0',color:'#fff'}}>{t('My Life','میری زندگی')}</h1><div style={{color:'#d7e9dd',fontSize:14}}>{t('Manage today. Build tomorrow. Remember the journey.','آج کو سنواریں، کل بنائیں، سفر یاد رکھیں۔')}</div></div>
+      {message&&<div role="alert" style={{...card,color:'#a23d32',marginBottom:12}}>{message}</div>}
+      {busy&&<p role="status">{t('Loading…','لوڈ ہو رہا ہے…')}</p>}
+      {!section&&data&&<><div style={grid}>{allowed.map(s=>{const v=MY_LIFE_SECTIONS[s];return <button key={s} type="button" onClick={()=>show(s)} style={{...card,textAlign:lang==='ur'?'right':'left',cursor:'pointer',color:'#214b34'}}><div style={{fontSize:25,color:'#34845a'}}>{v[4]}</div><h2 style={{fontSize:19,margin:'7px 0'}}>{t(v[0],v[1])}</h2><p style={{fontSize:13,color:'#567461',margin:0}}>{t(v[2],v[3])}</p><div style={{fontSize:13,marginTop:12,fontWeight:650}}>{counts[s]} {t('records','ریکارڈز')} →</div></button>;})}</div>{!allowed.length&&<p>{t('No My Life sections have been shared yet.','ابھی کوئی حصہ شیئر نہیں کیا گیا۔')}</p>}
+        {ownerMode&&<div style={{...card,marginTop:16}}><h3 style={{margin:'0 0 4px'}}>{t('Family visibility','خاندان کی رسائی')}</h3><p style={{fontSize:12,color:'#577461'}}>{t('Sharing a section allows family to read all its records, including notes. All sections are private by default.','شیئر کرنے پر خاندان تمام ریکارڈ اور نوٹس دیکھ سکتا ہے۔ شروع میں تمام حصے نجی ہیں۔')}</p>{Object.entries(MY_LIFE_SECTIONS).map(([s,v])=><label key={s} style={{display:'flex',alignItems:'center',gap:8,padding:'7px 0'}}><input type="checkbox" checked={!!data.visibility?.[s]} disabled={busy} onChange={e=>{const visible=e.target.checked;if(!visible||window.confirm(t('Share all records and notes in this section with family?','کیا تمام ریکارڈ اور نوٹس خاندان کے ساتھ شیئر کریں؟')))request({action:'my_life_visibility',section:s,visible});}}/>{t(v[0],v[1])}</label>)}</div>}</>}
+      {section&&labels&&allowed.includes(section)&&<><div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:8,flexWrap:'wrap',marginBottom:12}}><div><button type="button" style={btn} onClick={back}>← {t('All sections','تمام حصے')}</button><h2 style={{margin:'10px 0 0',fontSize:23}}>{t(labels[0],labels[1])}</h2></div>{ownerMode&&<button type="button" style={primary} onClick={()=>setForm(empty())}>+ {t('Add record','ریکارڈ شامل کریں')}</button>}</div>
+        {section==='finance'&&<><label style={{display:'block',fontSize:13,marginBottom:12}}>{t('Month','مہینہ')} <input type="month" value={month} onChange={e=>setMonth(e.target.value)} style={{...input,width:'auto'}}/></label><div style={grid}>{stat(t('Income','آمدنی'),money(income))}{stat(t('Expenses','اخراجات'),money(expenses))}{stat(t('Monthly savings','ماہانہ بچت'),money(income-expenses))}{stat(t('Recorded balance','ریکارڈ شدہ بیلنس'),money(balance))}</div><div style={{...card,marginTop:12}}><strong>{t('Savings target','بچت کا ہدف')}</strong>{target>0?<>{bar(balance/target*100)}<div>{money(balance)} / {money(target)}</div>{balance<target&&pace>0&&<small>{t('At your average recorded monthly savings: about','اوسط ماہانہ بچت کے حساب سے تقریباً')} {Math.ceil((target-balance)/pace)} {t('months to reach target.','مہینے باقی ہیں۔')}</small>}</>:<p>{t('Add a savings target to track your progress.','بچت کا ہدف شامل کریں۔')}</p>}<p style={{fontSize:12,marginBottom:0}}>{t('Based on recorded transactions only. Currency: PKR. Targets do not change balance.','صرف درج شدہ لین دین پر مبنی۔ کرنسی پاکستانی روپیہ ہے۔ اہداف بیلنس تبدیل نہیں کرتے۔')}</p></div>{expenseGroups.length>0&&<div style={{...card,marginTop:12}}><strong>{t('Expense breakdown','اخراجات کی تفصیل')}</strong>{expenseGroups.map(([k,v])=><div key={k} style={{marginTop:8,fontSize:13}}>{k} · {money(v)}{bar(v/expenses*100)}</div>)}<small>{t('Largest recorded expense category:','سب سے زیادہ درج شدہ اخراجات:')} {expenseGroups[0][0]}</small></div>}</>}
+        {section==='plans'&&<div style={grid}>{stat(t('Active plans','جاری منصوبے'),planList.filter(x=>x.progress<100).length)}{stat(t('Completed','مکمل'),planList.filter(x=>x.progress===100).length)}{stat(t('Overdue','تاخیر'),planList.filter(x=>x.progress<100&&x.target<today).length)}</div>}
+        {section==='books'&&<div style={grid}>{stat(t('Reading now','زیر مطالعہ'),bookList.filter(x=>x.pages>0&&x.pages<x.total).length)}{stat(t('Books completed','مکمل کتابیں'),bookList.filter(x=>x.pages===x.total).length)}{stat(t('Pages read','پڑھے گئے صفحات'),bookList.reduce((n,x)=>n+x.pages,0))}</div>}
+        {section==='travel'&&<div style={grid}>{stat(t('Countries visited','ممالک'),countries)}{stat(t('Cities visited','شہر'),cities)}{stat(t('Completed trips','مکمل سفر'),visited.length)}{stat(t('Wish list','خواہشات'),travelList.filter(x=>x.status==='wish').length)}</div>}
+        {ownerMode&&form&&<form onSubmit={save} style={{...card,marginTop:14,display:'grid',gap:12}}><h3 style={{margin:0}}>{form.id?t('Edit record','ریکارڈ تبدیل کریں'):t('New record','نیا ریکارڈ')}</h3>{field('title',t('Title','عنوان'),'text',{required:true,maxLength:120})}<div style={grid}>
+          {section==='finance'&&<>{select('kind',t('Type','قسم'),[['income','Income','آمدنی'],['expense','Expense','اخراجات'],['target','Savings target','بچت کا ہدف']])}{field('amount',t('Amount (PKR)','رقم (روپے)'),'number',{required:true,min:0.01,max:1e10,step:'0.01'})}{field('date',t('Date','تاریخ'),'date',{required:true})}{field('category',t('Category','زمرہ'),'text',{maxLength:60})}</>}
+          {section==='plans'&&<>{select('horizon',t('Plan type','منصوبے کی قسم'),[['short','Short-term','مختصر مدت'],['long','Long-term','طویل مدت']])}{field('target',t('Target date','ہدف کی تاریخ'),'date',{required:true})}{field('progress',t('Progress (%)','پیش رفت (%)'),'number',{required:true,min:0,max:100,step:1})}</>}
+          {section==='books'&&<>{field('author',t('Author','مصنف'),'text',{maxLength:120})}{field('start',t('Reading start date','مطالعہ شروع کرنے کی تاریخ'),'date',{required:true,max:today})}{field('total',t('Total pages','کل صفحات'),'number',{required:true,min:1,max:100000,step:1})}{field('pages',t('Pages read so far','اب تک پڑھے گئے صفحات'),'number',{required:true,min:0,max:Number(form.total)||100000,step:1})}</>}
+          {section==='travel'&&<>{select('status',t('Status','حیثیت'),[['visited','Visited','سفر ہو چکا'],['wish','Wish list','خواہش']])}{field('country',t('Country','ملک'),'text',{required:true,maxLength:100})}{field('city',t('City','شہر'),'text',{required:true,maxLength:100})}{field('start',t('Start date','آغاز'),'date',{required:true})}{field('end',t('End date','اختتام'),'date',{required:true,min:form.start})}</>}
+        </div><label style={{display:'grid',gap:5,fontSize:12,fontWeight:650}}>{t('Notes / lessons / memories','نوٹس / اسباق / یادیں')}<textarea rows={3} maxLength={1000} style={input} value={form.notes||''} onChange={e=>setForm(f=>({...f,notes:e.target.value}))}/></label><div style={{display:'flex',gap:8}}><button style={primary} disabled={busy} type="submit">{t('Save','محفوظ کریں')}</button><button style={btn} type="button" onClick={()=>setForm(null)}>{t('Cancel','منسوخ')}</button></div></form>}
+        <h3 style={{margin:'18px 0 9px'}}>{t('History','ریکارڈز')}</h3>{!displayList.length&&<p style={{...card,color:'#64816e'}}>{t('No records yet.','ابھی کوئی ریکارڈ نہیں۔')}</p>}
+        <div style={{display:'grid',gap:10}}>{displayList.map(x=><article key={x.id} style={card}><div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:10,flexWrap:'wrap'}}><strong style={{fontSize:16,overflowWrap:'anywhere'}}>{x.title}</strong>{ownerMode&&<div style={{display:'flex',gap:6}}><button type="button" style={btn} disabled={busy} onClick={()=>setForm({...empty(),...x})}>{t('Edit','تبدیل')}</button><button type="button" style={{...btn,color:'#a33f32'}} disabled={busy} onClick={()=>{if(window.confirm(t('Delete this record?','ریکارڈ حذف کریں؟')))request({action:'my_life_delete',section,id:x.id});}}>{t('Delete','حذف')}</button></div>}</div>
+          {section==='finance'&&<p style={{margin:'6px 0',fontSize:13}}>{x.kind==='income'?t('Income','آمدنی'):x.kind==='expense'?t('Expense','اخراجات'):t('Savings target','بچت کا ہدف')} · <b>{money(x.amount)}</b> · {x.date}{x.category?' · '+x.category:''}</p>}
+          {section==='plans'&&<>{bar(x.progress)}<div style={{fontSize:13}}>{x.progress}% · {x.progress===100?t('Completed','مکمل'):days(today,x.target)<0?t('Overdue','تاخیر'):days(today,x.target)+' '+t('days left','دن باقی')} · {x.target}</div></>}
+          {section==='books'&&<>{bar(x.pages/x.total*100)}<div style={{fontSize:13}}>{x.author?x.author+' · ':''}{x.pages}/{x.total} {t('pages','صفحات')} · {x.pages===x.total?t('Completed','مکمل'):x.pages===0?t('Reading list','مطالعہ کی فہرست'):t('Reading','زیر مطالعہ')}{bookEstimate(x)!==null?' · '+t('About','تقریباً')+' '+bookEstimate(x)+' '+t('days left','دن باقی'):''}</div>{Array.isArray(x.reading)&&x.reading.length>0&&<details style={{marginTop:8,fontSize:12}}><summary>{t('Daily reading history','روزانہ مطالعے کی تاریخ')}</summary>{[...x.reading].reverse().map(y=><div key={y.date}>{y.date} · {y.pages>0?'+':''}{y.pages} {t('pages','صفحات')}</div>)}</details>}{ownerMode&&x.pages<x.total&&<button type="button" style={{...btn,marginTop:8}} onClick={()=>{setForm({...empty(),...x,pages:Math.min(x.total,x.pages+1)});}}>{t('Update reading pages','مطالعہ اپڈیٹ کریں')}</button>}</>}
+          {section==='travel'&&<div style={{fontSize:13,marginTop:6}}>{x.city}, {x.country} · {x.status==='visited'?t('Visited','سفر ہو چکا'):t('Wish list','خواہش')}<br/>{x.start} – {x.end} · {days(x.start,x.end)+1} {t('days','دن')} · <a href={'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(x.city+', '+x.country)} target="_blank" rel="noopener noreferrer" style={{color:'#286547'}}>{t('View map','نقشہ دیکھیں')}</a></div>}{note(x)}</article>)}</div>
+      </>}
+    </main>
+  </div>;
+}
+
 function FamilyToday({ entries, days, quran, viewDate, setViewDate, onOpen, onOpenSummary, ownerMode, onNew, love, loveBusy, onLove, ownerPin, onOpenLifeMap, onOpenQuestions, questionsPending, onOpenSeen, viewer, onOpenToday30, language = 'en' }) {
   const [expanded, setExpanded] = useState(null);
   const hifzStats = hifzProgress(quran);
@@ -2898,6 +2983,7 @@ function FamilyToday({ entries, days, quran, viewDate, setViewDate, onOpen, onOp
   return <div className="tmv-family-view tmv-v32-home">
     <div className="tmv-v32-intro">
       <span className="tmv-v32-kicker" style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:7}}>
+        <MyLifeLauncher ownerMode={ownerMode}/>
         {ownerMode ? 'THE DAILY JOURNAL' : <FamilyTimeGreeting viewer={viewer}/>}
         {!ownerMode&&<button type="button" onClick={onOpenToday30} title="Ahsan's Today in 30 Seconds"
           aria-label="Watch Ahsan's Today in 30 Seconds" style={{display:'inline-flex',alignItems:'center',gap:3,

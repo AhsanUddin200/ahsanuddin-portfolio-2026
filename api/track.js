@@ -132,7 +132,7 @@ const familyLoginAccounts = () => [
 ].filter(account => typeof account.password === 'string' && account.password.length >= 1);
 /* V47 Single Login Role Guard */
 const familyViewerNames = new Set(['nasir','talat','happa','yamna','family','owner']);
-const FAMILY_READ_ACTIONS = new Set(['load','summary','moment_get','life_map_get','love_get','love_set',
+const FAMILY_READ_ACTIONS = new Set(['my_life_get','load','summary','moment_get','life_map_get','love_get','love_set',
   'family_questions_get','family_questions_ask','reminder_config','reminder_touch','reminder_subscribe','reminder_unsubscribe','seen_record','seen_get','family_text','urdu_cloud_voice','admission_get','daily_inspiration']);
 /* V48: private weekly Seen by records */
 const SEEN_WEEK_PREFIX='ahsan:private-track:seen:v1:';
@@ -1575,6 +1575,78 @@ function v56PublicReport(report){
       }
       try{await writeJSON(key,report);await redis('EXPIRE',key,report.verified?86400:900);}catch(_){}
       return res.status(200).json({report:v56PublicReport(report)});
+    }
+
+    /* V60 MY LIFE — separate authenticated storage; family is read-only. */
+    if (['my_life_get','my_life_save','my_life_delete','my_life_visibility'].includes(action)) {
+      const lifeOwner=signedViewer==='owner';
+      if(!lifeOwner&&!SEEN_FAMILY.has(signedViewer))return error(res,403,'Sign in required.');
+      if(!lifeOwner&&action!=='my_life_get')return error(res,403,'Owner access required.');
+      const sections=['finance','plans','books','travel'];
+      const prefix='ahsan:private-track:my-life:v1:';
+      const section=String(body.section||'');
+      const validId=id=>typeof id==='string'&&/^[a-f0-9-]{36}$/i.test(id);
+      const text=(value,max=200)=>typeof value==='string'?value.trim().slice(0,max):'';
+      const date=value=>{const s=text(value,10);return /^\d{4}-\d{2}-\d{2}$/.test(s)&&Number.isFinite(Date.parse(s+'T00:00:00Z'))&&new Date(s+'T00:00:00Z').toISOString().slice(0,10)===s?s:'';};
+      const num=(v,min,max)=>typeof v==='number'&&Number.isFinite(v)&&v>=min&&v<=max?v:null;
+      const parse=v=>{try{return typeof v==='string'?JSON.parse(v):v;}catch{return null;}};
+      const visibility=async()=>Object.fromEntries(await Promise.all(sections.map(async s=>[s,String(await redis('HGET',prefix+'visibility',s))==='1'])));
+      const getData=async()=>{
+        const vis=await visibility();
+        const allowed=sections.filter(s=>lifeOwner||vis[s]);
+        const records=Object.fromEntries(await Promise.all(allowed.map(async s=>{
+          const raw=await redis('HVALS',prefix+s);
+          if(!Array.isArray(raw))throw Error('My Life storage unavailable');
+          return [s,raw.map(parse).filter(r=>r&&validId(r.id)).sort((a,b)=>String(b.updatedAt).localeCompare(String(a.updatedAt)))];
+        })));
+        return {sections:allowed,records,...(lifeOwner?{visibility:vis}:{})};
+      };
+      if(action==='my_life_get')return res.status(200).json(await getData());
+      if(!sections.includes(section))return error(res,400,'Invalid My Life section.');
+      if(action==='my_life_visibility'){
+        if(typeof body.visible!=='boolean')return error(res,400,'Invalid visibility.');
+        await redis('HSET',prefix+'visibility',section,body.visible?'1':'0');
+        return res.status(200).json(await getData());
+      }
+      const key=prefix+section;
+      if(action==='my_life_delete'){
+        if(!validId(body.id))return error(res,400,'Invalid record.');
+        await redis('HDEL',key,body.id);
+        return res.status(200).json(await getData());
+      }
+      const r=body.record;
+      if(!r||typeof r!=='object'||Array.isArray(r))return error(res,400,'Invalid record.');
+      if(r.id&&!validId(r.id))return error(res,400,'Invalid record ID.');
+      const old=r.id?parse(await redis('HGET',key,r.id)):null;
+      if(r.id&&(!validId(r.id)||!old||old.id!==r.id))return error(res,404,'Record not found.');
+      if(!old&&Number(await redis('HLEN',key))>=1000)return error(res,400,'Section record limit reached.');
+      const now=new Date().toISOString();
+      const entry={id:old?.id||randomUUID(),title:text(r.title,120),notes:text(r.notes,1000),createdAt:old?.createdAt||now,updatedAt:now};
+      if(!entry.title)return error(res,400,'Enter a title.');
+      if(section==='finance'){
+        const amount=num(r.amount,0.01,1e10),day=date(r.date),kind=r.kind;
+        if(amount===null||!day||!['income','expense','target'].includes(kind))return error(res,400,'Enter a valid amount, date and type.');
+        Object.assign(entry,{amount:Math.round(amount*100)/100,date:day,kind,category:text(r.category,60)});
+      }else if(section==='plans'){
+        const progress=num(r.progress,0,100),target=date(r.target);
+        if(progress===null||!Number.isInteger(progress)||!target||!['short','long'].includes(r.horizon))return error(res,400,'Enter a valid target date and progress.');
+        Object.assign(entry,{progress,target,horizon:r.horizon});
+      }else if(section==='books'){
+        const total=num(r.total,1,100000),pages=num(r.pages,0,100000),start=date(r.start);
+        if(total===null||pages===null||!Number.isInteger(total)||!Number.isInteger(pages)||pages>total||!start||start>new Date(Date.now()+18000000).toISOString().slice(0,10))return error(res,400,'Check the start date and page totals.');
+        const reading=Array.isArray(old?.reading)?old.reading.filter(x=>date(x.date)&&Number.isInteger(x.pages)).slice(-365):[];
+        // Record actual changes to cumulative pages, including corrections.
+        const today=new Date(Date.now()+18000000).toISOString().slice(0,10);
+        const delta=pages-(old?.pages||0);
+        if(delta){const last=reading.find(x=>x.date===today);if(last)last.pages+=delta;else reading.push({date:today,pages:delta});}
+        Object.assign(entry,{author:text(r.author,120),total,pages,start,reading:reading.slice(-365)});
+      }else{
+        const country=text(r.country,100),city=text(r.city,100),start=date(r.start),end=date(r.end);
+        if(!country||!city||!start||!end||end<start||!['visited','wish'].includes(r.status)|| (r.status==='visited'&&end>new Date(Date.now()+18000000).toISOString().slice(0,10)))return error(res,400,'Check destination and dates.');
+        Object.assign(entry,{country,city,start,end,status:r.status});
+      }
+      await redis('HSET',key,entry.id,JSON.stringify(entry));
+      return res.status(200).json(await getData());
     }
 
     /* V48: secure visits based solely on the signed family session. */
