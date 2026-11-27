@@ -2117,7 +2117,7 @@ function buildMonthlyProgress({ entries, days, quran, selectedDate }) {
   return { calendar, best, least, recorded, monthName, numDays, isMonthComplete };
 }
 
-function MonthlyProgress({ entries, days, quran, selectedDate, onSelectDate }) {
+function MonthlyProgress({ entries, days, quran, selectedDate, onSelectDate, motionOff=false }) {
   const [compareOpen, setCompareOpen] = useState(false);
   const model = useMemo(() => buildMonthlyProgress({entries, days, quran, selectedDate}),
     [entries, days, quran, selectedDate.slice(0,7)]);
@@ -2173,9 +2173,9 @@ function MonthlyProgress({ entries, days, quran, selectedDate, onSelectDate }) {
     </div>
     </div><div className="tmv-v39-month-info">
       <div className="tmv-v39-month-metrics">
-        <span><b>Best</b> {model.best ? `${model.best.day} · ${model.best.score}%` : '—'}</span>
-        <span><b>Lowest</b> {model.least ? `${model.least.day} · ${model.least.score}%` : '—'}</span>
-        <span><b>Selected</b> {active ? `${active.day} · ${active.score}%` : 'No data'}</span>
+        <span><b>Best</b> {model.best ? <span>{model.best.day} · <V62Count value={model.best.score} motionOff={motionOff}/></span> : '—'}</span>
+        <span><b>Lowest</b> {model.least ? <span>{model.least.day} · <V62Count value={model.least.score} motionOff={motionOff}/></span> : '—'}</span>
+        <span><b>Selected</b> {active ? <span>{active.day} · <V62Count value={active.score} motionOff={motionOff}/></span> : 'No data'}</span>
       </div>
       <p>{active
         ? `${active.jamaat} Jamaat · ${active.qaza} Qaza · ${active.quranPages} Quran pages · ${active.officeEvents} office updates${active.universityEvents ? ` · ${active.universityEvents} university updates` : ''}${active.universityDates ? ' · University date' : ''}`
@@ -2895,9 +2895,45 @@ function MyLifeScreen({ownerMode,onClose}){
   </div>;
 }
 
-function FamilyToday({ entries, days, quran, viewDate, setViewDate, onOpen, onOpenSummary, ownerMode, onNew, love, loveBusy, onLove, ownerPin, onOpenLifeMap, onOpenQuestions, questionsPending, onOpenSeen, viewer, onOpenToday30, language = 'en' }) {
+/* V62 PREMIUM EXPERIENCE */
+function v62Read(key,fallback){try{return localStorage.getItem(key)??fallback;}catch(_){return fallback;}}
+function v62Write(key,value){try{localStorage.setItem(key,String(value));}catch(_){}}
+function v62Night(){const hour=Number(new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Karachi',hour:'2-digit',hourCycle:'h23'}).format(new Date()));return hour<6||hour>=18;}
+function v62Vibrate(off){if(off||window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)return;try{if(window.matchMedia?.('(pointer: coarse)').matches)navigator.vibrate?.(12);}catch(_){}}
+function v62NewTypes(entries,quran,since,until){
+  if(!Number.isFinite(since)||since<=0)return '';
+  const recent=v=>{const t=Date.parse(v||'');return Number.isFinite(t)&&t>since&&t<=until;};
+  return ['quran','office','university','personal'].filter(type=>type==='quran'?quran.some(x=>recent(x.createdAt)||recent(x.updatedAt)):entries.some(x=>x.section===type&&(recent(x.createdAt)||recent(x.updatedAt)||(x.logs||[]).some(log=>recent(log.createdAt))))).join(' ');
+}
+function V62Count({value,motionOff}){
+  const [shown,setShown]=useState(value);
+  useEffect(()=>{if(!Number.isFinite(value)||motionOff||window.matchMedia?.('(prefers-reduced-motion: reduce)').matches){setShown(value);return;}
+    let frame,start;setShown(0);const tick=t=>{if(start===undefined)start=t;const p=Math.min(1,(t-start)/420);setShown(Math.round(value*(1-Math.pow(1-p,3))));if(p<1)frame=requestAnimationFrame(tick);};frame=requestAnimationFrame(tick);return()=>cancelAnimationFrame(frame);
+  },[value,motionOff]);
+  return <span data-family-lang-ignore="true" aria-label={String(value)+'%'}><span aria-hidden="true">{shown}%</span></span>;
+}
+function V62Skeleton(){return <div className="tmv-v62-skeleton" role="status" aria-label="Opening family updates"><div className="tmv-v62-skeleton-head"><AhsanAvatar/><div><i/><i/></div></div><div className="tmv-v62-skeleton-hero"><i/><i/><i/></div><div className="tmv-v62-skeleton-line"/><div className="tmv-v62-skeleton-pair"><i/><i/></div><div className="tmv-v62-skeleton-line"/>{[1,2,3,4].map(n=><div key={n} className="tmv-v62-skeleton-row"><i/><div><i/><i/></div></div>)}<span>Opening family updates…</span></div>;}
+
+function FamilyToday({ entries, days, quran, viewDate, setViewDate, onOpen, onOpenSummary, ownerMode, onNew, love, loveBusy, onLove, ownerPin, onOpenLifeMap, onOpenQuestions, questionsPending, onOpenSeen, viewer, onOpenToday30, language = 'en', motionOff=false, newTypes='', onRefresh, refreshing=false }) {
   const [expanded, setExpanded] = useState(null);
   const hifzStats = hifzProgress(quran);
+  const [v62NightMode,setV62NightMode]=useState(v62Night);
+  const v62FrontRef=useRef(null);
+  const [v62Pull,setV62Pull]=useState(false);
+  useEffect(()=>{const sync=()=>setV62NightMode(v62Night());const id=window.setInterval(sync,30000);window.addEventListener('focus',sync);document.addEventListener('visibilitychange',sync);return()=>{clearInterval(id);window.removeEventListener('focus',sync);document.removeEventListener('visibilitychange',sync);};},[]);
+  useEffect(()=>{
+    const el=v62FrontRef.current;if(!el)return;let start=null;
+    const blocked=target=>target instanceof Element&&Boolean(target.closest('button,a,input,textarea,select,summary,[role="button"],[contenteditable]'));
+    const begin=e=>{if(e.touches.length!==1||blocked(e.target)||refreshing){start=null;return;}const t=e.touches[0];start={x:t.clientX,y:t.clientY,top:window.scrollY<=5};};
+    const move=e=>{if(!start||e.touches.length!==1){start=null;setV62Pull(false);return;}const t=e.touches[0],dx=t.clientX-start.x,dy=t.clientY-start.y;if(start.top&&dy>16&&dy>Math.abs(dx)*1.5){if(e.cancelable)e.preventDefault();setV62Pull(dy>45);}else if(Math.abs(dx)>16||dy<0)setV62Pull(false);};
+    const end=e=>{setV62Pull(false);if(!start||!e.changedTouches.length)return;const t=e.changedTouches[0],dx=t.clientX-start.x,dy=t.clientY-start.y,top=start.top;start=null;
+      if(top&&dy>80&&dy>Math.abs(dx)*1.5){v62Vibrate(motionOff);onRefresh?.();return;}
+      if(Math.abs(dx)>65&&Math.abs(dx)>Math.abs(dy)*1.5){const next=shiftDay(viewDate,dx>0?-1:1);if(next<=dayISO()){v62Vibrate(motionOff);setViewDate(next);}}
+    };
+    const cancel=()=>{start=null;setV62Pull(false);};
+    el.addEventListener('touchstart',begin,{passive:true});el.addEventListener('touchmove',move,{passive:false});el.addEventListener('touchend',end,{passive:true});el.addEventListener('touchcancel',cancel,{passive:true});
+    return()=>{el.removeEventListener('touchstart',begin);el.removeEventListener('touchmove',move);el.removeEventListener('touchend',end);el.removeEventListener('touchcancel',cancel);};
+  },[viewDate,setViewDate,onRefresh,refreshing,motionOff]);
   useEffect(() => { setExpanded(null); }, [viewDate]);
   const read = quran.filter(item => item.date === viewDate)
     .sort((a,b) => String(b.createdAt).localeCompare(String(a.createdAt)));
@@ -2981,7 +3017,7 @@ function FamilyToday({ entries, days, quran, viewDate, setViewDate, onOpen, onOp
   }
 
   return <div className="tmv-family-view tmv-v32-home">
-    <div className="tmv-v32-intro">
+    <div ref={v62FrontRef} className={`tmv-v32-intro ${v62NightMode?'tmv-v62-night':'tmv-v62-day'}`}>
       <span className="tmv-v32-kicker" style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:7}}>
         <span className="tmv-v61-desktop-life"><MyLifeLauncher ownerMode={ownerMode}/></span>
         {ownerMode ? 'THE DAILY JOURNAL' : <FamilyTimeGreeting viewer={viewer}/>}
@@ -3017,6 +3053,7 @@ function FamilyToday({ entries, days, quran, viewDate, setViewDate, onOpen, onOp
           <button type="button" className="tmv-v32-summarybtn" onClick={onOpenSummary} aria-label="Open daily summary assistant"><Sparkles size={17}/><span>Quick AI summary</span></button>
         </div>
       </div>
+      <div className="tmv-v62-front-foot" data-family-lang-ignore="true"><span className="tmv-v62-gesture-hint">{language==='ur'?'دن بدلنے کے لیے سوائپ کریں، تازہ کرنے کے لیے نیچے کھینچیں':'Swipe dates · Pull down to refresh'}</span><span role="status">{refreshing?(language==='ur'?'تازہ ہو رہا ہے…':'Refreshing…'):v62Pull?(language==='ur'?'تازہ کرنے کے لیے چھوڑیں':'Release to refresh'):''}</span><button type="button" onClick={onRefresh} disabled={refreshing} aria-label={language==='ur'?'اپڈیٹس تازہ کریں':'Refresh updates'}><ArrowLeftRight size={13}/>{language==='ur'?'تازہ کریں':'Refresh'}</button></div>
     </div>
     {!ownerMode&&<div className="tmv-v61-reflection"><DailyInspiration language={language}/></div>}
     {listenError && <div className="tmv-mini-toast" role="status">{listenError}</div>}
@@ -3041,7 +3078,8 @@ function FamilyToday({ entries, days, quran, viewDate, setViewDate, onOpen, onOp
       <button type="button" onClick={() => setShowEmptyDayToast(false)} aria-label="Dismiss notification"><X size={17}/></button>
     </div>}
     <div className="tmv-v32-sectiontitle tmv-v32-life-title"><h2>Life &amp; Progress</h2><div className="tmv-v41-life-tray"><span className="tmv-v41-life-hint">Only what matters</span><button type="button" className="tmv-v42-open-map" onClick={onOpenLifeMap} aria-label="Open Ahsan's Life Map" title="Life Map"><MapPinned size={15}/><span>Life Map</span></button><FamilyMoment date={viewDate} ownerMode={ownerMode} ownerPin={ownerPin}/></div></div>
-    <section className="tmv-v32-life" aria-label="Life and progress">
+    {viewDate===dayISO()&&newTypes&&<p className="tmv-v62-new-legend" data-family-lang-ignore="true"><i/>{language==='ur'?'گزشتہ وزٹ کے بعد نئی اپڈیٹ':'New since your last visit'}</p>}
+    <section className="tmv-v32-life" data-v62-new={viewDate===dayISO()?newTypes:''} aria-label="Life and progress">
       <V32LifeItem type="quran" date={viewDate} title="Quran Reading" summary={quranSummary}
         status={read.length ? 'Recorded' : 'No update'} extra={[quranExtra, hifzStats.sessions ? `Hifz: ${hifzStats.newPages} learning page${hifzStats.newPages===1?'':'s'} · ${hifzStats.revisionPages} revision page${hifzStats.revisionPages===1?'':'s'}` : 'Hifz: no practice logged yet'].filter(Boolean).join(' · ')}
         expanded={expanded === 'quran'} onToggle={() => toggle('quran')} onOpen={onOpen}>
@@ -3065,7 +3103,7 @@ function FamilyToday({ entries, days, quran, viewDate, setViewDate, onOpen, onOp
         expanded={expanded === 'personal'} onToggle={() => toggle('personal')} onOpen={onOpen}/>
     </section>
     {ownerMode && <button className="tmv-owner-quick" type="button" onClick={() => onNew('office')}><Plus size={18}/> Add a new work task</button>}
-    <MonthlyProgress entries={entries} days={days} quran={quran} selectedDate={viewDate} onSelectDate={setViewDate}/>
+    <MonthlyProgress entries={entries} days={days} quran={quran} selectedDate={viewDate} onSelectDate={setViewDate} motionOff={motionOff}/>
   </div>;
 }
 
@@ -3563,6 +3601,33 @@ export default function TrackMe() {
     try{return window.localStorage.getItem('tm-family-language')==='ur'?'ur':'en';}catch(_){return 'en';}
   });
   const familySmartRootRef=useRef(null);
+  const [motionOff,setMotionOff]=useState(()=>v62Read('tm-v62-motion','on')==='off');
+  const [v62Compact,setV62Compact]=useState(false);
+  const [v62Refreshing,setV62Refreshing]=useState(false);
+  const v62Lock=useRef(false),v62Latest=useRef(null),v62Visit=useRef(null);
+  const [v62VisitRange,setV62VisitRange]=useState({since:0,until:0});
+  v62Latest.current={authenticated,familyViewer,entries,prayerDays,quranEntries,busy,section,editor};
+  useEffect(()=>{v62Write('tm-v62-motion',motionOff?'off':'on');},[motionOff]);
+  useEffect(()=>{
+    if(!authenticated||welcome||ownerMode){v62Visit.current=null;setV62VisitRange({since:0,until:0});return;}
+    if(v62Visit.current===familyViewer)return;
+    v62Visit.current=familyViewer;const key='tm-v62-last-visit-'+familyViewer,now=Date.now();const since=Number(v62Read(key,'0'))||0;
+    setV62VisitRange({since,until:now});v62Write(key,now);
+  },[authenticated,welcome,ownerMode,familyViewer]);
+  useEffect(()=>{if(!authenticated||welcome)return;let anchor=window.scrollY;
+    const scroll=()=>{const y=Math.max(0,window.scrollY);if(y<32){setV62Compact(false);anchor=y;}else if(y-anchor>38){setV62Compact(true);anchor=y;}else if(anchor-y>26){setV62Compact(false);anchor=y;}};
+    window.addEventListener('scroll',scroll,{passive:true});return()=>window.removeEventListener('scroll',scroll);
+  },[authenticated,welcome]);
+  useEffect(()=>{const el=familySmartRootRef.current;if(!el)return;const tap=e=>{if(e.detail>0&&e.target instanceof Element&&e.target.closest('.tmv-v32-row,.tmv-v37-quick-actions button,.tmv-v61-nav button,.tmv-v61-nav summary'))v62Vibrate(motionOff);};el.addEventListener('click',tap);return()=>el.removeEventListener('click',tap);},[authenticated,welcome,motionOff]);
+  async function v62Refresh(){const before=v62Latest.current;if(v62Lock.current||!before.authenticated||before.busy||before.editor||before.section!=='overview')return;
+    v62Lock.current=true;setV62Refreshing(true);
+    try{const data=await api();const after=v62Latest.current;if(!after.authenticated||after.familyViewer!==before.familyViewer||after.busy||after.editor||after.entries!==before.entries||after.prayerDays!==before.prayerDays||after.quranEntries!==before.quranEntries)return;
+      if(!data.authenticated||(data.viewer||'family')!==before.familyViewer){window.location.reload();return;}
+      setEntries(data.entries||[]);setPrayerDays(data.prayerDays||{});setQuranEntries(data.quranEntries||[]);
+      if(before.familyViewer!=='owner')setV62VisitRange(r=>({...r,until:Date.now()}));
+    }catch(e){if(v62Latest.current.authenticated&&v62Latest.current.familyViewer===before.familyViewer)fail(e);}
+    finally{v62Lock.current=false;setV62Refreshing(false);}
+  }
   useEffect(()=>{
     if(!authenticated||ownerMode||welcome||!familySmartRootRef.current)return undefined;
     return familyScreenTransform(familySmartRootRef.current,familyLang);
@@ -3692,11 +3757,11 @@ export default function TrackMe() {
   async function addQuran(form){setBusy(true);try{const data=await api({action:'quran_add',...form});setQuranEntries(list=>[...list,data.entry]);setNotice('Quran reading saved.');return true;}catch(err){fail(err);return false;}finally{setBusy(false);}}
   async function deleteQuran(item){if(!window.confirm(`Delete this Para ${item.para} reading?`))return;setBusy(true);try{await api({action:'quran_delete',id:item.id});setQuranEntries(list=>list.filter(x=>x.id!==item.id));setNotice('Reading deleted.');}catch(err){fail(err);}finally{setBusy(false);}}
   function go(key){setSection(key);setExpanded(null);setNote('');setSearch('');setFilter('all');setNotice('');if(typeof window!=='undefined')window.scrollTo({top:0,behavior:'instant'});}
-  if(showStandaloneSplash)return <main className="tm-page"><FamilyAppSplash/></main>;
-  if(loading)return <main className="tm-page tm-loading" role="status"><div className="tm-spinner"/><p>Opening family updates…</p></main>;
-  if(!authenticated)return <main className="tm-page"><LoginScreen password={password} setPassword={setPassword} onSubmit={signIn} busy={busy} error={loginError}/></main>;
+  if(showStandaloneSplash)return <main className="tm-page tmv-v62-start" data-v62-motion={motionOff?'off':'on'}><FamilyAppSplash/></main>;
+  if(loading)return <main className="tm-page tmv-v62-start" data-v62-motion={motionOff?'off':'on'}><V62Skeleton/></main>;
+  if(!authenticated)return <main className="tm-page tmv-v62-start" data-v62-motion={motionOff?'off':'on'}><LoginScreen password={password} setPassword={setPassword} onSubmit={signIn} busy={busy} error={loginError}/></main>;
   if(welcome)return <main className="tm-page"><CautionWelcome viewer={familyViewer} onContinue={()=>setWelcome(false)}/></main>;
-  return <main ref={familySmartRootRef} className="tm-page tmv-family tmv-v61" data-v61-section={section}><div className="tm-shell tmv-shell">
+  return <main ref={familySmartRootRef} className="tm-page tmv-family tmv-v61 tmv-v62" data-v61-section={section} data-v62-motion={motionOff?'off':'on'} data-v62-lang={!ownerMode?familyLang:'en'} data-v62-compact={v62Compact?'yes':'no'}><div className="tm-shell tmv-shell">
     <header className="tmv-header"><button type="button" className="tmv-brand" onClick={()=>go('overview')} aria-label="Go to Ahsan's daily updates"><AhsanAvatar className="tmv-avatar-header"/><span><strong><AhsanName/>’s Updates</strong><small>Family journal</small></span></button><div className="tmv-mini-header-actions">{!ownerMode&&<div data-family-lang-ignore="true" role="group" aria-label="Family language" style={{display:'inline-flex',alignItems:'center',gap:2,whiteSpace:'nowrap',padding:'2px 4px',border:'1px solid #d9e8df',borderRadius:8,background:'#f5faf6',fontSize:10}}>
       <button type="button" aria-pressed={familyLang==='en'} onClick={()=>setFamilyLang('en')} style={{border:0,background:'transparent',color:familyLang==='en'?'#145b3d':'#88998d',fontWeight:familyLang==='en'?800:500,padding:'3px 2px',cursor:'pointer'}}>EN</button>
       <span aria-hidden="true" style={{color:'#9aa99f'}}>|</span>
@@ -3707,12 +3772,12 @@ export default function TrackMe() {
     {section==='overview'&&<FamilyToday entries={entries} days={prayerDays} quran={quranEntries} viewDate={viewDate} setViewDate={setViewDate} onOpen={go} ownerMode={ownerMode} onNew={newTask} onOpenSummary={()=>setSummaryOpen(true)}
       love={love.date === viewDate ? love : {date:viewDate,liked:false,count:0,names:[]}} loveBusy={loveBusy} onLove={toggleLove} ownerPin={creationPin} onOpenLifeMap={()=>{setLifeMapError('');setLifeMapOpen(true);}}
       onOpenQuestions={()=>setQuestionOpen(true)} questionsPending={questionsPending} onOpenSeen={()=>setSeenOpen(true)}
-      viewer={familyViewer} onOpenToday30={()=>setToday30Open(true)} language={ownerMode ? 'en' : familyLang}/>}
+      viewer={familyViewer} onOpenToday30={()=>setToday30Open(true)} language={ownerMode ? 'en' : familyLang} motionOff={motionOff} newTypes={ownerMode?'':v62NewTypes(entries,quranEntries,v62VisitRange.since,v62VisitRange.until)} onRefresh={v62Refresh} refreshing={v62Refreshing}/>}
     {['office','personal','university'].includes(section)&&<WorkPanel section={section} ownerMode={ownerMode} entries={entries} busy={busy} search={search} setSearch={setSearch} filter={filter} setFilter={setFilter} expanded={expanded} setExpanded={setExpanded} note={note} setNote={setNote} onNew={newTask} onNote={addNote} onEdit={item=>setEditor({...item})} onDelete={deleteTask} onStatus={updateTask}/>}
     {section==='prayer'&&<PrayerPanel ownerMode={ownerMode} date={prayerDate} setDate={setPrayerDate} days={prayerDays} busy={busy} onToggle={togglePrayer}/>}
     {section==='quran'&&<QuranPanel ownerMode={ownerMode} quran={quranEntries} busy={busy} onAdd={addQuran} onDelete={deleteQuran}/>}
     <div className="tmv-bottom"><p>Only for <AhsanName/>’s family.</p></div>
-    <div className="tmv-install-footer"><InstallShortcut/></div>
+    <div className="tmv-install-footer"><InstallShortcut/><button type="button" className="tmv-v62-motion-toggle" data-family-lang-ignore="true" aria-pressed={motionOff} onClick={()=>setMotionOff(v=>!v)}>{!ownerMode&&familyLang==='ur'?(motionOff?'کم حرکت: آن':'کم حرکت: آف'):(motionOff?'Reduced motion: On':'Reduced motion: Off')}</button></div>
     <nav className="tmv-v61-nav" aria-label="Quick navigation" data-family-lang-ignore="true">
       <button type="button" className={section==='overview'?'is-active':''} aria-current={section==='overview'?'page':undefined} onClick={()=>go('overview')}><Home size={20}/><span>{!ownerMode&&familyLang==='ur'?'ہوم':'Home'}</span></button>
       <button type="button" onClick={()=>{go('overview');window.requestAnimationFrame(()=>window.requestAnimationFrame(()=>document.getElementById('tmv-v61-month')?.scrollIntoView({block:'start',behavior:'auto'})));}}><CalendarDays size={20}/><span>{!ownerMode&&familyLang==='ur'?'ریکارڈ':'History'}</span></button>

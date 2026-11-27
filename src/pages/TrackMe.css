@@ -2699,3 +2699,81 @@ body:has(.tm-page) {background:#f5f7f6}
 @media(max-width:360px){.tm-page.tmv-v61 .tmv-v37-quick-actions>button{min-width:36px;width:36px;}.tm-page.tmv-v61 .tmv-v37-quick-actions .tmv-v32-summarybtn{width:auto;}.tm-page.tmv-v61 .tmv-v37-quick-actions{gap:4px;}.tm-page.tmv-v61 .tmv-v39-month-metrics>span{font-size:11px;padding:8px 6px;}}
 @media(prefers-reduced-motion:reduce){.tmv-v61-life-screen>main>div>button{transition:none;}}
 
+
+/* V62 PREMIUM EXPERIENCE */
+/* Only the front card changes automatically at 06:00 / 18:00 Pakistan time. */
+.tm-page.tmv-v62 .tmv-v32-intro{position:relative;overflow:hidden;touch-action:pan-y;transition:background .35s ease,border-color .35s ease,box-shadow .35s ease;}
+.tm-page.tmv-v62 .tmv-v32-intro.tmv-v62-day{background:linear-gradient(128deg,#fffdf7 0%,#f0f7ee 72%,#e4efe5 100%);border-color:#d8e5d9;}
+.tm-page.tmv-v62 .tmv-v32-intro.tmv-v62-night{background:radial-gradient(ellipse at 92% 8%,#386750 0,transparent 48%),linear-gradient(130deg,#132f27,#214b3b);border-color:#315745;box-shadow:0 6px 20px #193e3020;}
+.tm-page.tmv-v62 .tmv-v32-intro.tmv-v62-night .tmv-v32-titleline h1.tmv-v33-script-title,.tm-page.tmv-v62 .tmv-v32-intro.tmv-v62-night .tmv-v32-dot{color:#f5fbf5!important;}
+.tm-page.tmv-v62 .tmv-v32-intro.tmv-v62-night .tmv-v32-titleline p,.tm-page.tmv-v62 .tmv-v32-intro.tmv-v62-night .tmv-v32-kicker{color:#d2e9da!important;}
+.tm-page.tmv-v62 .tmv-v32-intro.tmv-v62-night .tmv-v32-kicker button{color:#e5f4e9!important;background:#ffffff13!important;border-color:#ffffff38!important;}
+.tm-page.tmv-v62 .tmv-v32-intro.tmv-v62-night .tmv-v37-quick-actions>button{color:#f1fcf4;background:#ffffff15;border-color:#ffffff35;}
+.tm-page.tmv-v62 .tmv-v32-intro.tmv-v62-night .tmv-v37-quick-actions .tmv-v32-summarybtn{background:#dcefe0;color:#19432f;border-color:#dcefe0;}
+.tm-page.tmv-v62 .tmv-v32-intro.tmv-v62-night .tmv-v37-quick-actions>button.is-loved,.tm-page.tmv-v62 .tmv-v32-intro.tmv-v62-night .tmv-v37-quick-actions>button.is-reading{background:#dcefe0;color:#19432f;}
+.tm-page.tmv-v62 .tmv-v62-front-foot{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:14px;padding-top:10px;border-top:1px solid #789b822e;color:#456b55;font-size:11px;}
+.tm-page.tmv-v62 .tmv-v62-front-foot>button{margin-inline-start:auto;display:flex;align-items:center;gap:5px;background:#ffffffb8;border:1px solid #d1e2d6;border-radius:9px;padding:7px 10px;min-height:30px;color:#235a40;font-weight:650;font-size:11px;}
+.tm-page.tmv-v62 .tmv-v62-front-foot>button:disabled{opacity:.65;cursor:wait;}
+.tm-page.tmv-v62 .tmv-v62-night .tmv-v62-front-foot{color:#d2e9da;border-color:#ffffff35;}
+.tm-page.tmv-v62 .tmv-v62-night .tmv-v62-front-foot>button{background:#ffffff18;color:#e7f5eb;border-color:#ffffff35;}
+.tm-page.tmv-v62 .tmv-v62-gesture-hint{display:none;}
+@media(pointer:coarse){.tm-page.tmv-v62 .tmv-v62-gesture-hint{display:inline;}}
+/* Compact sticky header; no styles on the protected date/prayer cards. */
+.tm-page.tmv-v62 .tmv-header{position:sticky;top:0;z-index:90;isolation:isolate;background:#f5f8f5f5;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);transition:min-height .2s ease,padding .2s ease,box-shadow .2s ease;}
+.tm-page.tmv-v62[data-v62-compact="yes"] .tmv-header{min-height:52px;padding-block:6px;box-shadow:0 4px 15px #193e3010;}
+.tm-page.tmv-v62[data-v62-compact="yes"] .tmv-brand .tmv-avatar-header{width:34px;height:34px;min-width:34px;}
+.tm-page.tmv-v62[data-v62-compact="yes"] .tmv-brand small{display:none;}
+/* Card content enters when expanded; details and actual record logic stay unchanged. */
+@keyframes tmv62Enter{from{opacity:0;transform:translateY(7px);}to{opacity:1;transform:translateY(0);}}
+@keyframes tmv62Expand{from{opacity:0;transform:translateY(-5px);}to{opacity:1;transform:translateY(0);}}
+@keyframes tmv62Bars{from{transform:scaleY(0);opacity:.4;}to{transform:scaleY(1);opacity:1;}}
+.tm-page.tmv-v62 .tmv-v32-expanded{animation:tmv62Expand .24s ease-out both;}
+.tm-page.tmv-v62 .tmv-v32-chevron{transition:transform .2s ease;}
+.tm-page.tmv-v62:not([data-v61-section="prayer"]) .tmv-detail-view,.tm-page.tmv-v62 .tmv-v32-intro,.tm-page.tmv-v62 .tmv-v61-reflection,.tm-page.tmv-v62 .tmv-v32-life{animation:tmv62Enter .24s ease-out both;}
+.tm-page.tmv-v62 .tmv-v39-month-bar{transform-origin:bottom;animation:tmv62Bars .42s cubic-bezier(.2,.7,.3,1) both;}
+.tm-page.tmv-v62 .tmv-v39-month-metrics{font-variant-numeric:tabular-nums;}
+.tm-page.tmv-v62 .tmv-v32-rowcopy>strong{position:relative;align-self:flex-start;}
+.tm-page.tmv-v62 .tmv-v32-life[data-v62-new~="quran"] .tmv-v32-item-quran .tmv-v32-rowcopy>strong::after,
+.tm-page.tmv-v62 .tmv-v32-life[data-v62-new~="office"] .tmv-v32-item-office .tmv-v32-rowcopy>strong::after,
+.tm-page.tmv-v62 .tmv-v32-life[data-v62-new~="university"] .tmv-v32-item-university .tmv-v32-rowcopy>strong::after,
+.tm-page.tmv-v62 .tmv-v32-life[data-v62-new~="personal"] .tmv-v32-item-personal .tmv-v32-rowcopy>strong::after{content:"";display:inline-block;width:8px;height:8px;margin-inline-start:7px;vertical-align:middle;border-radius:50%;background:#2e9863;box-shadow:0 0 0 3px #e0f2e6;}
+.tm-page.tmv-v62 .tmv-v62-new-legend{display:flex;align-items:center;gap:7px;font-size:11px;color:#326c4a;margin:0 0 8px;padding-inline:4px;}
+.tm-page.tmv-v62 .tmv-v62-new-legend i{display:inline-block;width:7px;height:7px;border-radius:50%;background:#2e9863;}
+/* Native-looking glass navigation, with opaque fallback. */
+@media(max-width:700px){.tm-page.tmv-v62 .tmv-v61-nav{background:#f8fcf8f2;backdrop-filter:blur(20px) saturate(135%);-webkit-backdrop-filter:blur(20px) saturate(135%);border-top:1px solid #dce7df;box-shadow:0 -6px 30px #173f3518;}.tm-page.tmv-v62 .tmv-v61-nav>button.is-active{background:#e1eee6!important;}.tm-page.tmv-v62 .tmv-v61-menu{background:#fff;}.tm-page.tmv-v62 .tmv-header{top:0;}}
+/* Readable Urdu only on redesigned regions; no global direction/font mutation. */
+.tm-page.tmv-v62[data-v62-lang="ur"] .tmv-v32-intro,.tm-page.tmv-v62[data-v62-lang="ur"] .tmv-v32-life,.tm-page.tmv-v62[data-v62-lang="ur"] .tmv-v32-life-title,.tm-page.tmv-v62[data-v62-lang="ur"] .tmv-v39-month-progress,.tm-page.tmv-v62[data-v62-lang="ur"] .tmv-v61-nav,.tm-page.tmv-v62[data-v62-lang="ur"]:not([data-v61-section="prayer"]) .tmv-detail-view{font-family:'Noto Naskh Arabic','Noto Sans Arabic','Segoe UI',Tahoma,Arial,sans-serif;}
+.tm-page.tmv-v62[data-v62-lang="ur"] .tmv-v32-rowcopy>strong,.tm-page.tmv-v62[data-v62-lang="ur"] .tmv-v32-summarytext,.tm-page.tmv-v62[data-v62-lang="ur"] .tmv-v32-extra{line-height:1.65;}
+.tm-page.tmv-v62[data-v62-lang="ur"] .tmv-v32-rowcopy{direction:rtl;text-align:right;}
+.tm-page.tmv-v62 .tmv-v62-motion-toggle{display:block;margin-top:8px;background:#f1f7f2;border:1px solid #d7e5db;color:#315c44;border-radius:9px;padding:7px 10px;font-size:11px;min-height:36px;}
+/* Skeletons show no personal information or fabricated values. */
+@keyframes tmv62Shimmer{0%{background-position:150% 0;}100%{background-position:-150% 0;}}
+.tm-page.tmv-v62-start .tmv-v62-skeleton{width:min(860px,100%);margin:0 auto;padding:18px 16px 30px;display:grid;gap:12px;color:#607e6b;box-sizing:border-box;}
+.tm-page.tmv-v62-start .tmv-v62-skeleton-head,.tm-page.tmv-v62-start .tmv-v62-skeleton-row{display:flex;align-items:center;gap:12px;padding:13px;border-radius:15px;background:#fff;border:1px solid #dce8df;}
+.tm-page.tmv-v62-start .tmv-v62-skeleton-head img{width:43px;height:43px;object-fit:cover;border-radius:13px;}
+.tm-page.tmv-v62-start .tmv-v62-skeleton-head>div,.tm-page.tmv-v62-start .tmv-v62-skeleton-row>div{flex:1;display:grid;gap:8px;}
+.tm-page.tmv-v62-start .tmv-v62-skeleton i,.tm-page.tmv-v62-start .tmv-v62-skeleton-line{display:block;background:linear-gradient(100deg,#e5ede7 30%,#f4f8f4 50%,#e5ede7 70%);background-size:250% 100%;animation:tmv62Shimmer 1.5s linear infinite;border-radius:8px;min-height:12px;}
+.tm-page.tmv-v62-start .tmv-v62-skeleton-head i:first-child,.tm-page.tmv-v62-start .tmv-v62-skeleton-row div i:first-child{width:46%;height:14px;}
+.tm-page.tmv-v62-start .tmv-v62-skeleton-head i:last-child,.tm-page.tmv-v62-start .tmv-v62-skeleton-row div i:last-child{width:73%;height:10px;}
+.tm-page.tmv-v62-start .tmv-v62-skeleton-hero{height:125px;display:grid;gap:13px;padding:20px;border-radius:19px;background:#f4f8f4;border:1px solid #dce8df;}
+.tm-page.tmv-v62-start .tmv-v62-skeleton-hero i:nth-child(1){width:35%;}.tm-page.tmv-v62-start .tmv-v62-skeleton-hero i:nth-child(2){width:64%;height:26px;}.tm-page.tmv-v62-start .tmv-v62-skeleton-hero i:nth-child(3){width:82%;}
+.tm-page.tmv-v62-start .tmv-v62-skeleton-line{width:36%;height:15px;margin-top:4px;}
+.tm-page.tmv-v62-start .tmv-v62-skeleton-pair{display:grid;grid-template-columns:1fr 2fr;gap:12px;}
+.tm-page.tmv-v62-start .tmv-v62-skeleton-pair i{height:166px;border-radius:17px;}
+.tm-page.tmv-v62-start .tmv-v62-skeleton-row>i{width:42px;height:42px;flex:0 0 42px;border-radius:12px;}
+.tm-page.tmv-v62-start .tmv-v62-skeleton>span{font-size:12px;text-align:center;}
+/* Existing secure sign-in and installed-app splash: presentation only. */
+.tm-page.tmv-v62-start .tmv-signin{background:radial-gradient(ellipse at 15% 12%,#e0eee2 0%,transparent 44%),radial-gradient(ellipse at 85% 85%,#dce9df 0%,transparent 42%),#f5f8f4;}
+.tm-page.tmv-v62-start .tmv-auth-frame{border-radius:24px;box-shadow:0 18px 65px #2147321a;animation:tmv62Enter .36s ease-out both;}
+.tm-page.tmv-v62-start .tmv-auth-aside{background:radial-gradient(ellipse at 80% 15%,#45745a 0%,transparent 50%),linear-gradient(145deg,#142e25,#25523c);}
+.tm-page.tmv-v62-start .tmv-auth-form-panel{border-radius:22px;}
+.tm-page.tmv-v62-start .tmv-auth-mobile-brand .tmv-profile-photo,.tm-page.tmv-v62-start .tmv-auth-brand .tmv-profile-photo{box-shadow:0 5px 20px #173f3530;border:2px solid #e0eee3;}
+.tm-page.tmv-v62-start .tmv-launch-splash{background:radial-gradient(ellipse at 75% 15%,#47775b 0%,transparent 54%),linear-gradient(150deg,#112c23,#24533d);}
+.tm-page.tmv-v62-start .tmv-launch-splash-content{animation:tmv62Enter .4s ease-out both;}
+.tm-page.tmv-v62-start .tmv-launch-splash-photo{border-radius:24px;box-shadow:0 12px 40px #071c1555;}
+/* Accessibility: saved preference and OS preference; preserve existing Prayer visuals. */
+.tm-page.tmv-v62[data-v62-motion="off"] :is(.tmv-v32-intro,.tmv-v32-expanded,.tmv-v32-chevron,.tmv-v61-reflection,.tmv-v32-life,.tmv-v39-month-bar,.tmv-header,.tmv-v61-nav,.tmv-v32-row),
+.tm-page.tmv-v62[data-v62-motion="off"]:not([data-v61-section="prayer"]) .tmv-detail-view,
+.tm-page.tmv-v62-start[data-v62-motion="off"] :is(.tmv-v62-skeleton i,.tmv-v62-skeleton-line,.tmv-auth-frame,.tmv-launch-splash-content,.tmv-launch-splash-photo,.tmv-launch-splash-progress){animation:none!important;transition:none!important;}
+@media(prefers-reduced-motion:reduce){.tm-page.tmv-v62 :is(.tmv-v32-intro,.tmv-v32-expanded,.tmv-v32-chevron,.tmv-v61-reflection,.tmv-v32-life,.tmv-v39-month-bar,.tmv-header,.tmv-v61-nav,.tmv-v32-row),.tm-page.tmv-v62:not([data-v61-section="prayer"]) .tmv-detail-view,.tm-page.tmv-v62-start :is(.tmv-v62-skeleton i,.tmv-v62-skeleton-line,.tmv-auth-frame,.tmv-launch-splash-content,.tmv-launch-splash-photo,.tmv-launch-splash-progress){animation:none!important;transition:none!important;}}
+
