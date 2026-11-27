@@ -2957,16 +2957,16 @@ function FamilyToday({ entries, days, quran, viewDate, setViewDate, onOpen, onOp
     <div className="tmv-v32-sectiontitle tmv-v32-life-title"><h2>Life &amp; Progress</h2><div className="tmv-v41-life-tray"><span className="tmv-v41-life-hint">Only what matters</span><button type="button" className="tmv-v42-open-map" onClick={onOpenLifeMap} aria-label="Open Ahsan's Life Map" title="Life Map"><MapPinned size={15}/><span>Life Map</span></button><FamilyMoment date={viewDate} ownerMode={ownerMode} ownerPin={ownerPin}/></div></div>
     <section className="tmv-v32-life" aria-label="Life and progress">
       <V32LifeItem type="quran" date={viewDate} title="Quran Reading" summary={quranSummary}
-        status={read.length ? 'Recorded' : 'No update'} extra={[quranExtra, hifzStats.sessions ? `Hifz: ${hifzStats.strong}/${hifzStats.total} strongly reviewed · ${hifzStats.newPages} new · ${hifzStats.revisionPages} revised` : 'Hifz: no practice logged yet'].filter(Boolean).join(' · ')}
+        status={read.length ? 'Recorded' : 'No update'} extra={[quranExtra, hifzStats.sessions ? `Hifz: ${hifzStats.newPages} learning page${hifzStats.newPages===1?'':'s'} · ${hifzStats.revisionPages} revision page${hifzStats.revisionPages===1?'':'s'}` : 'Hifz: no practice logged yet'].filter(Boolean).join(' · ')}
         expanded={expanded === 'quran'} onToggle={() => toggle('quran')} onOpen={onOpen}>
         <p style={{margin:'0 0 8px',fontSize:12,color:'#315c44'}}>
           <strong>Hifz · Learning & Revision:</strong>{' '}
           {hifzStats.sessions
-            ? `${hifzStats.newPages} new pages · ${hifzStats.revisionPages} revised · ${hifzStats.newMistakes} new mistakes · ${hifzStats.revisionMistakes} revision mistakes · ${hifzStats.strong}/${hifzStats.total} strongly reviewed`
+            ? `${hifzStats.newPages} learning pages · ${hifzStats.revisionPages} revision pages · Mistakes ${hifzStats.newMistakes}/${hifzStats.revisionMistakes}`
             : 'No structured Hifz practice saved yet. Older normal Quran readings are kept separate.'}
         </p>
         {read.length ? read.map(item => <p key={item.id || item.createdAt}>
-          <strong>{item.hifz ? `${item.hifz.newPages} new · ${item.hifz.revisionPages} revised · Mistakes ${item.hifz.newMistakes}/${item.hifz.revisionMistakes}` : `Para ${item.para} · ${item.pagesRead} ${Number(item.pagesRead)===1?'page':'pages'}`}</strong>
+          <strong>{item.hifz ? `${item.hifz.newPages} learning · ${item.hifz.revisionPages} revision · Mistakes ${item.hifz.newMistakes}/${item.hifz.revisionMistakes}` : `Para ${item.para} · ${item.pagesRead} ${Number(item.pagesRead)===1?'page':'pages'}`}</strong>
           {item.note ? ` — ${item.note}` : ''}
         </p>) : lastQuranReading ? <p>No reading was recorded for this selected day. Last reading: <strong>Para {lastQuranReading.para}, {lastQuranReading.pagesRead} pages</strong> on {prettyDate(lastQuranReading.date)}.</p>
           : <p>No Quran readings recorded for this day yet.</p>}
@@ -3040,34 +3040,34 @@ function AdmissionInsight({item,ownerMode}) {
   const sources=Array.isArray(report?.sources)?report.sources:[];
   return <details style={{marginTop:9,padding:'8px 10px',background:'#f8fbf9',border:'1px solid #e2ebe4',borderRadius:10}}>
     <summary style={{fontSize:12,color:'#285d43',cursor:'pointer',fontWeight:700}}>
-      Admission intelligence · Official requirements
+      Admission criteria check
     </summary>
     <div style={{padding:'8px 1px 3px'}}>
       <div style={{fontSize:11,fontWeight:700,color:report?.verified?'#26714a':'#927045'}}>
-        {report?.status || (busy?'Checking official university pages…':checked?(ownerMode?'No confirmed official result yet':'Automatic research pending (starts on owner visit)'):'Loading admission insight…')}
+        {report?.status || (busy?'Checking official criteria…':checked?(ownerMode?'Criteria not confirmed yet':'Criteria check pending'):'Loading criteria…')}
       </div>
       {report?.programFound && <p style={{...small,margin:'5px 0',color:'#286e52'}}>Official programme page located. Specific admission criteria are checked separately.</p>}
       {report?.verified && <>
-        <div style={row}><span>CGPA requirement</span>{report.gpa
-          ? <span style={tag(true)}>{report.gpa.minimum.toFixed(2)} published minimum</span>
+        <div style={row}><span>Required CGPA</span>{report.gpa
+          ? <span style={tag(true)}>Minimum {report.gpa.minimum.toFixed(2)}</span>
           : <span style={small}>Not verified</span>}</div>
-        <div style={row}><span>IELTS requirement</span>{report.ielts
-          ? <span style={tag(true)}>{report.ielts.minimum.toFixed(1)} published minimum</span>
+        <div style={row}><span>Required IELTS</span>{report.ielts
+          ? <span style={tag(true)}>Minimum {report.ielts.minimum.toFixed(1)}</span>
           : <span style={small}>Not verified</span>}</div>
       </>}
-      {Array.isArray(report?.requirements)&&report.requirements.length>0&&<div style={{margin:'8px 0'}}><strong style={{fontSize:11,color:'#315a44'}}>Other published requirements</strong>{report.requirements.map((r,i)=><p key={i} style={small}><strong>{r.label}: </strong>{r.evidence} <a href={r.sourceUrl} target="_blank" rel="noopener noreferrer">Source</a></p>)}</div>}
-      <div style={row}><span>Application deadline</span><strong style={{fontSize:11,color:'#315a44'}}>{report?.deadline?.date||'Not officially verified'}</strong></div>
-      <p style={small}>{report?.notes||'The system automatically searches official university pages for this programme and intake. No admission criteria need to be entered manually.'}</p>
+      {Array.isArray(report?.requirements)&&report.requirements.length>0&&<div style={{margin:'8px 0'}}><strong style={{fontSize:11,color:'#315a44'}}>Other requirements</strong>{report.requirements.map((r,i)=><p key={i} style={small}><strong>{r.label}: </strong>{r.evidence} <a href={r.sourceUrl} target="_blank" rel="noopener noreferrer">Source</a></p>)}</div>}
+      <div style={row}><span>Deadline</span><strong style={{fontSize:11,color:'#315a44'}}>{report?.deadline?.date||'Not officially verified'}</strong></div>
+      <p style={small}>{report?.notes||'Enter the university and programme only. The system checks the admission criteria automatically.'}</p>
       {sources.length>0&&<div style={{display:'flex',gap:7,flexWrap:'wrap',marginTop:8}}>
         {sources.slice(0,3).map(src=><a key={src.url} href={src.url} target="_blank" rel="noopener noreferrer"
           style={{fontSize:11,color:'#286e52',textDecoration:'underline'}} title={src.title}>Official source</a>)}
       </div>}
-      {report?.checkedAt&&<small style={{display:'block',...small,marginTop:6}}>Checked {prettyDate(report.checkedAt)} · Programme-specific evidence only. Other rules (IELTS bands, qualification equivalency, references, capacity) may still apply.</small>}
+      {report?.checkedAt&&<small style={{display:'block',...small,marginTop:6}}>Checked {prettyDate(report.checkedAt)} · Final admission still depends on the university's full process.</small>}
       {ownerMode&&<button type="button" onClick={reload} disabled={busy} style={{marginTop:9,border:'1px solid #cee4d4',borderRadius:8,background:'#eff8f1',color:'#226748',fontSize:11,fontWeight:700,padding:'7px 10px'}}>
-        {busy?'Checking official university pages…':'Refresh automatic research'}
+        {busy?'Checking official criteria…':'Refresh criteria'}
       </button>}
       {message&&<p role="status" style={{...small,color:'#9b563d'}}>{message}</p>}
-      <small style={{display:'block',...small,marginTop:8}}>No percentage-based admission prediction. This checks published overall thresholds, not IELTS band scores or full application eligibility. Unconfirmed requirements stay unverified.</small>
+      <small style={{display:'block',...small,marginTop:8}}>This is a short criteria summary from official pages when available. Final admission depends on the university.</small>
     </div>
   </details>;
 }
@@ -3188,6 +3188,7 @@ function hifzProgress(entries) {
 }
 
 function HifzOverview({quran,ownerMode}){
+  /* V59 FRIENDLIER UI COPY */
   const [forecastDay,setForecastDay]=useState(dayISO());
   const [forecastRefresh,setForecastRefresh]=useState(0);
   useEffect(()=>{const timer=window.setInterval(()=>setForecastDay(dayISO()),60000);return ()=>window.clearInterval(timer);},[]);
@@ -3213,30 +3214,30 @@ function HifzOverview({quran,ownerMode}){
         {name:'Revision',rounds:stats.revisionRounds,current:stats.revisionCurrent,avg:stats.revisionAvg,
          remaining:stats.revisionRemaining,days:stats.revisionDays,date:stats.revisionDate}].map(item=><div key={item.name}
         style={{...tile,flex:'1 1 200px'}}>
-        <strong style={{color:'#285b41'}}>{item.name} · Quran completed {item.rounds} {item.rounds===1?'time':'times'} (page count)</strong>
-        <div style={{marginTop:4}}>{item.current}/{stats.total} pages · {(item.current/stats.total*30).toFixed(1)}/30 para equivalent · Round {item.rounds+1}</div>
+        <strong style={{color:'#285b41'}}>{item.name} progress</strong>
+        <div style={{marginTop:4}}>This round: {item.current}/{stats.total} pages · Completed: {item.rounds} full Quran {item.rounds===1?'round':'rounds'}</div>
         <div style={{height:5,background:'#e5eee8',borderRadius:9,overflow:'hidden',margin:'6px 0'}}>
           <div style={{width:(item.current/stats.total*100)+'%',height:'100%',background:'#3b9369'}}/>
         </div>
-        <div>Average: {item.avg.toFixed(2)} pages/day · {item.remaining} pages remaining</div>
-        <div>{item.days!==null?('Estimated next round: '+item.days+' days · '+item.date):'Add page entries to estimate the next round'}</div>
+        <div>Average: {item.avg.toFixed(2)} pages/day · Remaining: {item.remaining} pages</div>
+        <div>{item.days!==null?('At this pace: about '+item.days+' days left · Expected by '+item.date):'Add a few more page entries to estimate completion time'}</div>
       </div>)}
     </div>
-    <small style={{fontSize:10,color:'#748779',display:'block',marginBottom:8}}>Automatically recalculated whenever entries change, using recent daily page averages (including days without entries). A full Mushaf page count completes a 30-para-equivalent round; any extra pages carry into the next round. Mistakes and history remain saved. Counts do not certify memorization or unique-page coverage; accurate page ranges and mistake tracking remain important.</small>
+    <small style={{fontSize:10,color:'#748779',display:'block',marginBottom:8}}>The estimate updates automatically from your saved page entries. One full Mushaf page count completes one Quran round. History and mistakes stay saved. This is a helper estimate only, not a final Hifz judgement.</small>
     <div style={{display:'flex',justifyContent:'space-between',gap:8,fontSize:11,color:'#4b715a'}}>
-      <span>{stats.strong}/{stats.total} strongly reviewed pages*</span><span>{value.toFixed(1)}%</span>
+      <span>{stats.strong}/{stats.total} well reviewed pages*</span><span>{value.toFixed(1)}%</span>
     </div>
     <div role="progressbar" aria-valuenow={stats.strong} aria-valuemin={0} aria-valuemax={stats.total} aria-label="Pages meeting review rule"
       style={{height:6,borderRadius:99,overflow:'hidden',background:'#eaf0eb',margin:'6px 0 7px'}}>
       <div style={{width:value+'%',height:'100%',background:'linear-gradient(90deg,#58ac7a,#1e6446)',borderRadius:99}}/>
     </div>
     <p style={{fontSize:11,lineHeight:1.6,color:'#607c69',margin:0}}>
-      {stats.learnedUnique} unique new pages · {stats.reviewedUnique} unique revision pages.
-      {stats.expectedDays?` Workload estimate: ~${stats.expectedDays} more days at the recent review pace (not a guarantee).`:
-       ' Add at least 5 logged practice days to see a rough workload estimate.'}
+      Tracked unique pages: {stats.learnedUnique} learning · {stats.reviewedUnique} revision.
+      {stats.expectedDays?` Revision strength may improve in about ${stats.expectedDays} more days at the recent pace.`:
+       ' Add a few more daily entries to improve the estimate.'}
     </p>
     <small style={{fontSize:10,color:'#8b9c8e',lineHeight:1.5,display:'block',marginTop:5}}>
-      *3 clean review dates spanning at least 7 days, including the last 2 reviews. This is an organizational indicator, not a Hifz certification. Pages without exact page ranges cannot be counted as mastered.
+      *Well reviewed means a page was revised cleanly at least 3 times across 7 or more days, including the last 2 reviews. This is only a helper indicator. Pages without exact page ranges cannot be counted here.
     </small>
   </section>;
 }
@@ -3310,7 +3311,7 @@ function QuranPanel({ ownerMode, quran, busy, onAdd, onDelete }) {
       <button className="tm-primary tm-wide" type="submit" disabled={busy}>Save reading</button>
     </form>}
     <h3 className="tmv-subheading">Reading history</h3>
-    {sorted.length ? <div className="tmv-history-items">{sorted.map(item=><div className="tmv-reading-history" key={item.id}><span className="tmv-book-symbol"><BookOpen size={19}/></span><div><strong>{item.hifz ? `Hifz · ${item.hifz.newPages} new · ${item.hifz.revisionPages} revised · Mistakes ${item.hifz.newMistakes}/${item.hifz.revisionMistakes}` : `Para ${item.para} · ${item.pagesRead} ${Number(item.pagesRead)===1?'page':'pages'}`}</strong><small>{prettyDate(item.date)}{item.fromPage ? ` · Page ${item.fromPage}${item.toPage?`–${item.toPage}`:''}` : ''}</small>{item.note&&<p>{item.note}</p>}</div>{ownerMode&&<button type="button" disabled={busy} aria-label="Delete reading" onClick={()=>onDelete(item)}><Trash2 size={18}/></button>}</div>)}</div>:<p className="tmv-empty-note">No Quran readings have been recorded yet.</p>}
+    {sorted.length ? <div className="tmv-history-items">{sorted.map(item=><div className="tmv-reading-history" key={item.id}><span className="tmv-book-symbol"><BookOpen size={19}/></span><div><strong>{item.hifz ? `Hifz · ${item.hifz.newPages} learning · ${item.hifz.revisionPages} revision · Mistakes ${item.hifz.newMistakes}/${item.hifz.revisionMistakes}` : `Para ${item.para} · ${item.pagesRead} ${Number(item.pagesRead)===1?'page':'pages'}`}</strong><small>{prettyDate(item.date)}{item.fromPage ? ` · Page ${item.fromPage}${item.toPage?`–${item.toPage}`:''}` : ''}</small>{item.note&&<p>{item.note}</p>}</div>{ownerMode&&<button type="button" disabled={busy} aria-label="Delete reading" onClick={()=>onDelete(item)}><Trash2 size={18}/></button>}</div>)}</div>:<p className="tmv-empty-note">No Quran readings have been recorded yet.</p>}
   </section>;
 }
 
