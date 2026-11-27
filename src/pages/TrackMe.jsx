@@ -2134,7 +2134,7 @@ function MonthlyProgress({ entries, days, quran, selectedDate, onSelectDate }) {
   }, [entries, days, quran]);
   const chosen = model.calendar.find(d => d.date === selectedDate);
   const active = chosen?.score !== null && !chosen?.future ? chosen : null;
-  return <section className="tmv-v39-month-progress" aria-label={`Monthly recorded progress for ${model.monthName}`}>
+  return <section className="tmv-v39-month-progress" id="tmv-v61-month" aria-label={`Monthly recorded progress for ${model.monthName}`}>
     <div className="tmv-v39-month-header">
       <div className="tmv-v39-month-title"><TrendingUp size={16} aria-hidden="true"/>
         <h2>{model.monthName} Progress</h2>
@@ -2149,7 +2149,7 @@ function MonthlyProgress({ entries, days, quran, selectedDate, onSelectDate }) {
         </button>
       </span>
     </div>
-    <div className="tmv-v39-month-graph" role="group" aria-label="Tap a day to view its saved daily updates">
+    <div className="tmv-v61-chart-scroll"><div className="tmv-v39-month-graph" role="group" aria-label="Tap a day to view its saved daily updates">
       {model.calendar.map(d => {
         const score = d.score;
         const recorded = score !== null;
@@ -2171,7 +2171,7 @@ function MonthlyProgress({ entries, days, quran, selectedDate, onSelectDate }) {
         </button>;
       })}
     </div>
-    <div className="tmv-v39-month-info">
+    </div><div className="tmv-v39-month-info">
       <div className="tmv-v39-month-metrics">
         <span><b>Best</b> {model.best ? `${model.best.day} · ${model.best.score}%` : '—'}</span>
         <span><b>Lowest</b> {model.least ? `${model.least.day} · ${model.least.score}%` : '—'}</span>
@@ -2813,9 +2813,9 @@ function DailyInspiration({language='en'}) {
 
 /* V60 MY LIFE — separate full-screen dashboard; no external dependencies. */
 const MY_LIFE_SECTIONS={finance:['Finance','مالیات','Income, expenses and savings','آمدنی، اخراجات اور بچت','◈'],plans:['Future Plans','مستقبل کے منصوبے','Goals and milestones','اہداف اور کامیابیاں','◎'],books:['Book Reading','کتابیں','Reading progress and lessons','مطالعہ اور سیکھنے کا سفر','▤'],travel:['Travel History','سفر کی تاریخ','Places, trips and memories','مقامات، سفر اور یادیں','✈']};
-function MyLifeLauncher({ownerMode}){
+function MyLifeLauncher({ownerMode,nav=false,language='en'}){
   const [open,setOpen]=useState(false);
-  return <><button type="button" onClick={()=>setOpen(true)} title="My Life" style={{border:'1px solid #c6ded0',borderRadius:9,background:'#f3faf5',color:'#255c43',fontSize:11,fontWeight:750,padding:'6px 10px',cursor:'pointer',whiteSpace:'nowrap'}}>My Life</button>{open&&myLifePortal(<MyLifeScreen ownerMode={ownerMode} onClose={()=>setOpen(false)}/>,document.body)}</>;
+  return <><button type="button" onClick={()=>setOpen(true)} title="My Life" className={nav?'tmv-v61-nav-life':undefined} style={{border:'1px solid #c6ded0',borderRadius:9,background:'#f3faf5',color:'#255c43',fontSize:11,fontWeight:750,padding:'6px 10px',cursor:'pointer',whiteSpace:'nowrap'}}>{nav&&<UserRound size={20}/>}<span>{language==='ur'?'میری زندگی':'My Life'}</span></button>{open&&myLifePortal(<MyLifeScreen ownerMode={ownerMode} onClose={()=>setOpen(false)}/>,document.body)}</>;
 }
 function MyLifeScreen({ownerMode,onClose}){
   const [lang,setLang]=useState('en');
@@ -2865,7 +2865,7 @@ function MyLifeScreen({ownerMode,onClose}){
   const pastMonths=[...new Set(finance.filter(x=>x.kind!=='target'&&x.date.slice(0,7)<today.slice(0,7)).map(x=>x.date.slice(0,7)))];
   const historic=finance.filter(x=>pastMonths.includes(x.date.slice(0,7)));
   const pace=pastMonths.length?(sum(historic,'income')-sum(historic,'expense'))/pastMonths.length:0;
-  return <div role="dialog" aria-modal="true" aria-label="My Life" dir={lang==='ur'?'rtl':'ltr'} style={{position:'fixed',inset:0,zIndex:2147483000,overflowY:'auto',background:'#f4f8f4',color:'#234b36',fontFamily:'inherit',lineHeight:1.5}}>
+  return <div role="dialog" aria-modal="true" aria-label="My Life" className="tmv-v61-life-screen" dir={lang==='ur'?'rtl':'ltr'} style={{position:'fixed',inset:0,zIndex:2147483000,overflowY:'auto',background:'#f4f8f4',color:'#234b36',fontFamily:'inherit',lineHeight:1.5}}>
     <main style={{maxWidth:960,margin:'0 auto',padding:'20px 14px 48px'}}>
       <header style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:8,flexWrap:'wrap',marginBottom:14}}><button type="button" style={btn} onClick={onClose}>← {t('Back to Track Me','ٹریک می پر واپس')}</button><div style={{display:'flex',gap:6}}><button type="button" style={btn} onClick={()=>setLang(l=>l==='en'?'ur':'en')}>{lang==='en'?'اردو':'English'}</button><button type="button" style={btn} disabled={busy} onClick={()=>request({action:'my_life_get'})}>{t('Refresh','تازہ کریں')}</button></div></header>
       <div style={{background:'linear-gradient(125deg,#153f30,#286345)',color:'#fff',borderRadius:20,padding:'22px 24px',marginBottom:16}}><div style={{fontSize:11,letterSpacing:2,color:'#b9d8c6'}}>{t('LIFE OPERATING SYSTEM','زندگی کا نظام')}</div><h1 style={{fontSize:30,margin:'4px 0',color:'#fff'}}>{t('My Life','میری زندگی')}</h1><div style={{color:'#d7e9dd',fontSize:14}}>{t('Manage today. Build tomorrow. Remember the journey.','آج کو سنواریں، کل بنائیں، سفر یاد رکھیں۔')}</div></div>
@@ -2983,7 +2983,7 @@ function FamilyToday({ entries, days, quran, viewDate, setViewDate, onOpen, onOp
   return <div className="tmv-family-view tmv-v32-home">
     <div className="tmv-v32-intro">
       <span className="tmv-v32-kicker" style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:7}}>
-        <MyLifeLauncher ownerMode={ownerMode}/>
+        <span className="tmv-v61-desktop-life"><MyLifeLauncher ownerMode={ownerMode}/></span>
         {ownerMode ? 'THE DAILY JOURNAL' : <FamilyTimeGreeting viewer={viewer}/>}
         {!ownerMode&&<button type="button" onClick={onOpenToday30} title="Ahsan's Today in 30 Seconds"
           aria-label="Watch Ahsan's Today in 30 Seconds" style={{display:'inline-flex',alignItems:'center',gap:3,
@@ -3018,7 +3018,7 @@ function FamilyToday({ entries, days, quran, viewDate, setViewDate, onOpen, onOp
         </div>
       </div>
     </div>
-    {!ownerMode&&<DailyInspiration language={language}/>}
+    {!ownerMode&&<div className="tmv-v61-reflection"><DailyInspiration language={language}/></div>}
     {listenError && <div className="tmv-mini-toast" role="status">{listenError}</div>}
     {ownerMode && love?.names?.length > 0 && <small className="tmv-v37-owner-love">❤️ Loved by {love.names.map(name => FAMILY_IDENTITY[name]?.name || name).join(', ')}</small>}
     <div className="tmv-v32-sectiontitle tmv-v34-sectiontitle"><h2>Daily Life</h2><span>Simple daily overview</span></div>
@@ -3413,6 +3413,7 @@ function WorkPanel({ ownerMode, section, entries, busy, search, setSearch, filte
   </section>;
 }
 
+/* V61 PREMIUM JOURNAL UI */
 export default function TrackMe() {
   const [showStandaloneSplash, setShowStandaloneSplash] = useState(() =>
     typeof window !== 'undefined' && !window.__trackMeDedicatedEntry && (
@@ -3695,7 +3696,7 @@ export default function TrackMe() {
   if(loading)return <main className="tm-page tm-loading" role="status"><div className="tm-spinner"/><p>Opening family updates…</p></main>;
   if(!authenticated)return <main className="tm-page"><LoginScreen password={password} setPassword={setPassword} onSubmit={signIn} busy={busy} error={loginError}/></main>;
   if(welcome)return <main className="tm-page"><CautionWelcome viewer={familyViewer} onContinue={()=>setWelcome(false)}/></main>;
-  return <main ref={familySmartRootRef} className="tm-page tmv-family"><div className="tm-shell tmv-shell">
+  return <main ref={familySmartRootRef} className="tm-page tmv-family tmv-v61" data-v61-section={section}><div className="tm-shell tmv-shell">
     <header className="tmv-header"><button type="button" className="tmv-brand" onClick={()=>go('overview')} aria-label="Go to Ahsan's daily updates"><AhsanAvatar className="tmv-avatar-header"/><span><strong><AhsanName/>’s Updates</strong><small>Family journal</small></span></button><div className="tmv-mini-header-actions">{!ownerMode&&<div data-family-lang-ignore="true" role="group" aria-label="Family language" style={{display:'inline-flex',alignItems:'center',gap:2,whiteSpace:'nowrap',padding:'2px 4px',border:'1px solid #d9e8df',borderRadius:8,background:'#f5faf6',fontSize:10}}>
       <button type="button" aria-pressed={familyLang==='en'} onClick={()=>setFamilyLang('en')} style={{border:0,background:'transparent',color:familyLang==='en'?'#145b3d':'#88998d',fontWeight:familyLang==='en'?800:500,padding:'3px 2px',cursor:'pointer'}}>EN</button>
       <span aria-hidden="true" style={{color:'#9aa99f'}}>|</span>
@@ -3712,6 +3713,16 @@ export default function TrackMe() {
     {section==='quran'&&<QuranPanel ownerMode={ownerMode} quran={quranEntries} busy={busy} onAdd={addQuran} onDelete={deleteQuran}/>}
     <div className="tmv-bottom"><p>Only for <AhsanName/>’s family.</p></div>
     <div className="tmv-install-footer"><InstallShortcut/></div>
+    <nav className="tmv-v61-nav" aria-label="Quick navigation" data-family-lang-ignore="true">
+      <button type="button" className={section==='overview'?'is-active':''} aria-current={section==='overview'?'page':undefined} onClick={()=>go('overview')}><Home size={20}/><span>{!ownerMode&&familyLang==='ur'?'ہوم':'Home'}</span></button>
+      <button type="button" onClick={()=>{go('overview');window.requestAnimationFrame(()=>window.requestAnimationFrame(()=>document.getElementById('tmv-v61-month')?.scrollIntoView({block:'start',behavior:'auto'})));}}><CalendarDays size={20}/><span>{!ownerMode&&familyLang==='ur'?'ریکارڈ':'History'}</span></button>
+      <MyLifeLauncher ownerMode={ownerMode} nav language={ownerMode?'en':familyLang}/>
+      <button type="button" onClick={()=>setSummaryOpen(true)}><Sparkles size={20}/><span>{!ownerMode&&familyLang==='ur'?'معاون':'AI'}</span></button>
+      <details className="tmv-v61-more"><summary><Menu size={20}/><span>{!ownerMode&&familyLang==='ur'?'مزید':'More'}</span></summary><div className="tmv-v61-menu">
+        {[["prayer","Prayer","نماز"],["quran","Quran Reading","قرآن"],["office","Office Work","دفتر"],["university","University","یونیورسٹی"],["personal","Personal Life","ذاتی زندگی"]].map(([key,en,ur])=><button type="button" key={key} onClick={e=>{e.currentTarget.closest('details').open=false;go(key);}}>{!ownerMode&&familyLang==='ur'?ur:en}</button>)}
+        <button type="button" onClick={e=>{e.currentTarget.closest('details').open=false;signOut();}}><LogOut size={16}/>{!ownerMode&&familyLang==='ur'?'لاگ آؤٹ':'Log out'}</button>
+      </div></details>
+    </nav>
   </div>
   {seenOpen && ownerMode && <SeenByWeekModal onClose={()=>setSeenOpen(false)}/>}
   {today30Open && !ownerMode && <AhsanToday30Modal entries={entries} prayerDays={prayerDays} quran={quranEntries} onClose={()=>setToday30Open(false)}/>}
