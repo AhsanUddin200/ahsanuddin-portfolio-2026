@@ -2914,6 +2914,79 @@ function V62Count({value,motionOff}){
 }
 function V62Skeleton(){return <div className="tmv-v62-skeleton" role="status" aria-label="Opening family updates"><div className="tmv-v62-skeleton-head"><AhsanAvatar/><div><i/><i/></div></div><div className="tmv-v62-skeleton-hero"><i/><i/><i/></div><div className="tmv-v62-skeleton-line"/><div className="tmv-v62-skeleton-pair"><i/><i/></div><div className="tmv-v62-skeleton-line"/>{[1,2,3,4].map(n=><div key={n} className="tmv-v62-skeleton-row"><i/><div><i/><i/></div></div>)}<span>Opening family updates…</span></div>;}
 
+/* V65 OPEN DAILY JOURNAL — read-only presentation of existing records. */
+const v65Number = value => Math.max(0,Number(value)||0);
+const v65Date = value => { if(!value)return '';const text=String(value);if(/^\d{4}-\d{2}-\d{2}$/.test(text))return text;const parsed=new Date(value);return Number.isNaN(parsed.getTime())?'':dayISO(parsed); };
+const v65Title = (item,section) => section==='university'?(item.meta?.university||item.title):section==='office'?(item.meta?.project||item.title):item.title;
+function v65WorkData(entries,section,date){
+  const items=(entries||[]).filter(item=>item.section===section && (!v65Date(item.createdAt||item.updatedAt)||v65Date(item.createdAt||item.updatedAt)<=date));
+  const notes=items.flatMap(item=>(item.logs||[]).filter(log=>v65Date(log.createdAt)&&v65Date(log.createdAt)<=date).map(log=>({item,log,at:log.createdAt,date:v65Date(log.createdAt),kind:'note'})));
+  const events=[...notes];
+  for(const item of items){
+    const logged=new Set(notes.filter(n=>n.item===item).map(n=>n.date));
+    const dates=new Map();
+    for(const [kind,at] of [['created',item.createdAt],['updated',item.updatedAt]]){
+      const d=v65Date(at);if(!d||d>date||logged.has(d))continue;
+      if(!dates.has(d)||String(at)>String(dates.get(d).at))dates.set(d,{item,at,date:d,kind});
+    }
+    events.push(...dates.values());
+  }
+  events.sort((a,b)=>String(b.at).localeCompare(String(a.at)));
+  const daily=events.filter(x=>x.date===date).sort((a,b)=>String(a.at).localeCompare(String(b.at)));
+  return {daily,latest:events[0]||null};
+}
+function V65JournalCard({type,title,subtitle,fresh,date,language,onOpen,children}){
+  const [video,setVideo]=useState(false);
+  useEffect(()=>setVideo(false),[date]);
+  const ur=language==='ur';
+  const links={quran:['Reading history','تلاوت کی تاریخ'],office:['View all projects','تمام منصوبے'],university:['Application history','درخواستوں کی تاریخ'],personal:['View all activities','تمام سرگرمیاں']};
+  return <article className={`tmv-v65-card tmv-v32-item-${type}`}>
+    <div className="tmv-v65-head">
+      <span className="tmv-v65-icon"><CategoryArtwork type={type}/></span>
+      <div className="tmv-v65-heading"><h3>{title}</h3><p>{subtitle}</p></div>
+      {fresh&&<span className="tmv-v65-fresh" title={ur?'گزشتہ وزٹ کے بعد نئی اپڈیٹ':'New since your last visit'} aria-label={ur?'نئی اپڈیٹ':'New update'}/>}
+    </div>
+    {children}
+    {video&&<div className="tmv-v65-media"><FamilyCardVideo key={`${type}-${date}`} category={type} date={date}/></div>}
+    <div className="tmv-v65-footer">
+      <button type="button" className="tmv-v65-history" onClick={()=>onOpen(type)}>{links[type][ur?1:0]}<ArrowRight size={16}/></button>
+      <button type="button" className="tmv-v65-video" onClick={()=>setVideo(v=>!v)} aria-expanded={video} aria-label={video?(ur?'ویڈیو بند کریں':'Hide video'):(ur?'ویڈیو دکھائیں':'Show video')} title={video?'Hide video':'Show video'}>{video?<X size={15}/>:<Play size={15}/>}</button>
+    </div>
+  </article>;
+}
+function V65QuranCard({quran,date,language,onOpen,fresh}){
+  const ur=language==='ur',t=(en,urdu)=>ur?urdu:en;
+  const readings=(quran||[]).filter(x=>x.date===date).sort((a,b)=>String(a.createdAt).localeCompare(String(b.createdAt)));
+  const structured=readings.filter(x=>x.hifz);
+  const normal=readings.filter(x=>!x.hifz);
+  const sum=key=>structured.reduce((n,x)=>n+v65Number(x.hifz[key]),0);
+  const latest=[...(quran||[])].filter(x=>x.date&&x.date<date).sort((a,b)=>String(b.date).localeCompare(String(a.date))||String(b.createdAt).localeCompare(String(a.createdAt)))[0];
+  const stats=hifzProgress((quran||[]).filter(x=>x.date&&x.date<=date));
+  const pct=stats.sessions&&stats.total?Math.min(100,Math.max(0,Math.round(stats.learningCurrent/stats.total*100))):0;
+  return <V65JournalCard type="quran" title={t('Quran & Hifz','قرآن اور حفظ')} subtitle={readings.length?t('Recorded for this day','اس دن کا ریکارڈ موجود ہے'):t('No reading recorded for this day','اس دن تلاوت درج نہیں ہوئی')} {...{date,language,onOpen,fresh}}>
+    {structured.length>0&&<div className="tmv-v65-quran-grid">{[[t('New learning','نیا سبق'),sum('newPages'),sum('newMistakes')],[t('Revision','دہرائی'),sum('revisionPages'),sum('revisionMistakes')]].map(([name,pages,mistakes])=><div className="tmv-v65-metric" key={name}><span>{name}</span><div><strong>{pages}</strong> <small>{t('pages','صفحات')}</small></div><small>{mistakes} {t('mistakes recorded','غلطیاں درج ہیں')}</small></div>)}</div>}
+    {normal.length>0&&<p className="tmv-v65-note">{t('Other Quran reading:','دیگر تلاوت:')} {normal.reduce((n,x)=>n+v65Number(x.pagesRead),0)} {t('pages','صفحات')}</p>}
+    {readings.length>0&&<div className="tmv-v65-timeline">{readings.map((r,i)=><div className="tmv-v65-event" key={r.id||`${r.createdAt}-${i}`}><span className="tmv-v65-point"/><div><strong>{r.hifz?`${v65Number(r.hifz.newPages)} ${t('learning','سبق')} · ${v65Number(r.hifz.revisionPages)} ${t('revision','دہرائی')}`:`${t('Para','پارہ')} ${r.para??'—'} · ${v65Number(r.pagesRead)} ${t('pages','صفحات')}`}</strong>{r.note&&<p>{r.note}</p>}</div></div>)}</div>}
+    {!readings.length&&latest&&<div className="tmv-v65-fallback"><small>{t('Last recorded reading','آخری درج شدہ تلاوت')} · {prettyDate(latest.date)}</small><strong>{latest.hifz?`${v65Number(latest.hifz.newPages)} ${t('learning','سبق')} · ${v65Number(latest.hifz.revisionPages)} ${t('revision','دہرائی')}`:`${t('Para','پارہ')} ${latest.para??'—'} · ${v65Number(latest.pagesRead)} ${t('pages','صفحات')}`}</strong>{latest.note&&<p>{latest.note}</p>}</div>}
+    {stats.sessions>0&&Number.isFinite(stats.learningCurrent)&&<div className="tmv-v65-round">
+      <svg viewBox="0 0 80 80" aria-hidden="true"><circle cx="40" cy="40" r="32" fill="none" stroke="#e2ebe3" strokeWidth="6"/><circle cx="40" cy="40" r="32" fill="none" stroke="currentColor" strokeWidth="6" strokeLinecap="round" pathLength="100" strokeDasharray={`${pct} 100`} transform="rotate(-90 40 40)"/><text x="40" y="45" textAnchor="middle" fill="currentColor" fontSize="17" fontWeight="700">{pct}%</text></svg>
+      <div><strong>{t('Learning round progress','سبق کے موجودہ دور کی پیش رفت')}</strong><p>{stats.learningCurrent}/{stats.total} {t('pages','صفحات')} · {stats.learningRounds} {t('rounds completed','دور مکمل')}</p><p>{t('Revision round:','دہرائی کا دور:')} {stats.revisionCurrent}/{stats.total} · {stats.revisionRounds} {t('completed','مکمل')}</p>{date===dayISO()&&stats.learningDays!=null&&<p>{t('Estimated next learning round:','سبق کا اگلا دور تقریباً:')} {stats.learningDays} {t('days','دن')}</p>}{date===dayISO()&&stats.revisionDays!=null&&<p>{t('Estimated next revision round:','دہرائی کا اگلا دور تقریباً:')} {stats.revisionDays} {t('days','دن')}</p>}<small>{t('Based on recorded page counts, not verified memorization.','درج شدہ صفحات کی تعداد پر مبنی، مکمل حفظ کی تصدیق نہیں۔')}</small></div>
+    </div>}
+  </V65JournalCard>;
+}
+function V65WorkCard({entries,section,date,language,onOpen,fresh}){
+  const ur=language==='ur',t=(en,urdu)=>ur?urdu:en;
+  const {daily,latest}=v65WorkData(entries,section,date);
+  const names={office:t('Office Work','دفتر کا کام'),university:t('University','یونیورسٹی'),personal:t('Personal Life','ذاتی زندگی')};
+  const time=at=>{const d=new Date(at);return /^\d{4}-\d{2}-\d{2}$/.test(String(at))||Number.isNaN(d.getTime())?'':d.toLocaleTimeString(ur?'ur-PK':'en-PK',{hour:'numeric',minute:'2-digit'});};
+  const eventText=x=>x.kind==='note'?x.log.note:x.kind==='created'?t('Record created','ریکارڈ بنایا گیا'):t('Record updated','ریکارڈ اپڈیٹ ہوا');
+  const status=item=>section==='university'?(APP_STATUS[item.meta?.applicationStatus]||STATUS[item.status]||t('Saved','محفوظ')):(STATUS[item.status]||t('Saved','محفوظ'));
+  const showItem=item=><><strong>{v65Title(item,section)}</strong>{section==='university'&&item.meta?.program&&<p>{item.meta.program}</p>}{section==='university'&&item.meta?.upcomingDate&&<p>{t('Important date:','اہم تاریخ:')} {prettyDate(item.meta.upcomingDate)} · {t('Current saved information','موجودہ محفوظ معلومات')}</p>}<small>{t('Current saved status:','موجودہ محفوظ حیثیت:')} {status(item)}</small></>;
+  return <V65JournalCard type={section} title={names[section]} subtitle={daily.length?`${daily.length} ${t(daily.length===1?'recorded update':'recorded updates','درج شدہ اپڈیٹس')}`:t('No new update for this day','اس دن کوئی نئی اپڈیٹ نہیں')} {...{date,language,onOpen,fresh}}>
+    {daily.length>0?<div className="tmv-v65-timeline">{daily.map((x,i)=><div className="tmv-v65-event" key={`${x.item.id||i}-${x.at}-${i}`}><span className="tmv-v65-point"/><div>{showItem(x.item)}<p>{eventText(x)}</p>{x.kind!=='note'&&x.item.detail&&<p>{t('Current saved description:','موجودہ محفوظ تفصیل:')} {x.item.detail}</p>}{time(x.at)&&<small>{time(x.at)}</small>}</div></div>)}</div>:latest?<div className="tmv-v65-fallback"><small>{t('Latest saved update','آخری محفوظ اپڈیٹ')} · {prettyDate(latest.date)}</small>{showItem(latest.item)}<p>{eventText(latest)}</p>{latest.kind!=='note'&&latest.item.detail&&<p>{t('Current saved description:','موجودہ محفوظ تفصیل:')} {latest.item.detail}</p>}</div>:null}
+  </V65JournalCard>;
+}
+
 function FamilyToday({ entries, days, quran, viewDate, setViewDate, onOpen, onOpenSummary, ownerMode, onNew, love, loveBusy, onLove, ownerPin, onOpenLifeMap, onOpenQuestions, questionsPending, onOpenSeen, viewer, onOpenToday30, language = 'en', motionOff=false, newTypes='', onRefresh, refreshing=false }) {
   const [expanded, setExpanded] = useState(null);
   const hifzStats = hifzProgress(quran);
@@ -3077,30 +3150,11 @@ function FamilyToday({ entries, days, quran, viewDate, setViewDate, onOpen, onOp
       </span>
       <button type="button" onClick={() => setShowEmptyDayToast(false)} aria-label="Dismiss notification"><X size={17}/></button>
     </div>}
-    <div className="tmv-v32-sectiontitle tmv-v32-life-title"><h2>Life &amp; Progress</h2><div className="tmv-v41-life-tray"><span className="tmv-v41-life-hint">Only what matters</span><button type="button" className="tmv-v42-open-map" onClick={onOpenLifeMap} aria-label="Open Ahsan's Life Map" title="Life Map"><MapPinned size={15}/><span>Life Map</span></button><FamilyMoment date={viewDate} ownerMode={ownerMode} ownerPin={ownerPin}/></div></div>
+    <div className="tmv-v32-sectiontitle tmv-v32-life-title"><h2>{viewDate===dayISO()? (language==='ur'?'آج کا روزنامچہ':"Today's Journal"):(language==='ur'?'منتخب دن کا روزنامچہ':'Daily Journal')}</h2><div className="tmv-v41-life-tray"><span className="tmv-v41-life-hint">{prettyDate(viewDate)}</span><button type="button" className="tmv-v42-open-map" onClick={onOpenLifeMap} aria-label="Open Ahsan's Life Map" title="Life Map"><MapPinned size={15}/><span>Life Map</span></button><FamilyMoment date={viewDate} ownerMode={ownerMode} ownerPin={ownerPin}/></div></div>
     {viewDate===dayISO()&&newTypes&&<p className="tmv-v62-new-legend" data-family-lang-ignore="true"><i/>{language==='ur'?'گزشتہ وزٹ کے بعد نئی اپڈیٹ':'New since your last visit'}</p>}
-    <section className="tmv-v32-life" data-v62-new={viewDate===dayISO()?newTypes:''} aria-label="Life and progress">
-      <V32LifeItem type="quran" date={viewDate} title="Quran Reading" summary={quranSummary}
-        status={read.length ? 'Recorded' : 'No update'} extra={[quranExtra, hifzStats.sessions ? `Hifz: ${hifzStats.newPages} learning page${hifzStats.newPages===1?'':'s'} · ${hifzStats.revisionPages} revision page${hifzStats.revisionPages===1?'':'s'}` : 'Hifz: no practice logged yet'].filter(Boolean).join(' · ')}
-        expanded={expanded === 'quran'} onToggle={() => toggle('quran')} onOpen={onOpen}>
-        <p style={{margin:'0 0 8px',fontSize:12,color:'#315c44'}}>
-          <strong>Hifz · Learning & Revision:</strong>{' '}
-          {hifzStats.sessions
-            ? `${hifzStats.newPages} learning pages · ${hifzStats.revisionPages} revision pages · Mistakes ${hifzStats.newMistakes}/${hifzStats.revisionMistakes}`
-            : 'No structured Hifz practice saved yet. Older normal Quran readings are kept separate.'}
-        </p>
-        {read.length ? read.map(item => <p key={item.id || item.createdAt}>
-          <strong>{item.hifz ? `${item.hifz.newPages} learning · ${item.hifz.revisionPages} revision · Mistakes ${item.hifz.newMistakes}/${item.hifz.revisionMistakes}` : `Para ${item.para} · ${item.pagesRead} ${Number(item.pagesRead)===1?'page':'pages'}`}</strong>
-          {item.note ? ` — ${item.note}` : ''}
-        </p>) : lastQuranReading ? <p>No reading was recorded for this selected day. Last reading: <strong>Para {lastQuranReading.para}, {lastQuranReading.pagesRead} pages</strong> on {prettyDate(lastQuranReading.date)}.</p>
-          : <p>No Quran readings recorded for this day yet.</p>}
-      </V32LifeItem>
-      <V32WorkItem section="office" entries={entries} date={viewDate}
-        expanded={expanded === 'office'} onToggle={() => toggle('office')} onOpen={onOpen}/>
-      <V32WorkItem section="university" entries={entries} date={viewDate}
-        expanded={expanded === 'university'} onToggle={() => toggle('university')} onOpen={onOpen}/>
-      <V32WorkItem section="personal" entries={entries} date={viewDate}
-        expanded={expanded === 'personal'} onToggle={() => toggle('personal')} onOpen={onOpen}/>
+    <section className="tmv-v32-life tmv-v65-journal" dir={language==='ur'?'rtl':'ltr'} data-v62-new={viewDate===dayISO()?newTypes:''} aria-label="Life and progress">
+      <V65QuranCard quran={quran} date={viewDate} language={language} onOpen={onOpen} fresh={viewDate===dayISO()&&newTypes.split(' ').includes('quran')}/>
+      {['office','university','personal'].map(section=><V65WorkCard key={section} entries={entries} section={section} date={viewDate} language={language} onOpen={onOpen} fresh={viewDate===dayISO()&&newTypes.split(' ').includes(section)}/>)}
     </section>
     {ownerMode && <button className="tmv-owner-quick" type="button" onClick={() => onNew('office')}><Plus size={18}/> Add a new work task</button>}
     <MonthlyProgress entries={entries} days={days} quran={quran} selectedDate={viewDate} onSelectDate={setViewDate} motionOff={motionOff}/>
